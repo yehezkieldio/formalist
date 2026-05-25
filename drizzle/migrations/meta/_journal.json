@@ -1,5 +1,34 @@
 {
     "dialect": "postgresql",
-    "entries": [],
+    "entries": [
+        {
+            "breakpoints": true,
+            "idx": 0,
+            "tag": "0000_create_vector_extension",
+            "version": "7",
+            "when": 1779717223295
+        },
+        {
+            "breakpoints": true,
+            "idx": 1,
+            "tag": "0001_initial_schema",
+            "version": "7",
+            "when": 1779717223296
+        },
+        {
+            "breakpoints": true,
+            "idx": 2,
+            "tag": "0002_embedding_indexes",
+            "version": "7",
+            "when": 1779717223297
+        },
+        {
+            "breakpoints": true,
+            "idx": 3,
+            "tag": "0003_full_text_indexes",
+            "version": "7",
+            "when": 1779717223298
+        }
+    ],
     "version": "7"
 }

@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import { getDatabaseProviderConfig } from "#/server/db/provider";
+import * as relations from "#/server/db/relations";
 import * as schema from "#/server/db/schema";
 
 let pool: Pool | undefined;
@@ -15,7 +16,7 @@ export function getDatabase() {
 
     pool ??= new Pool({ connectionString: connectionUrl });
 
-    return drizzle({ client: pool, schema });
+    return drizzle({ client: pool, schema: { ...schema, ...relations } });
 }
 
 export type Database = ReturnType<typeof getDatabase>;

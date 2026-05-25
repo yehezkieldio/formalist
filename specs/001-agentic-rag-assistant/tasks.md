@@ -25,31 +25,31 @@
 
 ## Phase 2: Deployment Adapters
 
-- [X] T013 Create deployment mode parser in `src/server/deployment/mode.ts`; Dependencies: T008; Acceptance: unit tests cover `docker-local`, `managed-fallback`, invalid values, and defaults.
-- [X] T014 Create database provider selector in `src/server/db/provider.ts`; Dependencies: T013; Acceptance: local Postgres uses `DATABASE_URL`, Supabase uses `SUPABASE_DATABASE_URL` when present and falls back to `DATABASE_URL`.
-- [X] T015 Create database client factory in `src/server/db/index.ts`; Dependencies: T014; Acceptance: server modules can import a typed Drizzle client without reading env outside provider code.
-- [X] T016 Create queue provider selector in `src/server/queue/provider.ts`; Dependencies: T013; Acceptance: `QUEUE_PROVIDER` resolves to `local-redis`, `upstash-redis`, or `db-fallback` with clear unsupported-combination errors.
-- [X] T017 Create upload root and storage settings health probes in `src/server/deployment/health.ts`; Dependencies: T008; Acceptance: probe reports upload root missing, unwritable, or inside public web root.
-- [X] T018 Create database, pgvector extension, full-text index, queue, and OpenRouter health checks in `src/server/deployment/health.ts`; Dependencies: T014, T016; Acceptance: health output includes database connectivity, vector extension availability, queue status, upload root status, storage flags, and model key availability.
-- [X] T019 [P] Add deployment config tests in `tests/unit/deployment/mode.test.ts` and `tests/unit/deployment/health.test.ts`; Dependencies: T013, T018; Acceptance: tests verify missing OpenRouter key is a degraded state rather than startup failure.
+- [x] T013 Create deployment mode parser in `src/server/deployment/mode.ts`; Dependencies: T008; Acceptance: unit tests cover `docker-local`, `managed-fallback`, invalid values, and defaults.
+- [x] T014 Create database provider selector in `src/server/db/provider.ts`; Dependencies: T013; Acceptance: local Postgres uses `DATABASE_URL`, Supabase uses `SUPABASE_DATABASE_URL` when present and falls back to `DATABASE_URL`.
+- [x] T015 Create database client factory in `src/server/db/index.ts`; Dependencies: T014; Acceptance: server modules can import a typed Drizzle client without reading env outside provider code.
+- [x] T016 Create queue provider selector in `src/server/queue/provider.ts`; Dependencies: T013; Acceptance: `QUEUE_PROVIDER` resolves to `local-redis`, `upstash-redis`, or `db-fallback` with clear unsupported-combination errors.
+- [x] T017 Create upload root and storage settings health probes in `src/server/deployment/health.ts`; Dependencies: T008; Acceptance: probe reports upload root missing, unwritable, or inside public web root.
+- [x] T018 Create database, pgvector extension, full-text index, queue, and OpenRouter health checks in `src/server/deployment/health.ts`; Dependencies: T014, T016; Acceptance: health output includes database connectivity, vector extension availability, queue status, upload root status, storage flags, and model key availability.
+- [x] T019 [P] Add deployment config tests in `tests/unit/deployment/mode.test.ts` and `tests/unit/deployment/health.test.ts`; Dependencies: T013, T018; Acceptance: tests verify missing OpenRouter key is a degraded state rather than startup failure.
 
 ## Phase 3: Database And Migrations
 
-- [ ] T020 Create Drizzle status enum constants and common timestamp helpers in `src/server/db/schema.ts`; Dependencies: T006; Acceptance: enums match `data-model.md` and compile as const values.
-- [ ] T021 Create document, page, chunk, and table chunk tables in `src/server/db/schema.ts`; Dependencies: T020; Acceptance: schema exposes `documents`, `documentPages`, `documentChunks`, and `tableChunks` with required columns and relations.
-- [ ] T022 Create extracted facts, tariff rows, fee rules, aliases, and embeddings tables in `src/server/db/schema.ts`; Dependencies: T020, T021; Acceptance: schema includes review statuses, source references, and pgvector embedding column.
-- [ ] T023 Create extraction issue, chat session, chat message, tool call, chat source, verification, settings, audit log, and ingestion job tables in `src/server/db/schema.ts`; Dependencies: T020; Acceptance: schema covers every table listed in `data-model.md`.
-- [ ] T024 Create Drizzle relation definitions in `src/server/db/relations.ts`; Dependencies: T021, T022, T023; Acceptance: documents relate to pages, chunks, facts, rows, rules, issues, jobs, and audit logs.
-- [ ] T025 Create custom migration for pgvector extension in `drizzle/migrations/0000_create_vector_extension.sql`; Dependencies: T006; Acceptance: migration contains `CREATE EXTENSION IF NOT EXISTS vector`.
-- [ ] T026 Create generated or hand-authored initial migration for all tables in `drizzle/migrations/0001_initial_schema.sql`; Dependencies: T021, T022, T023, T025; Acceptance: migration creates all tables without seed tariff rows.
-- [ ] T027 Create vector HNSW indexes and owner uniqueness indexes in `drizzle/migrations/0002_embedding_indexes.sql`; Dependencies: T026; Acceptance: migration indexes `embeddings.embedding` with cosine operator and `(owner_type, owner_id)`.
-- [ ] T028 Create Postgres full-text GIN indexes for chunks, table chunks, facts, tariff rows, and fee rules in `drizzle/migrations/0003_full_text_indexes.sql`; Dependencies: T026; Acceptance: migration adds full-text indexes over searchable text fields.
-- [ ] T029 Create database query barrel without broad client exports in `src/server/db/queries/index.ts`; Dependencies: T015, T024; Acceptance: query modules import explicitly and avoid client bundle exposure.
-- [ ] T030 Create document and ingestion job query helpers in `src/server/db/queries/documents.ts` and `src/server/db/queries/ingestion-jobs.ts`; Dependencies: T021, T023; Acceptance: helpers cover create, status update, list, detail, and job status operations.
-- [ ] T031 Create review, alias, settings, chat, and audit query helpers in `src/server/db/queries/review.ts`, `aliases.ts`, `settings.ts`, `chat.ts`, and `audit.ts`; Dependencies: T022, T023; Acceptance: helpers enforce active-only numeric lookup and audit mutation support.
-- [ ] T032 Add local and Supabase migration verification scripts in `scripts/verify-local-db.sh` and `scripts/verify-supabase-db.sh`; Dependencies: T025, T026, T027, T028; Acceptance: scripts run migrations and check pgvector extension without creating seed data.
-- [ ] T033 Create dev reset script in `scripts/reset-dev-db.sh`; Dependencies: T026; Acceptance: script resets schema only and explicitly does not insert seed tariff data.
-- [ ] T034 [P] Add database schema tests in `tests/integration/db/schema.test.ts`; Dependencies: T026, T027, T028; Acceptance: tests verify tables, required indexes, vector extension, and no seed tariff rows.
+- [x] T020 Create Drizzle status enum constants and common timestamp helpers in `src/server/db/schema.ts`; Dependencies: T006; Acceptance: enums match `data-model.md` and compile as const values.
+- [x] T021 Create document, page, chunk, and table chunk tables in `src/server/db/schema.ts`; Dependencies: T020; Acceptance: schema exposes `documents`, `documentPages`, `documentChunks`, and `tableChunks` with required columns and relations.
+- [x] T022 Create extracted facts, tariff rows, fee rules, aliases, and embeddings tables in `src/server/db/schema.ts`; Dependencies: T020, T021; Acceptance: schema includes review statuses, source references, and pgvector embedding column.
+- [x] T023 Create extraction issue, chat session, chat message, tool call, chat source, verification, settings, audit log, and ingestion job tables in `src/server/db/schema.ts`; Dependencies: T020; Acceptance: schema covers every table listed in `data-model.md`.
+- [x] T024 Create Drizzle relation definitions in `src/server/db/relations.ts`; Dependencies: T021, T022, T023; Acceptance: documents relate to pages, chunks, facts, rows, rules, issues, jobs, and audit logs.
+- [x] T025 Create custom migration for pgvector extension in `drizzle/migrations/0000_create_vector_extension.sql`; Dependencies: T006; Acceptance: migration contains `CREATE EXTENSION IF NOT EXISTS vector`.
+- [x] T026 Create generated or hand-authored initial migration for all tables in `drizzle/migrations/0001_initial_schema.sql`; Dependencies: T021, T022, T023, T025; Acceptance: migration creates all tables without seed tariff rows.
+- [x] T027 Create vector HNSW indexes and owner uniqueness indexes in `drizzle/migrations/0002_embedding_indexes.sql`; Dependencies: T026; Acceptance: migration indexes `embeddings.embedding` with cosine operator and `(owner_type, owner_id)`.
+- [x] T028 Create Postgres full-text GIN indexes for chunks, table chunks, facts, tariff rows, and fee rules in `drizzle/migrations/0003_full_text_indexes.sql`; Dependencies: T026; Acceptance: migration adds full-text indexes over searchable text fields.
+- [x] T029 Create database query barrel without broad client exports in `src/server/db/queries/index.ts`; Dependencies: T015, T024; Acceptance: query modules import explicitly and avoid client bundle exposure.
+- [x] T030 Create document and ingestion job query helpers in `src/server/db/queries/documents.ts` and `src/server/db/queries/ingestion-jobs.ts`; Dependencies: T021, T023; Acceptance: helpers cover create, status update, list, detail, and job status operations.
+- [x] T031 Create review, alias, settings, chat, and audit query helpers in `src/server/db/queries/review.ts`, `aliases.ts`, `settings.ts`, `chat.ts`, and `audit.ts`; Dependencies: T022, T023; Acceptance: helpers enforce active-only numeric lookup and audit mutation support.
+- [x] T032 Add local and Supabase migration verification scripts in `scripts/verify-local-db.sh` and `scripts/verify-supabase-db.sh`; Dependencies: T025, T026, T027, T028; Acceptance: scripts run migrations and check pgvector extension without creating seed data.
+- [x] T033 Create dev reset script in `scripts/reset-dev-db.sh`; Dependencies: T026; Acceptance: script resets schema only and explicitly does not insert seed tariff data.
+- [x] T034 [P] Add database schema tests in `tests/integration/db/schema.test.ts`; Dependencies: T026, T027, T028; Acceptance: tests verify tables, required indexes, vector extension, and no seed tariff rows.
 
 ## Phase 4: Local Storage
 
