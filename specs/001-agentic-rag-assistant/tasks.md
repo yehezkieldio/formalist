@@ -295,15 +295,15 @@
 
 ## Phase 24: Documentation
 
-- [ ] T217 Create README with product overview and quickstart in `README.md`; Dependencies: T011, T012, T040; Acceptance: README explains Formalist, no seed data, no eval dashboard, and both deployment modes.
-- [ ] T218 Document Docker setup in `docs/docker-local-vps.md`; Dependencies: T011, T025, T026, T027, T028, T063; Acceptance: guide covers app, worker, Postgres pgvector, Redis, migrations, uploads, backups, and health checks.
-- [ ] T219 Document Supabase + Upstash fallback in `docs/managed-fallback.md`; Dependencies: T012, T032, T056, T133; Acceptance: guide covers Supabase vector extension, Drizzle migrations, Upstash limitations, DB fallback queue, and persistent local upload directory.
-- [ ] T220 Document environment variables in `docs/environment.md`; Dependencies: T008, T009, T200; Acceptance: every env var is listed with allowed values, default behavior, and secret handling notes.
-- [ ] T221 Document upload, chunking, extraction, and review flow in `docs/ingestion-review-flow.md`; Dependencies: T047, T080, T091, T104, T120, T121; Acceptance: guide explains statuses, review trust boundary, source evidence, and artifact flags.
-- [ ] T222 Document chat usage and answer modes in `docs/chat-usage.md`; Dependencies: T187, T193, T194, T195, T196; Acceptance: guide explains general RAG, verified numeric mode, quote mode, confidence states, warnings, and citations.
-- [ ] T223 Document architecture notes in `docs/architecture.md`; Dependencies: T217; Acceptance: document explains module boundaries, app/worker split, queue adapters, retrieval, verified numeric mode, and deterministic calculation.
-- [ ] T224 Document local storage and backup notes in `docs/storage-backup.md`; Dependencies: T035, T036, T038, T039; Acceptance: guide explains `UPLOAD_ROOT`, optional artifacts, persistence limitations, backup scope, and public-root prohibition.
-- [ ] T225 Document known limitations in `docs/limitations.md`; Dependencies: T217; Acceptance: document states scanned-only OCR limitations, local file persistence caveats, no object storage, no seed tariff data, no eval dashboard, and no third-party auth dependency.
+- [x] T217 Create README with product overview and quickstart in `README.md`; Dependencies: T011, T012, T040; Acceptance: README explains Formalist, no seed data, no eval dashboard, and both deployment modes.
+- [x] T218 Document Docker setup in `docs/docker-local-vps.md`; Dependencies: T011, T025, T026, T027, T028, T063; Acceptance: guide covers app, worker, Postgres pgvector, Redis, migrations, uploads, backups, and health checks.
+- [x] T219 Document Supabase + Upstash fallback in `docs/managed-fallback.md`; Dependencies: T012, T032, T056, T133; Acceptance: guide covers Supabase vector extension, Drizzle migrations, Upstash limitations, DB fallback queue, and persistent local upload directory.
+- [x] T220 Document environment variables in `docs/environment.md`; Dependencies: T008, T009, T200; Acceptance: every env var is listed with allowed values, default behavior, and secret handling notes.
+- [x] T221 Document upload, chunking, extraction, and review flow in `docs/ingestion-review-flow.md`; Dependencies: T047, T080, T091, T104, T120, T121; Acceptance: guide explains statuses, review trust boundary, source evidence, and artifact flags.
+- [x] T222 Document chat usage and answer modes in `docs/chat-usage.md`; Dependencies: T187, T193, T194, T195, T196; Acceptance: guide explains general RAG, verified numeric mode, quote mode, confidence states, warnings, and citations.
+- [x] T223 Document architecture notes in `docs/architecture.md`; Dependencies: T217; Acceptance: document explains module boundaries, app/worker split, queue adapters, retrieval, verified numeric mode, and deterministic calculation.
+- [x] T224 Document local storage and backup notes in `docs/storage-backup.md`; Dependencies: T035, T036, T038, T039; Acceptance: guide explains `UPLOAD_ROOT`, optional artifacts, persistence limitations, backup scope, and public-root prohibition.
+- [x] T225 Document known limitations in `docs/limitations.md`; Dependencies: T217; Acceptance: document states scanned-only OCR limitations, local file persistence caveats, no object storage, no seed tariff data, no eval dashboard, and no third-party auth dependency.
 
 ## Dependencies & Execution Order
 
