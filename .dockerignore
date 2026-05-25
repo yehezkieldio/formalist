@@ -15,3 +15,13 @@ specs/
 test-results/
 tests/
 tmp/
+.git
+.github
+local-artifacts
+dist
+build
+.cache
+uploads
+specs
+.specify
+.data
