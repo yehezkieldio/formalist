@@ -1,3 +1,7 @@
+import {
+    listDocumentChunksForExtraction,
+    listTableChunksForExtraction,
+} from "#/server/db/queries/chunks";
 import { getDocument } from "#/server/db/queries/documents";
 import { createQueueAdapter } from "#/server/queue";
 import type { QueueJob } from "#/server/queue/adapter";
@@ -9,9 +13,15 @@ import {
 import { saveParseDebugArtifact } from "./artifacts";
 import { createDocumentChunks } from "./chunkers/document-chunker";
 import { createTableChunks } from "./chunkers/table-chunker";
+import { extractStructuredRecords } from "./extractors";
+import {
+    isExtractionSetupRequired,
+    markExtractionSetupRequired,
+} from "./extractors/policy";
 import { parseDocument } from "./parsers";
 import type { ParserResult } from "./parsers/types";
 import { persistDocumentChunks } from "./persist-chunks";
+import { persistStructuredExtraction } from "./persist-extracted";
 import { persistParsedPages } from "./persist-pages";
 import { persistTableChunks } from "./persist-table-chunks";
 import { setIngestionDocumentStatus } from "./status";
@@ -64,6 +74,7 @@ async function handleParseDocument(job: QueueJob) {
 
 async function handleChunkDocument(job: QueueJob) {
     const parseResult = assertChunkPayload(job.payload);
+    const queue = createQueueAdapter();
     const documentChunks = await createDocumentChunks(
         job.documentId,
         parseResult
@@ -73,6 +84,52 @@ async function handleChunkDocument(job: QueueJob) {
     await persistDocumentChunks(job.documentId, documentChunks);
     await persistTableChunks(job.documentId, tableChunks);
     await setIngestionDocumentStatus({ job, status: "chunked" });
+    await queue.enqueue({
+        documentId: job.documentId,
+        payload: { documentId: job.documentId, parseResult },
+        type: "extract-structured-data",
+    });
+}
+
+async function handleExtractStructuredData(job: QueueJob) {
+    const parseResult = assertChunkPayload(job.payload);
+    const queue = createQueueAdapter();
+    const [documentChunks, tableChunks] = await Promise.all([
+        listDocumentChunksForExtraction(job.documentId),
+        listTableChunksForExtraction(job.documentId),
+    ]);
+
+    let extraction;
+
+    try {
+        extraction = await extractStructuredRecords(parseResult, {
+            documentChunks,
+            tableChunks,
+        });
+    } catch (error) {
+        if (isExtractionSetupRequired(error)) {
+            await markExtractionSetupRequired(job);
+            return;
+        }
+
+        throw error;
+    }
+
+    await persistStructuredExtraction({
+        documentId: job.documentId,
+        extraction,
+    });
+    await setIngestionDocumentStatus({ job, status: "extracted" });
+    await queue.enqueue({
+        documentId: job.documentId,
+        payload: { documentId: job.documentId },
+        type: "validate-extraction",
+    });
+    await queue.enqueue({
+        documentId: job.documentId,
+        payload: { documentId: job.documentId },
+        type: "embed-sources",
+    });
 }
 
 export async function dispatchIngestionJob(job: QueueJob) {
@@ -87,7 +144,7 @@ export async function dispatchIngestionJob(job: QueueJob) {
     }
 
     if (job.type === "extract-structured-data") {
-        await setIngestionDocumentStatus({ job, status: "extracted" });
+        await handleExtractStructuredData(job);
         return;
     }
 

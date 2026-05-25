@@ -118,17 +118,17 @@
 
 ## Phase 10: LLM Extraction
 
-- [ ] T082 Create OpenRouter provider setup in `src/server/ai/provider.ts`; Dependencies: T005, T008; Acceptance: provider uses `@openrouter/ai-sdk-provider` and returns setup-required state when key is missing.
-- [ ] T083 Create model configuration helpers in `src/server/ai/models.ts`; Dependencies: T082; Acceptance: default chat model is `deepseek/deepseek-v4-flash` and default embedding model is `qwen/qwen3-embedding-8b`.
-- [ ] T084 Create structured extraction schemas in `src/server/ingestion/extractors/schemas.ts`; Dependencies: T007; Acceptance: Zod schemas cover document metadata, facts, tariff rows, fee rules, confidence, and raw evidence, with `jsonrepair` evaluated before accepting any model JSON repair path.
-- [ ] T085 Create document metadata extractor in `src/server/ingestion/extractors/document-metadata.ts`; Dependencies: T082, T084; Acceptance: extractor returns origin, dates, validity, promo, airline, commodity, and source confidence.
-- [ ] T086 Create fact extractor in `src/server/ingestion/extractors/facts.ts`; Dependencies: T082, T084; Acceptance: extractor returns fact types listed in the data model with source chunk/table references.
-- [ ] T087 Create tariff row extractor in `src/server/ingestion/extractors/tariff-rows.ts`; Dependencies: T082, T084; Acceptance: extractor returns airline, destination, route, flight, price status, schedule, validity, promo, raw row, and confidence.
-- [ ] T088 Create fee rule extractor in `src/server/ingestion/extractors/fee-rules.ts`; Dependencies: T082, T084; Acceptance: extractor returns admin, warehouse, min weight, PPN, surcharge, notes, and source references.
-- [ ] T089 Create extracted record persistence in `src/server/ingestion/persist-extracted.ts`; Dependencies: T022, T085, T086, T087, T088; Acceptance: extracted records persist as `extracted` or `needs_review` and never `active`.
-- [ ] T090 Create missing-key and retry policy in `src/server/ingestion/extractors/policy.ts`; Dependencies: T082, T062; Acceptance: missing OpenRouter key marks extraction setup-required without crashing non-LLM workflows.
-- [ ] T091 Wire extract-structured-data job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T089, T090; Acceptance: extraction job writes records, updates document status, and enqueues validation and embedding jobs.
-- [ ] T092 [P] Add extraction tests in `tests/unit/ingestion/extractors/schemas.test.ts` and `tests/integration/ingestion/extraction-policy.test.ts`; Dependencies: T084, T089, T090; Acceptance: tests cover schema validation, status defaults, missing key behavior, and no auto-activation.
+- [x] T082 Create OpenRouter provider setup in `src/server/ai/provider.ts`; Dependencies: T005, T008; Acceptance: provider uses `@openrouter/ai-sdk-provider` and returns setup-required state when key is missing.
+- [x] T083 Create model configuration helpers in `src/server/ai/models.ts`; Dependencies: T082; Acceptance: default chat model is `deepseek/deepseek-v4-flash` and default embedding model is `qwen/qwen3-embedding-8b`.
+- [x] T084 Create structured extraction schemas in `src/server/ingestion/extractors/schemas.ts`; Dependencies: T007; Acceptance: Zod schemas cover document metadata, facts, tariff rows, fee rules, confidence, and raw evidence, with `jsonrepair` evaluated before accepting any model JSON repair path.
+- [x] T085 Create document metadata extractor in `src/server/ingestion/extractors/document-metadata.ts`; Dependencies: T082, T084; Acceptance: extractor returns origin, dates, validity, promo, airline, commodity, and source confidence.
+- [x] T086 Create fact extractor in `src/server/ingestion/extractors/facts.ts`; Dependencies: T082, T084; Acceptance: extractor returns fact types listed in the data model with source chunk/table references.
+- [x] T087 Create tariff row extractor in `src/server/ingestion/extractors/tariff-rows.ts`; Dependencies: T082, T084; Acceptance: extractor returns airline, destination, route, flight, price status, schedule, validity, promo, raw row, and confidence.
+- [x] T088 Create fee rule extractor in `src/server/ingestion/extractors/fee-rules.ts`; Dependencies: T082, T084; Acceptance: extractor returns admin, warehouse, min weight, PPN, surcharge, notes, and source references.
+- [x] T089 Create extracted record persistence in `src/server/ingestion/persist-extracted.ts`; Dependencies: T022, T085, T086, T087, T088; Acceptance: extracted records persist as `extracted` or `needs_review` and never `active`.
+- [x] T090 Create missing-key and retry policy in `src/server/ingestion/extractors/policy.ts`; Dependencies: T082, T062; Acceptance: missing OpenRouter key marks extraction setup-required without crashing non-LLM workflows.
+- [x] T091 Wire extract-structured-data job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T089, T090; Acceptance: extraction job writes records, updates document status, and enqueues validation and embedding jobs.
+- [x] T092 [P] Add extraction tests in `tests/unit/ingestion/extractors/schemas.test.ts` and `tests/integration/ingestion/extraction-policy.test.ts`; Dependencies: T084, T089, T090; Acceptance: tests cover schema validation, status defaults, missing key behavior, and no auto-activation.
 
 ## Phase 11: Normalization And Validation
 

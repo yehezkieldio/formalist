@@ -83,3 +83,33 @@ export async function updateDocumentOriginalPath(
 
     return document;
 }
+
+export async function updateDocumentMetadata(
+    documentId: string,
+    input: Partial<{
+        commodity: string | null;
+        effectiveDate: string | null;
+        isPromo: boolean | null;
+        originAirport: string | null;
+        originCity: string | null;
+        validFrom: string | null;
+        validUntil: string | null;
+    }>
+) {
+    const [document] = await getDatabase()
+        .update(documents)
+        .set({
+            commodity: input.commodity ?? undefined,
+            effectiveDate: input.effectiveDate ?? undefined,
+            isPromo: input.isPromo ?? undefined,
+            originAirport: input.originAirport ?? undefined,
+            originCity: input.originCity ?? undefined,
+            updatedAt: new Date(),
+            validFrom: input.validFrom ?? undefined,
+            validUntil: input.validUntil ?? undefined,
+        })
+        .where(eq(documents.id, documentId))
+        .returning();
+
+    return document;
+}

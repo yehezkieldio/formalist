@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { documentChunks, tableChunks } from "#/server/db/schema";
@@ -52,4 +52,32 @@ export function deleteTableChunks(documentId: string) {
     return getDatabase()
         .delete(tableChunks)
         .where(eq(tableChunks.documentId, documentId));
+}
+
+export function listDocumentChunksForExtraction(documentId: string) {
+    return getDatabase()
+        .select({
+            chunkIndex: documentChunks.chunkIndex,
+            content: documentChunks.content,
+            id: documentChunks.id,
+            pageNumber: documentChunks.pageNumber,
+        })
+        .from(documentChunks)
+        .where(eq(documentChunks.documentId, documentId))
+        .orderBy(asc(documentChunks.chunkIndex));
+}
+
+export function listTableChunksForExtraction(documentId: string) {
+    return getDatabase()
+        .select({
+            headerText: tableChunks.headerText,
+            id: tableChunks.id,
+            pageNumber: tableChunks.pageNumber,
+            rowIndex: tableChunks.rowIndex,
+            rowText: tableChunks.rowText,
+            tableIndex: tableChunks.tableIndex,
+        })
+        .from(tableChunks)
+        .where(eq(tableChunks.documentId, documentId))
+        .orderBy(asc(tableChunks.tableIndex), asc(tableChunks.rowIndex));
 }
