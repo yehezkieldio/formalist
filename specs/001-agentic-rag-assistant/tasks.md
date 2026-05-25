@@ -222,31 +222,31 @@
 
 ## Phase 18: Chat UI
 
-- [ ] T162 Create AI chat shell in `src/components/ai/chat-shell.tsx`; Dependencies: T003, T004, T160; Acceptance: shell lays out sidebar, message area, composer, and responsive panes.
-- [ ] T163 Create conversation sidebar in `src/components/ai/conversation-sidebar.tsx`; Dependencies: T154, T160, T162; Acceptance: sidebar lists, searches, creates, renames, deletes, and opens conversations.
-- [ ] T164 Create chat pages in `src/app/chat/page.tsx` and `src/app/chat/[sessionId]/page.tsx`; Dependencies: T162, T163; Acceptance: pages load new or existing sessions using Server Components where appropriate.
-- [ ] T165 Create message list and markdown rendering in `src/components/ai/message-list.tsx` and `src/components/ai/markdown-message.tsx`; Dependencies: T155, T162; Acceptance: messages render roles, markdown, citations, streaming placeholders, and errors.
-- [ ] T166 Create prompt composer in `src/components/ai/prompt-composer.tsx`; Dependencies: T162; Acceptance: composer supports submit, stop, disabled setup-required state, keyboard submit, and accessible labels.
-- [ ] T167 Create message actions in `src/components/ai/message-actions.tsx`; Dependencies: T165; Acceptance: copy and regenerate actions work with visible feedback.
-- [ ] T168 Create streaming state integration in `src/components/ai/use-chat-stream.ts`; Dependencies: T160, T166; Acceptance: hook handles AI SDK-compatible streaming, stop generation, retry, regenerate, and errors.
-- [ ] T169 Create confidence badge in `src/components/ai/confidence-badge.tsx`; Dependencies: T158, T165; Acceptance: badge renders CONFIDENT, NEEDS_CONFIRMATION, UNVERIFIED, and UNANSWERABLE states.
-- [ ] T170 Create chain-of-thought and reasoning summary components in `src/components/ai/chain-of-thought.tsx` and `src/components/ai/reasoning.tsx`; Dependencies: T165; Acceptance: components show visible reasoning summaries and verification traces without exposing private chain-of-thought.
-- [ ] T171 Create empty-state examples in `src/components/ai/empty-state-examples.tsx`; Dependencies: T162; Acceptance: examples include representative tariff, quote, source, and summary questions.
-- [ ] T172 Create dark mode provider and toggle in `src/components/theme-provider.tsx` and `src/components/theme-toggle.tsx`; Dependencies: T003, T162; Acceptance: light/dark mode works without layout shifts.
+- [x] T162 Create AI chat shell in `src/components/ai/chat-shell.tsx`; Dependencies: T003, T004, T160; Acceptance: shell lays out sidebar, message area, composer, and responsive panes.
+- [x] T163 Create conversation sidebar in `src/components/ai/conversation-sidebar.tsx`; Dependencies: T154, T160, T162; Acceptance: sidebar lists, searches, creates, renames, deletes, and opens conversations.
+- [x] T164 Create chat pages in `src/app/chat/page.tsx` and `src/app/chat/[sessionId]/page.tsx`; Dependencies: T162, T163; Acceptance: pages load new or existing sessions using Server Components where appropriate.
+- [x] T165 Create message list and markdown rendering in `src/components/ai/message-list.tsx` and `src/components/ai/markdown-message.tsx`; Dependencies: T155, T162; Acceptance: messages render roles, markdown, citations, streaming placeholders, and errors.
+- [x] T166 Create prompt composer in `src/components/ai/prompt-composer.tsx`; Dependencies: T162; Acceptance: composer supports submit, stop, disabled setup-required state, keyboard submit, and accessible labels.
+- [x] T167 Create message actions in `src/components/ai/message-actions.tsx`; Dependencies: T165; Acceptance: copy and regenerate actions work with visible feedback.
+- [x] T168 Create streaming state integration in `src/components/ai/use-chat-stream.ts`; Dependencies: T160, T166; Acceptance: hook handles AI SDK-compatible streaming, stop generation, retry, regenerate, and errors.
+- [x] T169 Create confidence badge in `src/components/ai/confidence-badge.tsx`; Dependencies: T158, T165; Acceptance: badge renders CONFIDENT, NEEDS_CONFIRMATION, UNVERIFIED, and UNANSWERABLE states.
+- [x] T170 Create chain-of-thought and reasoning summary components in `src/components/ai/chain-of-thought.tsx` and `src/components/ai/reasoning.tsx`; Dependencies: T165; Acceptance: components show visible reasoning summaries and verification traces without exposing private chain-of-thought.
+- [x] T171 Create empty-state examples in `src/components/ai/empty-state-examples.tsx`; Dependencies: T162; Acceptance: examples include representative tariff, quote, source, and summary questions.
+- [x] T172 Create dark mode provider and toggle in `src/components/theme-provider.tsx` and `src/components/theme-toggle.tsx`; Dependencies: T003, T162; Acceptance: light/dark mode works without layout shifts.
 - [ ] T173 [P] Add chat UI browser tests in `tests/e2e/chat-ui.spec.ts`; Dependencies: T162, T163, T164, T165, T166, T167, T168, T169, T170, T171, T172; Acceptance: tests cover responsive layout, new chat, search, rename, delete, copy, stop, regenerate, markdown, confidence badge, and dark mode.
 
 ## Phase 19: Tool-Call UI
 
-- [ ] T174 Create tool call card component in `src/components/ai/tool-call-card.tsx`; Dependencies: T156, T165; Acceptance: card renders tool name, summary, pending/running/success/error state, and error message.
-- [ ] T175 Create tool-call timeline in `src/components/ai/tool-call-timeline.tsx`; Dependencies: T156, T174; Acceptance: timeline orders tool calls by started_at and shows duration.
-- [ ] T176 Create collapsed and expanded tool-call modes in `src/components/ai/tool-call-card.tsx`; Dependencies: T174; Acceptance: normal users see summaries and admins can expand debug JSON.
+- [x] T174 Create tool call card component in `src/components/ai/tool-call-card.tsx`; Dependencies: T156, T165; Acceptance: card renders tool name, summary, pending/running/success/error state, and error message.
+- [x] T175 Create tool-call timeline in `src/components/ai/tool-call-timeline.tsx`; Dependencies: T156, T174; Acceptance: timeline orders tool calls by started_at and shows duration.
+- [x] T176 Create collapsed and expanded tool-call modes in `src/components/ai/tool-call-card.tsx`; Dependencies: T174; Acceptance: normal users see summaries and admins can expand debug JSON.
 - [ ] T177 Create tool result serializers in `src/server/ai/stream-events.ts`; Dependencies: T156; Acceptance: serializers remove secrets, preserve source IDs, and expose safe summaries.
-- [ ] T178 Integrate tool cards into message list in `src/components/ai/message-list.tsx`; Dependencies: T165, T174, T175, T176; Acceptance: tool calls appear inline or in timeline for streamed and persisted messages.
+- [x] T178 Integrate tool cards into message list in `src/components/ai/message-list.tsx`; Dependencies: T165, T174, T175, T176; Acceptance: tool calls appear inline or in timeline for streamed and persisted messages.
 - [ ] T179 [P] Add tool-call UI tests in `tests/e2e/tool-calls.spec.ts` and `tests/unit/ai/stream-events.test.ts`; Dependencies: T174, T175, T176, T177, T178; Acceptance: tests cover states, duration, collapsed/expanded mode, safe serialization, and admin debug JSON.
 
 ## Phase 20: Source UI
 
-- [ ] T180 Create source card component in `src/components/ai/source-card.tsx`; Dependencies: T157, T144; Acceptance: card shows source type, title, document, page, confidence, validity, and snippet.
+- [x] T180 Create source card component in `src/components/ai/source-card.tsx`; Dependencies: T157, T144; Acceptance: card shows source type, title, document, page, confidence, validity, and snippet.
 - [ ] T181 Create source preview API route in `src/app/api/source/[sourceType]/[sourceId]/route.ts`; Dependencies: T045, T144; Acceptance: route returns source preview for every supported source type.
 - [ ] T182 Create source detail panel in `src/components/ai/source-preview.tsx`; Dependencies: T180, T181; Acceptance: panel shows chunk, table chunk, fact, tariff row, fee rule, document, or page details.
 - [ ] T183 Create source preview modal in `src/components/ai/source-preview-modal.tsx`; Dependencies: T182; Acceptance: modal is keyboard accessible and works on mobile and desktop.

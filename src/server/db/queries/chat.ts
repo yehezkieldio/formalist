@@ -1,4 +1,4 @@
-import { desc, eq, ilike, isNull } from "drizzle-orm";
+import { asc, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import {
@@ -91,7 +91,39 @@ export function listChatMessages(sessionId: string) {
         .select()
         .from(chatMessages)
         .where(eq(chatMessages.sessionId, sessionId))
-        .orderBy(chatMessages.createdAt);
+        .orderBy(asc(chatMessages.createdAt));
+}
+
+export function listChatToolCalls(sessionId: string) {
+    return getDatabase()
+        .select()
+        .from(chatToolCalls)
+        .where(eq(chatToolCalls.sessionId, sessionId))
+        .orderBy(asc(chatToolCalls.startedAt));
+}
+
+export function listChatSources(messageIds: string[]) {
+    if (messageIds.length === 0) {
+        return [];
+    }
+
+    return getDatabase()
+        .select()
+        .from(chatSources)
+        .where(inArray(chatSources.messageId, messageIds))
+        .orderBy(asc(chatSources.createdAt));
+}
+
+export function listAnswerVerifications(messageIds: string[]) {
+    if (messageIds.length === 0) {
+        return [];
+    }
+
+    return getDatabase()
+        .select()
+        .from(answerVerifications)
+        .where(inArray(answerVerifications.messageId, messageIds))
+        .orderBy(desc(answerVerifications.createdAt));
 }
 
 export async function createChatToolCall(

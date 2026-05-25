@@ -1,5 +1,9 @@
-import { createAnswerVerification } from "#/server/db/queries/chat";
+import {
+    createAnswerVerification,
+    listAnswerVerifications,
+} from "#/server/db/queries/chat";
 
 export const answerVerificationService = {
     create: createAnswerVerification,
+    list: listAnswerVerifications,
 };
