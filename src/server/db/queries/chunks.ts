@@ -81,3 +81,25 @@ export function listTableChunksForExtraction(documentId: string) {
         .where(eq(tableChunks.documentId, documentId))
         .orderBy(asc(tableChunks.tableIndex), asc(tableChunks.rowIndex));
 }
+
+export async function listChunksForAdmin(documentId?: string) {
+    const [semanticChunks, tableRows] = await Promise.all([
+        documentId
+            ? getDatabase()
+                  .select()
+                  .from(documentChunks)
+                  .where(eq(documentChunks.documentId, documentId))
+            : getDatabase().select().from(documentChunks),
+        documentId
+            ? getDatabase()
+                  .select()
+                  .from(tableChunks)
+                  .where(eq(tableChunks.documentId, documentId))
+            : getDatabase().select().from(tableChunks),
+    ]);
+
+    return {
+        documentChunks: semanticChunks,
+        tableChunks: tableRows,
+    };
+}

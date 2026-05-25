@@ -158,19 +158,19 @@
 
 ## Phase 13: Fact And Tariff Review UI
 
-- [ ] T113 Create document list and detail queries in `src/server/db/queries/documents.ts`; Dependencies: T030, T031; Acceptance: queries return issue counts, ingestion status, review counts, and source metadata.
-- [ ] T114 Create documents pages in `src/app/admin/documents/page.tsx` and `src/app/admin/documents/[documentId]/page.tsx`; Dependencies: T043, T113; Acceptance: admin sees document list, detail, ingestion status, and related records.
-- [ ] T115 Create document table and detail components in `src/components/admin/document-table.tsx` and `document-detail.tsx`; Dependencies: T114; Acceptance: components render statuses, dates, storage flags, and error states.
-- [ ] T116 Create chunk viewer pages in `src/app/admin/chunks/page.tsx` and `src/components/admin/chunk-table.tsx`; Dependencies: T078, T079, T113; Acceptance: admin can filter semantic and table chunks by document, status, page, and query.
-- [ ] T117 Create extracted facts page and table in `src/app/admin/facts/page.tsx` and `src/components/admin/fact-review-table.tsx`; Dependencies: T031; Acceptance: admin can filter facts, view source snippet, edit fields, and change review status.
-- [ ] T118 Create tariff row review page and table in `src/app/admin/review/page.tsx` and `src/components/admin/tariff-review-table.tsx`; Dependencies: T031; Acceptance: admin can inline edit, approve, reject, archive, reopen, and see issue badges.
-- [ ] T119 Create fee rule review page and table in `src/app/admin/fee-rules/page.tsx` and `src/components/admin/fee-rule-table.tsx`; Dependencies: T031; Acceptance: admin can edit fees, min weight, PPN, surcharges, notes, and review status.
-- [ ] T120 Create review API routes in `src/app/api/review/tariff-rows/route.ts`, `src/app/api/review/tariff-rows/[rowId]/route.ts`, `src/app/api/review/fee-rules/route.ts`, and `src/app/api/review/fee-rules/[ruleId]/route.ts`; Dependencies: T045, T031; Acceptance: routes enforce approve rules, active-only trust transitions, and audit logging.
-- [ ] T121 Create fact review API route in `src/app/api/facts/[factId]/route.ts`; Dependencies: T045, T031; Acceptance: route supports save, approve, reject, archive, reopen, and audit logging.
-- [ ] T122 Create bulk review action service in `src/server/ingestion/review/bulk-actions.ts`; Dependencies: T120, T121; Acceptance: bulk approve refuses records with blocking high severity issues.
-- [ ] T123 Create source snippet preview component in `src/components/admin/source-snippet-preview.tsx`; Dependencies: T116, T117, T118, T119; Acceptance: preview shows raw row/snippet, page, document, and source metadata.
-- [ ] T124 Create audit logging helper in `src/server/audit/audit-log.ts`; Dependencies: T031; Acceptance: all review actions write before/after audit records.
-- [ ] T125 [P] Add review tests in `tests/integration/review/review-state.test.ts` and `tests/e2e/admin-review.spec.ts`; Dependencies: T117, T118, T119, T120, T121, T122, T124; Acceptance: tests cover edit, approve, reject, archive, bulk blocking, source preview, and active-only lookup.
+- [x] T113 Create document list and detail queries in `src/server/db/queries/documents.ts`; Dependencies: T030, T031; Acceptance: queries return issue counts, ingestion status, review counts, and source metadata.
+- [x] T114 Create documents pages in `src/app/admin/documents/page.tsx` and `src/app/admin/documents/[documentId]/page.tsx`; Dependencies: T043, T113; Acceptance: admin sees document list, detail, ingestion status, and related records.
+- [x] T115 Create document table and detail components in `src/components/admin/document-table.tsx` and `document-detail.tsx`; Dependencies: T114; Acceptance: components render statuses, dates, storage flags, and error states.
+- [x] T116 Create chunk viewer pages in `src/app/admin/chunks/page.tsx` and `src/components/admin/chunk-table.tsx`; Dependencies: T078, T079, T113; Acceptance: admin can filter semantic and table chunks by document, status, page, and query.
+- [x] T117 Create extracted facts page and table in `src/app/admin/facts/page.tsx` and `src/components/admin/fact-review-table.tsx`; Dependencies: T031; Acceptance: admin can filter facts, view source snippet, edit fields, and change review status.
+- [x] T118 Create tariff row review page and table in `src/app/admin/review/page.tsx` and `src/components/admin/tariff-review-table.tsx`; Dependencies: T031; Acceptance: admin can inline edit, approve, reject, archive, reopen, and see issue badges.
+- [x] T119 Create fee rule review page and table in `src/app/admin/fee-rules/page.tsx` and `src/components/admin/fee-rule-table.tsx`; Dependencies: T031; Acceptance: admin can edit fees, min weight, PPN, surcharges, notes, and review status.
+- [x] T120 Create review API routes in `src/app/api/review/tariff-rows/route.ts`, `src/app/api/review/tariff-rows/[rowId]/route.ts`, `src/app/api/review/fee-rules/route.ts`, and `src/app/api/review/fee-rules/[ruleId]/route.ts`; Dependencies: T045, T031; Acceptance: routes enforce approve rules, active-only trust transitions, and audit logging.
+- [x] T121 Create fact review API route in `src/app/api/facts/[factId]/route.ts`; Dependencies: T045, T031; Acceptance: route supports save, approve, reject, archive, reopen, and audit logging.
+- [x] T122 Create bulk review action service in `src/server/ingestion/review/bulk-actions.ts`; Dependencies: T120, T121; Acceptance: bulk approve refuses records with blocking high severity issues.
+- [x] T123 Create source snippet preview component in `src/components/admin/source-snippet-preview.tsx`; Dependencies: T116, T117, T118, T119; Acceptance: preview shows raw row/snippet, page, document, and source metadata.
+- [x] T124 Create audit logging helper in `src/server/audit/audit-log.ts`; Dependencies: T031; Acceptance: all review actions write before/after audit records.
+- [x] T125 [P] Add review tests in `tests/integration/review/review-state.test.ts` and `tests/e2e/admin-review.spec.ts`; Dependencies: T117, T118, T119, T120, T121, T122, T124; Acceptance: tests cover edit, approve, reject, archive, bulk blocking, source preview, and active-only lookup.
 
 ## Phase 14: Embeddings
 

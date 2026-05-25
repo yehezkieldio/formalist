@@ -1,7 +1,15 @@
 import { desc, eq } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
-import { documents } from "#/server/db/schema";
+import {
+    documentChunks,
+    documents,
+    extractionIssues,
+    extractedFacts,
+    feeRules,
+    tableChunks,
+    tariffRows,
+} from "#/server/db/schema";
 import type { DocumentStatus } from "#/server/db/schema";
 
 export interface CreateDocumentInput {
@@ -43,6 +51,39 @@ export function listDocuments(limit = 50) {
         .limit(limit);
 }
 
+export async function listDocumentsWithReviewSummary(limit = 50) {
+    const rows = await listDocuments(limit);
+
+    return Promise.all(
+        rows.map(async (document) => {
+            const [issues, facts, tariffs, fees] = await Promise.all([
+                getDatabase()
+                    .select({ id: extractionIssues.id })
+                    .from(extractionIssues)
+                    .where(eq(extractionIssues.documentId, document.id)),
+                getDatabase()
+                    .select({ id: extractedFacts.id })
+                    .from(extractedFacts)
+                    .where(eq(extractedFacts.documentId, document.id)),
+                getDatabase()
+                    .select({ id: tariffRows.id })
+                    .from(tariffRows)
+                    .where(eq(tariffRows.documentId, document.id)),
+                getDatabase()
+                    .select({ id: feeRules.id })
+                    .from(feeRules)
+                    .where(eq(feeRules.documentId, document.id)),
+            ]);
+
+            return {
+                ...document,
+                issueCount: issues.length,
+                reviewCount: facts.length + tariffs.length + fees.length,
+            };
+        })
+    );
+}
+
 export async function getDocument(documentId: string) {
     const [document] = await getDatabase()
         .select()
@@ -51,6 +92,51 @@ export async function getDocument(documentId: string) {
         .limit(1);
 
     return document;
+}
+
+export async function getDocumentDetail(documentId: string) {
+    const document = await getDocument(documentId);
+
+    if (!document) {
+        return;
+    }
+
+    const [issues, facts, tariffs, fees, chunks, tables] = await Promise.all([
+        getDatabase()
+            .select()
+            .from(extractionIssues)
+            .where(eq(extractionIssues.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(extractedFacts)
+            .where(eq(extractedFacts.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(tariffRows)
+            .where(eq(tariffRows.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(feeRules)
+            .where(eq(feeRules.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(documentChunks)
+            .where(eq(documentChunks.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(tableChunks)
+            .where(eq(tableChunks.documentId, documentId)),
+    ]);
+
+    return {
+        chunks,
+        document,
+        facts,
+        feeRules: fees,
+        issues,
+        tableChunks: tables,
+        tariffRows: tariffs,
+    };
 }
 
 export async function updateDocumentStatus(

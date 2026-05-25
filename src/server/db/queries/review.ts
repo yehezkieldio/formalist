@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { extractedFacts, feeRules, tariffRows } from "#/server/db/schema";
@@ -45,6 +45,66 @@ export function searchActiveFacts(factType?: FactType) {
                   )
                 : eq(extractedFacts.status, "active")
         );
+}
+
+export function listFactsForReview() {
+    return getDatabase()
+        .select()
+        .from(extractedFacts)
+        .orderBy(desc(extractedFacts.updatedAt));
+}
+
+export function listTariffRowsForReview() {
+    return getDatabase()
+        .select()
+        .from(tariffRows)
+        .orderBy(desc(tariffRows.updatedAt));
+}
+
+export function listFeeRulesForReview() {
+    return getDatabase()
+        .select()
+        .from(feeRules)
+        .orderBy(desc(feeRules.updatedAt));
+}
+
+export async function updateTariffRow(
+    rowId: string,
+    input: Partial<typeof tariffRows.$inferInsert>
+) {
+    const [row] = await getDatabase()
+        .update(tariffRows)
+        .set({ ...input, updatedAt: new Date() })
+        .where(eq(tariffRows.id, rowId))
+        .returning();
+
+    return row;
+}
+
+export async function updateExtractedFact(
+    factId: string,
+    input: Partial<typeof extractedFacts.$inferInsert>
+) {
+    const [fact] = await getDatabase()
+        .update(extractedFacts)
+        .set({ ...input, updatedAt: new Date() })
+        .where(eq(extractedFacts.id, factId))
+        .returning();
+
+    return fact;
+}
+
+export async function updateFeeRule(
+    feeRuleId: string,
+    input: Partial<typeof feeRules.$inferInsert>
+) {
+    const [rule] = await getDatabase()
+        .update(feeRules)
+        .set({ ...input, updatedAt: new Date() })
+        .where(eq(feeRules.id, feeRuleId))
+        .returning();
+
+    return rule;
 }
 
 export async function updateTariffRowReviewStatus(
