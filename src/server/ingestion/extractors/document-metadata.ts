@@ -1,6 +1,7 @@
 import { generateText, Output } from "ai";
 
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { ParserResult } from "#/server/ingestion/parsers/types";
 
@@ -20,9 +21,12 @@ export async function extractDocumentMetadata(
         throw new ExtractionSetupRequiredError(provider.reason);
     }
 
-    const { chatModel } = getModelConfiguration();
+    const { extractionModel } = getModelConfiguration();
     const result = await generateText({
-        model: provider.openrouter(chatModel),
+        model: provider.openrouter.chat(
+            extractionModel,
+            getOpenRouterChatSettings()
+        ),
         output: Output.object({
             name: "DocumentMetadataExtraction",
             schema: documentMetadataExtractionSchema,

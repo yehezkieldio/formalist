@@ -8,6 +8,7 @@ import type { UIMessage } from "ai";
 import * as z from "zod";
 
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { AiProviderState } from "#/server/ai/provider";
 import {
@@ -218,7 +219,10 @@ async function streamChatResponse(input: {
     const result = streamText({
         maxOutputTokens: 1200,
         messages: await convertToModelMessages(input.messages),
-        model: input.provider.openrouter.chat(chatModel),
+        model: input.provider.openrouter.chat(
+            chatModel,
+            getOpenRouterChatSettings()
+        ),
         system: `${formalistSystemPrompt}\n\nClassified intent: ${intent}.`,
         tools: createAssistantTools(),
     });

@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 
 export function fallbackChatTitle(prompt: string) {
@@ -16,7 +17,7 @@ export async function generateChatTitle(prompt: string) {
 
     const { chatModel } = getModelConfiguration();
     const result = await generateText({
-        model: provider.openrouter(chatModel),
+        model: provider.openrouter.chat(chatModel, getOpenRouterChatSettings()),
         prompt: `Create a concise chat title under 6 words for:\n${prompt}`,
         temperature: 0,
     });

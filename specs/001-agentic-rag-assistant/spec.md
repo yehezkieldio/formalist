@@ -332,6 +332,11 @@ filterable, linked to source evidence, and resolved through review actions.
   retries, and feature flags per extraction class. When a deterministic parser
   can produce reviewable records, LLM extraction is additive/repair-oriented,
   not the primary source of structured tariff rows.
+- **FR-017C**: All OpenRouter-backed chat, classifier, extraction, and embedding
+  calls MUST use shared provider-routing settings so admins can prioritize
+  price, throughput, or latency, restrict providers, require parameter support,
+  deny data-collection providers, cap provider prices, and control fallbacks
+  through environment configuration.
 - **FR-018**: Chunks and table chunks MUST include metadata such as document,
   page, section title, table id, row number, nearby headers, and source
   references when available.
@@ -395,9 +400,9 @@ filterable, linked to source evidence, and resolved through review actions.
   aliases, extraction issues, audit logs, and settings.
 - **FR-032**: Admin users MUST be able to configure deployment mode, database
   provider, queue provider, active chat model, active embedding model,
-  temperature, max tool steps, retrieval topK, hybrid search weights, reranker
-  flag, default origin, quote defaults, tool-call visibility, and artifact
-  storage settings.
+  OpenRouter provider-routing policy, temperature, max tool steps, retrieval
+  topK, hybrid search weights, reranker flag, default origin, quote defaults,
+  tool-call visibility, and artifact storage settings.
 - **FR-033**: The application MUST support both local/VPS deployment and managed
   fallback deployment through environment-based configuration.
 - **FR-034**: The application MUST use local filesystem storage for optional

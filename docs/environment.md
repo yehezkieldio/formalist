@@ -20,6 +20,21 @@ Copy `.env.example` to `.env` and set deployment-specific values.
   and embeddings.
 - `OPENROUTER_SITE_URL`: site URL sent to OpenRouter.
 - `OPENROUTER_APP_NAME`: app name sent to OpenRouter.
+- `OPENROUTER_PROVIDER_SORT`: provider routing priority, default `price`.
+  Valid values are `price`, `throughput`, or `latency`.
+- `OPENROUTER_PROVIDER_ORDER`: comma-separated provider slugs to try in order.
+- `OPENROUTER_ONLY_PROVIDERS`: comma-separated provider slugs to allow.
+- `OPENROUTER_IGNORE_PROVIDERS`: comma-separated provider slugs to skip.
+- `OPENROUTER_ALLOW_FALLBACKS`: default `true`; set `false` to prevent backup
+  providers.
+- `OPENROUTER_REQUIRE_PARAMETERS`: default `false`; set `true` to route only
+  to providers supporting every request parameter, such as tool calling or
+  structured output.
+- `OPENROUTER_DATA_COLLECTION`: optional `allow` or `deny`.
+- `OPENROUTER_MAX_PROMPT_PRICE`: optional max prompt-token price cap passed to
+  OpenRouter provider routing.
+- `OPENROUTER_MAX_COMPLETION_PRICE`: optional max completion-token price cap
+  passed to OpenRouter provider routing.
 - `CHAT_MODEL`: defaults to `deepseek/deepseek-v4-flash`.
 - `CLASSIFIER_MODEL`: defaults to `deepseek/deepseek-v4-flash`.
 - `EXTRACTION_MODEL`: defaults to `deepseek/deepseek-v4-flash`.

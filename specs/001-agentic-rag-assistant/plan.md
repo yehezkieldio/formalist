@@ -72,6 +72,10 @@ deterministically first; optional LLM extraction is disabled by default for
 tariff rows, separately configurable by extraction class, capped by token and
 timeout budgets, and used only for compact prose extraction or ambiguous-row
 repair.
+OpenRouter calls must also use a shared provider-routing adapter so price-first
+routing, explicit provider allow/ignore/order lists, fallback policy, parameter
+support requirements, data-collection policy, and provider price caps apply
+consistently to chat, classification, extraction, and embeddings.
 
 **Constraints**: Trusted numeric answers must use reviewed active facts/table
 rows or deterministic calculations; raw chunks alone are never trusted numeric

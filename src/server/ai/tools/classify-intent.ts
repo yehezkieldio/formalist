@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { env } from "#/env";
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { classifyIntentInputSchema } from "#/server/ai/tool-schemas";
 
@@ -78,7 +79,10 @@ export async function classifyIntent(
         const { classifierModel } = getModelConfiguration();
         const result = await generateText({
             maxOutputTokens: 80,
-            model: provider.openrouter.chat(classifierModel),
+            model: provider.openrouter.chat(
+                classifierModel,
+                getOpenRouterChatSettings()
+            ),
             output: Output.object({ schema: intentSchema }),
             prompt: `Classify this Formalist air-cargo assistant query: ${query}`,
             system: [

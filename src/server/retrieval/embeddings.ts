@@ -1,6 +1,7 @@
 import { embed } from "ai";
 
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterEmbeddingSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { AiProviderState } from "#/server/ai/provider";
 import type { EmbeddingOwnerType } from "#/server/db/schema";
@@ -75,7 +76,10 @@ export function getEmbeddingClient(
     return {
         async embedText(value: string) {
             const result = await embed({
-                model: provider.openrouter.textEmbeddingModel(embeddingModel),
+                model: provider.openrouter.textEmbeddingModel(
+                    embeddingModel,
+                    getOpenRouterEmbeddingSettings()
+                ),
                 value,
             });
 

@@ -6,6 +6,11 @@ const booleanString = z
     .default("false")
     .transform((value) => value === "true");
 
+const booleanStringDefaultTrue = z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true");
+
 const optionalUrl = z
     .string()
     .url()
@@ -37,8 +42,19 @@ export const env = createEnv({
         MAX_EXTRACTION_INPUT_TOKENS: process.env.MAX_EXTRACTION_INPUT_TOKENS,
         MAX_UPLOAD_MB: process.env.MAX_UPLOAD_MB,
         NODE_ENV: process.env.NODE_ENV,
+        OPENROUTER_ALLOW_FALLBACKS: process.env.OPENROUTER_ALLOW_FALLBACKS,
         OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
         OPENROUTER_APP_NAME: process.env.OPENROUTER_APP_NAME,
+        OPENROUTER_DATA_COLLECTION: process.env.OPENROUTER_DATA_COLLECTION,
+        OPENROUTER_IGNORE_PROVIDERS: process.env.OPENROUTER_IGNORE_PROVIDERS,
+        OPENROUTER_MAX_COMPLETION_PRICE:
+            process.env.OPENROUTER_MAX_COMPLETION_PRICE,
+        OPENROUTER_MAX_PROMPT_PRICE: process.env.OPENROUTER_MAX_PROMPT_PRICE,
+        OPENROUTER_ONLY_PROVIDERS: process.env.OPENROUTER_ONLY_PROVIDERS,
+        OPENROUTER_PROVIDER_ORDER: process.env.OPENROUTER_PROVIDER_ORDER,
+        OPENROUTER_PROVIDER_SORT: process.env.OPENROUTER_PROVIDER_SORT,
+        OPENROUTER_REQUIRE_PARAMETERS:
+            process.env.OPENROUTER_REQUIRE_PARAMETERS,
         OPENROUTER_SITE_URL: process.env.OPENROUTER_SITE_URL,
         QUEUE_PROVIDER: process.env.QUEUE_PROVIDER,
         REDIS_URL: process.env.REDIS_URL,
@@ -85,8 +101,22 @@ export const env = createEnv({
         NODE_ENV: z
             .enum(["development", "test", "production"])
             .default("development"),
+        OPENROUTER_ALLOW_FALLBACKS: booleanStringDefaultTrue,
         OPENROUTER_API_KEY: optionalSecret,
         OPENROUTER_APP_NAME: z.string().min(1).default("Formalist"),
+        OPENROUTER_DATA_COLLECTION: z
+            .enum(["allow", "deny"])
+            .optional()
+            .or(z.literal("").transform(() => void 0)),
+        OPENROUTER_IGNORE_PROVIDERS: z.string().optional(),
+        OPENROUTER_MAX_COMPLETION_PRICE: z.string().optional(),
+        OPENROUTER_MAX_PROMPT_PRICE: z.string().optional(),
+        OPENROUTER_ONLY_PROVIDERS: z.string().optional(),
+        OPENROUTER_PROVIDER_ORDER: z.string().optional(),
+        OPENROUTER_PROVIDER_SORT: z
+            .enum(["price", "throughput", "latency"])
+            .default("price"),
+        OPENROUTER_REQUIRE_PARAMETERS: booleanString,
         OPENROUTER_SITE_URL: optionalUrl,
         QUEUE_PROVIDER: z
             .enum(["local-redis", "upstash-redis", "db-fallback"])

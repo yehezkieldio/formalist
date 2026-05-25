@@ -2,6 +2,7 @@ import { generateText, Output } from "ai";
 import * as z from "zod";
 
 import { getModelConfiguration } from "#/server/ai/models";
+import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { ParserResult } from "#/server/ingestion/parsers/types";
 
@@ -41,7 +42,10 @@ export async function extractFeeRules(
     const result = await generateText({
         maxOutputTokens: 1000,
         maxRetries: 0,
-        model: provider.openrouter(extractionModel),
+        model: provider.openrouter.chat(
+            extractionModel,
+            getOpenRouterChatSettings()
+        ),
         output: Output.object({
             name: "FeeRuleExtraction",
             schema: feeRulesExtractionSchema,
