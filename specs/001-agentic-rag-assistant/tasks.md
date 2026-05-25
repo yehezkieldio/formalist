@@ -272,13 +272,13 @@
 
 ## Phase 22: Settings
 
-- [ ] T200 Create settings schema and helpers in `src/server/db/queries/settings.ts` and `src/server/settings/schema.ts`; Dependencies: T031, T008; Acceptance: settings validate deployment, database, queue, model, retrieval, UI, storage, and quote defaults.
-- [ ] T201 Create settings API route in `src/app/api/settings/route.ts`; Dependencies: T045, T200; Acceptance: GET redacts secrets and PATCH validates provider combinations and writes audit logs.
-- [ ] T202 Create settings page in `src/app/admin/settings/page.tsx`; Dependencies: T043, T201; Acceptance: admin can view and update settings grouped by deployment, model, retrieval, UI, storage, and defaults.
-- [ ] T203 Create deployment status panel in `src/components/admin/deployment-status-panel.tsx`; Dependencies: T018, T202; Acceptance: panel displays deployment mode, database provider, queue provider, vector status, upload root status, and OpenRouter key state.
-- [ ] T204 Create model and retrieval settings form in `src/components/admin/model-retrieval-settings-form.tsx`; Dependencies: T200, T202; Acceptance: form edits chat model, embedding model, temperature, max steps, topK, hybrid weights, and reranker flag.
-- [ ] T205 Create storage and UI settings form in `src/components/admin/storage-ui-settings-form.tsx`; Dependencies: T200, T202; Acceptance: form edits artifact flags, default origin, quote defaults, and tool-call visibility.
-- [ ] T206 [P] Add settings tests in `tests/integration/settings/settings.test.ts` and `tests/e2e/admin-settings.spec.ts`; Dependencies: T200, T201, T202, T203, T204, T205; Acceptance: tests cover validation, redaction, provider status, storage flags, model settings, and missing key display.
+- [x] T200 Create settings schema and helpers in `src/server/db/queries/settings.ts` and `src/server/settings/schema.ts`; Dependencies: T031, T008; Acceptance: settings validate deployment, database, queue, model, retrieval, UI, storage, and quote defaults.
+- [x] T201 Create settings API route in `src/app/api/settings/route.ts`; Dependencies: T045, T200; Acceptance: GET redacts secrets and PATCH validates provider combinations and writes audit logs.
+- [x] T202 Create settings page in `src/app/admin/settings/page.tsx`; Dependencies: T043, T201; Acceptance: admin can view and update settings grouped by deployment, model, retrieval, UI, storage, and defaults.
+- [x] T203 Create deployment status panel in `src/components/admin/deployment-status-panel.tsx`; Dependencies: T018, T202; Acceptance: panel displays deployment mode, database provider, queue provider, vector status, upload root status, and OpenRouter key state.
+- [x] T204 Create model and retrieval settings form in `src/components/admin/model-retrieval-settings-form.tsx`; Dependencies: T200, T202; Acceptance: form edits chat model, embedding model, temperature, max steps, topK, hybrid weights, and reranker flag.
+- [x] T205 Create storage and UI settings form in `src/components/admin/storage-ui-settings-form.tsx`; Dependencies: T200, T202; Acceptance: form edits artifact flags, default origin, quote defaults, and tool-call visibility.
+- [x] T206 [P] Add settings tests in `tests/integration/settings/settings.test.ts` and `tests/e2e/admin-settings.spec.ts`; Dependencies: T200, T201, T202, T203, T204, T205; Acceptance: tests cover validation, redaction, provider status, storage flags, model settings, and missing key display.
 
 ## Phase 23: Tests
 

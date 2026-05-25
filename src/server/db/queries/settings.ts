@@ -2,6 +2,10 @@ import { eq } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { settings } from "#/server/db/schema";
+import { defaultAppSettings, mergeAppSettings } from "#/server/settings/schema";
+import type { AppSettings } from "#/server/settings/schema";
+
+export const appSettingsKey = "app";
 
 export async function getSetting(key: string) {
     const [setting] = await getDatabase()
@@ -24,4 +28,18 @@ export async function setSetting(key: string, value: unknown) {
         .returning();
 
     return setting;
+}
+
+export async function getAppSettings(): Promise<AppSettings> {
+    const setting = await getSetting(appSettingsKey);
+
+    return setting ? mergeAppSettings(setting.value) : defaultAppSettings;
+}
+
+export async function setAppSettings(value: unknown) {
+    const parsed = mergeAppSettings(value);
+
+    await setSetting(appSettingsKey, parsed);
+
+    return parsed;
 }
