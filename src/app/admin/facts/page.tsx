@@ -1,6 +1,8 @@
 import { FactReviewTable } from "#/components/admin/fact-review-table";
 import { listFactsForReview } from "#/server/db/queries/review";
 
+export const dynamic = "force-dynamic";
+
 export default async function FactsPage() {
     const facts = await listFactsForReview();
 

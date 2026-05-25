@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { DocumentDetail } from "#/components/admin/document-detail";
 import { getDocumentDetail } from "#/server/db/queries/documents";
 
+export const dynamic = "force-dynamic";
+
 export default async function DocumentDetailPage({
     params,
 }: {

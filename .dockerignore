@@ -3,8 +3,14 @@ node_modules/
 .git/
 coverage/
 *.log
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
+docs/
 drizzle/meta/
+playwright-report/
+specs/
+test-results/
+tests/
 tmp/

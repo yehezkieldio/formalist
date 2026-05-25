@@ -5,27 +5,41 @@ Postgres with pgvector, local Redis, and a local upload volume.
 
 ## Setup
 
-```bash
 cp .env.example .env
-docker compose up -d postgres redis
-bun run db:migrate
-docker compose up --build app worker
+
+````
+
+Development mode uses bind mounts, full dependencies, hot reload, and persistent
+local artifacts:
+
+```bash
+bun run docker:migrate
+bun run docker:dev
+````
+
+Production mode uses multi-stage images, standalone Next output, no source bind
+mounts, health checks, and persistent local artifacts:
+
+```bash
+bun run docker:migrate
+bun run docker:prod
 ```
 
-The app listens on `http://localhost:3000`.
+The app listens on `http://localhost:3000` by default.
 
 ## Services
 
 - `app`: Next.js 16 App Router application.
 - `worker`: ingestion worker for parsing, chunking, extraction, validation, and
   embedding jobs.
+- `migrate`: tool profile service for Drizzle migrations.
 - `postgres`: local Postgres with pgvector enabled by migrations.
 - `redis`: local Redis used by BullMQ when `QUEUE_PROVIDER=local-redis`.
 
 ## Uploads
 
-Set `UPLOAD_ROOT=/data/uploads` for Docker. Optional artifacts are written only
-when enabled:
+Docker mode always mounts `UPLOAD_ROOT=/data/uploads` and enables local
+artifacts inside the containers:
 
 - `STORE_ORIGINAL_FILES=true`
 - `STORE_PAGE_IMAGES=true`

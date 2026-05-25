@@ -4,6 +4,8 @@ import { ChatShell } from "#/components/ai/chat-shell";
 import { chatSessionService } from "#/server/chat/sessions";
 import { getChatMessagesForView } from "#/server/chat/view-model";
 
+export const dynamic = "force-dynamic";
+
 interface ChatSessionPageProps {
     params: Promise<{ sessionId: string }>;
 }

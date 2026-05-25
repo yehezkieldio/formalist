@@ -1,6 +1,8 @@
 import { AliasTable } from "#/components/admin/alias-table";
 import { listAliases } from "#/server/retrieval/aliases";
 
+export const dynamic = "force-dynamic";
+
 export default async function AliasesPage() {
     const aliases = await listAliases();
 

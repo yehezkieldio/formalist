@@ -4,6 +4,8 @@ import { StorageUiSettingsForm } from "#/components/admin/storage-ui-settings-fo
 import { getAppSettings } from "#/server/db/queries/settings";
 import { getHealthReport } from "#/server/deployment/health";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
     const [settings, health] = await Promise.all([
         getAppSettings(),

@@ -27,9 +27,9 @@ Copy `.env.example` to `.env` and set deployment-specific values.
 
 - `UPLOAD_ROOT`: local artifact root.
 - `MAX_UPLOAD_MB`: upload size limit.
-- `STORE_ORIGINAL_FILES`: `true` or `false`.
-- `STORE_PAGE_IMAGES`: `true` or `false`.
-- `STORE_DEBUG_ARTIFACTS`: `true` or `false`.
+- `STORE_ORIGINAL_FILES`: `true` or `false`; Docker forces this to `true`.
+- `STORE_PAGE_IMAGES`: `true` or `false`; Docker forces this to `true`.
+- `STORE_DEBUG_ARTIFACTS`: `true` or `false`; Docker forces this to `true`.
 
 ## Security
 

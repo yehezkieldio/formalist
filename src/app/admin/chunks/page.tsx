@@ -1,6 +1,8 @@
 import { ChunkTable } from "#/components/admin/chunk-table";
 import { listChunksForAdmin } from "#/server/db/queries/chunks";
 
+export const dynamic = "force-dynamic";
+
 export default async function ChunksPage() {
     const { documentChunks, tableChunks } = await listChunksForAdmin();
 

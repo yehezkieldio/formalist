@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 
 import { getAdminSessionFromCookies } from "#/server/auth/require-admin";
 
+export const dynamic = "force-dynamic";
+
 async function isLoginRoute() {
     const headerList = await headers();
     const pathname =

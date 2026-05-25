@@ -1,6 +1,8 @@
 import { ChatShell } from "#/components/ai/chat-shell";
 import { chatSessionService } from "#/server/chat/sessions";
 
+export const dynamic = "force-dynamic";
+
 export default async function ChatPage() {
     const sessions = await chatSessionService.list();
 

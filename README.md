@@ -16,17 +16,9 @@ implemented.
 ## Quick Start
 
 ```bash
-bun install
 cp .env.example .env
-docker compose up -d postgres redis
-bun run db:migrate
-bun run dev
-```
-
-In another shell:
-
-```bash
-bun run worker
+bun run docker:migrate
+bun run docker:dev
 ```
 
 Open `http://localhost:3000`, log in at `/admin/login`, upload tariff files
@@ -42,10 +34,16 @@ Docker local/VPS mode uses:
 - local Redis
 - local filesystem storage under `UPLOAD_ROOT`
 
-Run the full stack:
+Run the optimized production-style stack:
 
 ```bash
-docker compose up --build
+bun run docker:prod
+```
+
+Run the hot-reload development stack:
+
+```bash
+bun run docker:dev
 ```
 
 See [docs/docker-local-vps.md](docs/docker-local-vps.md).

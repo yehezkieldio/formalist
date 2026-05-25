@@ -3,6 +3,8 @@ import { DocumentUploadForm } from "#/components/admin/document-upload-form";
 import { DocumentUploadStatus } from "#/components/admin/document-upload-status";
 import { listDocumentsWithReviewSummary } from "#/server/db/queries/documents";
 
+export const dynamic = "force-dynamic";
+
 export default async function DocumentsPage() {
     const documents = await listDocumentsWithReviewSummary();
 

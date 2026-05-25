@@ -1,6 +1,8 @@
 import { FeeRuleTable } from "#/components/admin/fee-rule-table";
 import { listFeeRulesForReview } from "#/server/db/queries/review";
 
+export const dynamic = "force-dynamic";
+
 export default async function FeeRulesPage() {
     const rules = await listFeeRulesForReview();
 
