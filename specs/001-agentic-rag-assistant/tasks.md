@@ -62,12 +62,12 @@
 
 ## Phase 5: Admin Auth
 
-- [ ] T041 Create admin session signing and verification in `src/server/auth/admin-session.ts`; Dependencies: T008; Acceptance: sessions use `ADMIN_PASSWORD` and `SESSION_SECRET` and reject invalid signatures.
-- [ ] T042 Create login and logout route handlers in `src/app/api/admin/login/route.ts` and `src/app/api/admin/logout/route.ts`; Dependencies: T041; Acceptance: login sets an httpOnly session cookie and logout clears it.
-- [ ] T043 Create protected admin layout in `src/app/admin/layout.tsx`; Dependencies: T041; Acceptance: unauthenticated admin requests redirect to login or return unauthorized.
-- [ ] T044 Create admin login page in `src/app/admin/login/page.tsx`; Dependencies: T042; Acceptance: invalid password shows an accessible error and valid login reaches admin dashboard.
-- [ ] T045 Add auth server checks for admin route handlers in `src/server/auth/require-admin.ts`; Dependencies: T041; Acceptance: every admin API route can call a shared guard.
-- [ ] T046 [P] Add auth tests in `tests/unit/auth/admin-session.test.ts` and `tests/e2e/admin-auth.spec.ts`; Dependencies: T041, T042, T043, T044; Acceptance: tests cover login, logout, protected layout, and unauthorized API access.
+- [x] T041 Create admin session signing and verification in `src/server/auth/admin-session.ts`; Dependencies: T008; Acceptance: sessions use `ADMIN_PASSWORD` and `SESSION_SECRET` and reject invalid signatures.
+- [x] T042 Create login and logout route handlers in `src/app/api/admin/login/route.ts` and `src/app/api/admin/logout/route.ts`; Dependencies: T041; Acceptance: login sets an httpOnly session cookie and logout clears it.
+- [x] T043 Create protected admin layout in `src/app/admin/layout.tsx`; Dependencies: T041; Acceptance: unauthenticated admin requests redirect to login or return unauthorized.
+- [x] T044 Create admin login page in `src/app/admin/login/page.tsx`; Dependencies: T042; Acceptance: invalid password shows an accessible error and valid login reaches admin dashboard.
+- [x] T045 Add auth server checks for admin route handlers in `src/server/auth/require-admin.ts`; Dependencies: T041; Acceptance: every admin API route can call a shared guard.
+- [x] T046 [P] Add auth tests in `tests/unit/auth/admin-session.test.ts` and `tests/e2e/admin-auth.spec.ts`; Dependencies: T041, T042, T043, T044; Acceptance: tests cover login, logout, protected layout, and unauthorized API access.
 
 ## Phase 6: Document Upload
 
