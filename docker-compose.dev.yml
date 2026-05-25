@@ -1,6 +1,6 @@
 x-dev-build: &dev-build
     args:
-        BUN_VERSION: ${BUN_VERSION:-1.3.5}
+        BUN_VERSION: ${BUN_VERSION:-1.3.14}
     target: dev
 
 services:

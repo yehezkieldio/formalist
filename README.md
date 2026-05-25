@@ -1,87 +1,104 @@
 # Formalist
 
-Formalist is a ChatGPT-style agentic RAG assistant for air cargo tariff and
-pricelist documents. It ingests PDF, DOCX, and TXT files, builds semantic
-chunks, table-aware chunks, structured facts, reviewed tariff rows, fee rules,
-source evidence, embeddings, and persistent chat history.
+Formalist is an agentic RAG assistant and deterministic calculation platform designed specifically for air cargo tariff, pricelist, and rules documents. The application converts unstructured logistics files (such as PDFs, DOCX files, and spreadsheets) into structured, queryable data for cargo operators and pricing teams. It automates the parsing of complex tabular layouts, validity periods, flight schedules, and various surcharges, enabling users to request pricing information and generate shipment quotes with mathematical accuracy instead of relying on probabilistic language model generations.
 
-The main product surface is streaming chat. General document questions can use
-retrieved chunks with citations. Price, route, schedule, validity, fee, and
-quote answers use verified numeric mode: only reviewed active facts/rows/rules
-or deterministic TypeScript calculations are trusted.
+## Trust Model
 
-No runtime seed tariff data is included. No eval/test-question dashboard is
-implemented.
+The platform uses two separate data retrieval paths:
+
+- **General RAG**: For summaries, definitions, and policy questions, the assistant retrieves semantic chunks from documents and constructs answers with inline citations.
+- **Verified Numeric Mode**: For prices, fees, schedules, validity periods, and routes, the assistant queries structured, reviewed, active database records.
+- **Deterministic Math**: Calculations (including minimum billable weight, fuel surcharges, and tax) execute in TypeScript using `decimal.js`. The language model classifies user intent, selects tools, and explains results, but does not perform calculations.
+- **Human Review**: Extracted facts, prices, and rules require administrator approval before the chatbot can access them. Machine-extracted data starts as `extracted` or `needs_review`.
+
+## Features
+
+### Chat Interface
+
+- Renders streaming text responses and reasoning summaries using Vercel AI SDK v6.
+- Saves conversation history in a sidebar.
+- Displays inline tool execution logs, tool timelines, and source cards.
+- Assigns a confidence status (such as CONFIDENT, NEEDS_CONFIRMATION, UNVERIFIED, or UNANSWERABLE) based on source verification checks.
+- Provides modal dialogs to inspect the document page and snippet behind cited sources.
+
+### Ingestion and Extraction
+
+- Parses PDF, DOCX, and TXT files, extracting page text, semantic paragraphs, and tables.
+- Extracts table rows directly using custom application code.
+- Extracts notes, validity dates, and rules using structured LLM schemas with token limits.
+- Normalizes currency formats, airline names, and airport codes.
+- Identifies data issues including city/code mismatches, duplicate rows, promo/regular conflicts, and expired validity dates.
+
+### Administration
+
+- Includes dashboards to review, edit, approve, reject, or archive extracted data.
+- Records all administrative events in an audit log.
+- Secures admin pages using httpOnly session cookies.
+
+### Retrieval
+
+- Combines Postgres Full-Text Search and pgvector similarity using Reciprocal Rank Fusion (RRF).
+- Resolves location and airline aliases using fuzzy matching.
+
+## Technical Stack
+
+- **Framework**: Next.js 16 (App Router, Server Components)
+- **Database**: PostgreSQL with pgvector, Drizzle ORM
+- **AI**: Vercel AI SDK v6, OpenRouter provider
+- **Queue**: Node.js worker supporting Redis (BullMQ), Upstash Redis REST, or DB fallback queue
+- **Arithmetic**: decimal.js for weight and cost calculations
+- **Document Processing**: @opendataloader/pdf, officeparser, @langchain/textsplitters, sentence-splitter
 
 ## Quick Start
 
-```bash
-cp .env.example .env
-just db-migrate
-just local-all
-```
+### Prerequisites
 
-Open `http://localhost:3000`, log in at `/admin/login`, upload tariff files
-from `/admin/documents`, review extracted records, then use `/chat`.
+- Bun (v1.x or higher)
+- Docker and Docker Compose
 
-## Docker Mode
+### Setup and Running
 
-Docker local/VPS mode uses:
+1. Copy the environment configuration:
+    ```bash
+    cp .env.example .env
+    ```
+2. Start the database and run migrations:
+    ```bash
+    just db-migrate
+    ```
+3. Start the application and worker:
+    ```bash
+    just local-all
+    ```
+    The application is available at `http://localhost:3000`. You can log in at `/admin/login` and upload files at `/admin/documents`.
 
-- Next.js app
-- separate worker process
-- local Postgres with pgvector
-- local Redis
-- local filesystem storage under `UPLOAD_ROOT`
+## Testing and Verification
 
-Run the optimized production-style stack:
-
-```bash
-just docker-prod
-```
-
-Run the hot-reload development stack:
+To run formatting and lint checks:
 
 ```bash
-just docker-dev
+bun run check
 ```
 
-Run only Postgres and Redis in Docker, with the app and worker on the host:
+To run unit and integration tests:
 
 ```bash
-just infra-up
-just db-migrate
-just local-dev
-just local-worker
+bun run test
 ```
 
-See [docs/docker-local-vps.md](docs/docker-local-vps.md).
-
-## Managed Fallback
-
-Managed fallback mode uses Supabase Postgres as managed Postgres with pgvector,
-Upstash Redis when compatible, or the database fallback queue. Object storage is
-not required.
-
-See [docs/managed-fallback.md](docs/managed-fallback.md).
-
-## Verification
-
-```bash
-bun run verify
-```
-
-Browser smoke tests are opt-in because they need app services:
+To run browser E2E tests:
 
 ```bash
 RUN_BROWSER_E2E=1 bun run test:e2e
 ```
 
-## More Docs
+## Documentation Directory
 
-- [Environment](docs/environment.md)
-- [Ingestion And Review](docs/ingestion-review-flow.md)
+Detailed guides are available in the docs folder:
+
+- [Environment Configuration](docs/environment.md)
+- [Ingestion and Review Flow](docs/ingestion-review-flow.md)
 - [Chat Usage](docs/chat-usage.md)
-- [Architecture](docs/architecture.md)
-- [Storage And Backup](docs/storage-backup.md)
+- [Architecture Details](docs/architecture.md)
+- [Storage and Backup](docs/storage-backup.md)
 - [Known Limitations](docs/limitations.md)

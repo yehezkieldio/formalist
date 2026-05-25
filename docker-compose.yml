@@ -15,7 +15,7 @@ x-formalist-env: &formalist-env
 x-formalist-build: &formalist-build
     context: .
     args:
-        BUN_VERSION: ${BUN_VERSION:-1.3.5}
+        BUN_VERSION: ${BUN_VERSION:-1.3.14}
     target: production
 
 x-formalist-depends: &formalist-depends
