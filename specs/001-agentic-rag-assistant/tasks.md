@@ -95,15 +95,15 @@
 
 ## Phase 8: Parsers
 
-- [ ] T065 Create parser result types in `src/server/ingestion/parsers/types.ts`; Dependencies: T060; Acceptance: types include raw text, page text, table-like blocks, metadata, and warnings.
-- [ ] T066 Create TXT parser in `src/server/ingestion/parsers/txt.ts`; Dependencies: T065; Acceptance: parser returns document text, synthetic page/source metadata, and line ranges.
-- [ ] T067 Create DOCX parser in `src/server/ingestion/parsers/docx.ts`; Dependencies: T065; Acceptance: parser extracts paragraphs, table-like text, metadata, and warnings.
-- [ ] T068 Create PDF parser in `src/server/ingestion/parsers/pdf.ts`; Dependencies: T065; Acceptance: parser extracts page text and preserves page numbers for source evidence.
-- [ ] T069 Create table-like extraction fallback in `src/server/ingestion/parsers/table-like.ts`; Dependencies: T066, T067, T068; Acceptance: parser detects repeated delimiters, row-like blocks, headers, and N/A rows.
-- [ ] T070 Create parser dispatcher in `src/server/ingestion/parsers/index.ts`; Dependencies: T066, T067, T068, T069; Acceptance: dispatcher chooses by file type and returns controlled errors for unsupported or scanned-only files.
-- [ ] T071 Create page persistence step in `src/server/ingestion/persist-pages.ts`; Dependencies: T030, T070; Acceptance: page records are inserted with page numbers and raw text when available.
-- [ ] T072 Add debug artifact persistence in `src/server/ingestion/artifacts.ts`; Dependencies: T039, T070; Acceptance: raw parse JSON is saved only when debug artifacts are enabled.
-- [ ] T073 [P] Add parser tests in `tests/unit/ingestion/parsers/txt.test.ts`, `docx.test.ts`, `pdf.test.ts`, and `table-like.test.ts`; Dependencies: T066, T067, T068, T069; Acceptance: tests cover raw text, pages, table-like fallback, unsupported files, and debug artifact gating.
+- [x] T065 Create parser result types in `src/server/ingestion/parsers/types.ts`; Dependencies: T060; Acceptance: types include raw text, page text, table-like blocks, metadata, and warnings.
+- [x] T066 Create TXT parser in `src/server/ingestion/parsers/txt.ts`; Dependencies: T065; Acceptance: parser returns document text, synthetic page/source metadata, and line ranges.
+- [x] T067 Create DOCX parser in `src/server/ingestion/parsers/docx.ts`; Dependencies: T065; Acceptance: parser extracts paragraphs, table-like text, metadata, and warnings.
+- [x] T068 Create PDF parser in `src/server/ingestion/parsers/pdf.ts`; Dependencies: T065; Acceptance: parser extracts page text and preserves page numbers for source evidence.
+- [x] T069 Create table-like extraction fallback in `src/server/ingestion/parsers/table-like.ts`; Dependencies: T066, T067, T068; Acceptance: parser detects repeated delimiters, row-like blocks, headers, and N/A rows.
+- [x] T070 Create parser dispatcher in `src/server/ingestion/parsers/index.ts`; Dependencies: T066, T067, T068, T069; Acceptance: dispatcher chooses by file type and returns controlled errors for unsupported or scanned-only files.
+- [x] T071 Create page persistence step in `src/server/ingestion/persist-pages.ts`; Dependencies: T030, T070; Acceptance: page records are inserted with page numbers and raw text when available.
+- [x] T072 Add debug artifact persistence in `src/server/ingestion/artifacts.ts`; Dependencies: T039, T070; Acceptance: raw parse JSON is saved only when debug artifacts are enabled.
+- [x] T073 [P] Add parser tests in `tests/unit/ingestion/parsers/txt.test.ts`, `docx.test.ts`, `pdf.test.ts`, and `table-like.test.ts`; Dependencies: T066, T067, T068, T069; Acceptance: tests cover raw text, pages, table-like fallback, unsupported files, and debug artifact gating.
 
 ## Phase 9: Chunking
 

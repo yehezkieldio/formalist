@@ -8,6 +8,8 @@ import {
     pageImagePath,
 } from "#/server/storage/paths";
 
+import type { ParserResult } from "./parsers/types";
+
 export function getPageImagePath(
     settings: Pick<LocalStorageSettings, "storePageImages" | "uploadRoot">,
     documentId: string,
@@ -75,4 +77,16 @@ export async function saveDebugJson(input: {
     await writeFile(filePath, `${JSON.stringify(input.payload, null, 2)}\n`);
 
     return filePath;
+}
+
+export function saveParseDebugArtifact(input: {
+    documentId: string;
+    parseResult: ParserResult;
+    settings: Pick<LocalStorageSettings, "storeDebugArtifacts" | "uploadRoot">;
+}) {
+    return saveDebugJson({
+        documentId: input.documentId,
+        payload: input.parseResult,
+        settings: input.settings,
+    });
 }
