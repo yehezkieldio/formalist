@@ -211,14 +211,14 @@
 
 ## Phase 17: Chat Persistence
 
-- [ ] T154 Create chat session service in `src/server/chat/sessions.ts`; Dependencies: T031; Acceptance: service creates, lists, searches, renames, soft deletes, and fetches sessions.
-- [ ] T155 Create message persistence service in `src/server/chat/messages.ts`; Dependencies: T031; Acceptance: service persists user, assistant, system, and tool messages with AI SDK parts.
-- [ ] T156 Create tool call persistence service in `src/server/chat/tool-calls.ts`; Dependencies: T031; Acceptance: service records pending, running, success, error states with input, output, error, and duration.
-- [ ] T157 Create chat source persistence service in `src/server/chat/sources.ts`; Dependencies: T031, T144; Acceptance: service attaches source references and snippets to assistant messages.
-- [ ] T158 Create answer verification persistence in `src/server/chat/verifications.ts`; Dependencies: T031; Acceptance: service stores mode, confidence state, checks, and warnings.
-- [ ] T159 Create title generation service in `src/server/chat/title-generation.ts`; Dependencies: T082, T154; Acceptance: service generates short titles when model key exists and falls back to deterministic title when missing.
-- [ ] T160 Create chat session API routes in `src/app/api/chat/sessions/route.ts`, `src/app/api/chat/sessions/[sessionId]/route.ts`, and `src/app/api/chat/sessions/[sessionId]/messages/route.ts`; Dependencies: T154, T155, T156, T157, T158; Acceptance: routes support list, create, rename, delete, and message history loading.
-- [ ] T161 [P] Add chat persistence tests in `tests/integration/chat/sessions.test.ts`, `messages.test.ts`, `tool-calls.test.ts`, `sources.test.ts`, and `verifications.test.ts`; Dependencies: T154, T155, T156, T157, T158, T160; Acceptance: tests cover session CRUD, message history, tool calls, sources, verifications, and soft delete.
+- [x] T154 Create chat session service in `src/server/chat/sessions.ts`; Dependencies: T031; Acceptance: service creates, lists, searches, renames, soft deletes, and fetches sessions.
+- [x] T155 Create message persistence service in `src/server/chat/messages.ts`; Dependencies: T031; Acceptance: service persists user, assistant, system, and tool messages with AI SDK parts.
+- [x] T156 Create tool call persistence service in `src/server/chat/tool-calls.ts`; Dependencies: T031; Acceptance: service records pending, running, success, error states with input, output, error, and duration.
+- [x] T157 Create chat source persistence service in `src/server/chat/sources.ts`; Dependencies: T031, T144; Acceptance: service attaches source references and snippets to assistant messages.
+- [x] T158 Create answer verification persistence in `src/server/chat/verifications.ts`; Dependencies: T031; Acceptance: service stores mode, confidence state, checks, and warnings.
+- [x] T159 Create title generation service in `src/server/chat/title-generation.ts`; Dependencies: T082, T154; Acceptance: service generates short titles when model key exists and falls back to deterministic title when missing.
+- [x] T160 Create chat session API routes in `src/app/api/chat/sessions/route.ts`, `src/app/api/chat/sessions/[sessionId]/route.ts`, and `src/app/api/chat/sessions/[sessionId]/messages/route.ts`; Dependencies: T154, T155, T156, T157, T158; Acceptance: routes support list, create, rename, delete, and message history loading.
+- [x] T161 [P] Add chat persistence tests in `tests/integration/chat/sessions.test.ts`, `messages.test.ts`, `tool-calls.test.ts`, `sources.test.ts`, and `verifications.test.ts`; Dependencies: T154, T155, T156, T157, T158, T160; Acceptance: tests cover session CRUD, message history, tool calls, sources, verifications, and soft delete.
 
 ## Phase 18: Chat UI
 

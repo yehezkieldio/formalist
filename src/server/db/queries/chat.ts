@@ -1,4 +1,4 @@
-import { desc, eq, isNull } from "drizzle-orm";
+import { desc, eq, ilike, isNull } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import {
@@ -32,6 +32,45 @@ export function listChatSessions(limit = 50) {
         .limit(limit);
 }
 
+export function searchChatSessions(query: string, limit = 20) {
+    return getDatabase()
+        .select()
+        .from(chatSessions)
+        .where(ilike(chatSessions.title, `%${query}%`))
+        .orderBy(desc(chatSessions.updatedAt))
+        .limit(limit);
+}
+
+export async function getChatSession(sessionId: string) {
+    const [session] = await getDatabase()
+        .select()
+        .from(chatSessions)
+        .where(eq(chatSessions.id, sessionId))
+        .limit(1);
+
+    return session;
+}
+
+export async function renameChatSession(sessionId: string, title: string) {
+    const [session] = await getDatabase()
+        .update(chatSessions)
+        .set({ title, updatedAt: new Date() })
+        .where(eq(chatSessions.id, sessionId))
+        .returning();
+
+    return session;
+}
+
+export async function softDeleteChatSession(sessionId: string) {
+    const [session] = await getDatabase()
+        .update(chatSessions)
+        .set({ deletedAt: new Date(), updatedAt: new Date() })
+        .where(eq(chatSessions.id, sessionId))
+        .returning();
+
+    return session;
+}
+
 export async function createChatMessage(input: {
     content: string;
     metadata?: unknown;
@@ -45,6 +84,25 @@ export async function createChatMessage(input: {
         .returning();
 
     return message;
+}
+
+export function listChatMessages(sessionId: string) {
+    return getDatabase()
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, sessionId))
+        .orderBy(chatMessages.createdAt);
+}
+
+export async function createChatToolCall(
+    input: typeof chatToolCalls.$inferInsert
+) {
+    const [toolCall] = await getDatabase()
+        .insert(chatToolCalls)
+        .values(input)
+        .returning();
+
+    return toolCall;
 }
 
 export async function updateChatToolCallState(
