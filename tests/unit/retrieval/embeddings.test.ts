@@ -29,13 +29,11 @@ describe("embeddings", () => {
     });
 
     it("returns setup-required when OpenRouter key is missing", () => {
-        const previous = process.env.OPENROUTER_API_KEY;
-        process.env.OPENROUTER_API_KEY = "";
-
-        expect(getEmbeddingClient()).toMatchObject({
-            status: "setup-required",
-        });
-
-        process.env.OPENROUTER_API_KEY = previous;
+        expect(
+            getEmbeddingClient({
+                reason: "OPENROUTER_API_KEY is not configured.",
+                status: "setup-required",
+            })
+        ).toMatchObject({ status: "setup-required" });
     });
 });

@@ -202,12 +202,12 @@
 
 ## Phase 16: Quote Calculation
 
-- [ ] T148 Create tariff status and validation helpers in `src/server/tariff/status.ts` and `src/server/tariff/validation.ts`; Dependencies: T139; Acceptance: helpers classify active, expired, unreviewed, conflicting, and missing data states.
-- [ ] T149 Create fee rule lookup in `src/server/tariff/fee-rules.ts`; Dependencies: T031, T144; Acceptance: lookup returns applicable active fee rules by airline, document, origin, destination, validity, and warnings.
-- [ ] T150 Create deterministic quote calculator in `src/server/tariff/calculator.ts`; Dependencies: T148, T149; Acceptance: calculator uses `decimal.js` for currency-safe arithmetic and computes billable weight, base SMU, admin fees, warehouse fees, surcharge, PPN, total, lines, source IDs, and warnings.
-- [ ] T151 Create quote formatting helpers in `src/server/tariff/formatting.ts`; Dependencies: T150; Acceptance: formatting returns concise source-grounded quote lines for chat without doing math in the LLM.
-- [ ] T152 Add quote tool contract implementation in `src/server/ai/tools/calculate-quote.ts`; Dependencies: T150, T151; Acceptance: tool requires active tariff row and returns NEEDS_CONFIRMATION for missing required fees.
-- [ ] T153 [P] Add calculator tests in `tests/unit/tariff/calculator.test.ts`, `fee-rules.test.ts`, `validation.test.ts`, and `formatting.test.ts`; Dependencies: T148, T149, T150, T151; Acceptance: tests cover min weight, PPN, warehouse fee, admin fees, surcharges, missing fee warnings, expired rows, and source IDs.
+- [x] T148 Create tariff status and validation helpers in `src/server/tariff/status.ts` and `src/server/tariff/validation.ts`; Dependencies: T139; Acceptance: helpers classify active, expired, unreviewed, conflicting, and missing data states.
+- [x] T149 Create fee rule lookup in `src/server/tariff/fee-rules.ts`; Dependencies: T031, T144; Acceptance: lookup returns applicable active fee rules by airline, document, origin, destination, validity, and warnings.
+- [x] T150 Create deterministic quote calculator in `src/server/tariff/calculator.ts`; Dependencies: T148, T149; Acceptance: calculator uses `decimal.js` for currency-safe arithmetic and computes billable weight, base SMU, admin fees, warehouse fees, surcharge, PPN, total, lines, source IDs, and warnings.
+- [x] T151 Create quote formatting helpers in `src/server/tariff/formatting.ts`; Dependencies: T150; Acceptance: formatting returns concise source-grounded quote lines for chat without doing math in the LLM.
+- [x] T152 Add quote tool contract implementation in `src/server/ai/tools/calculate-quote.ts`; Dependencies: T150, T151; Acceptance: tool requires active tariff row and returns NEEDS_CONFIRMATION for missing required fees.
+- [x] T153 [P] Add calculator tests in `tests/unit/tariff/calculator.test.ts`, `fee-rules.test.ts`, `validation.test.ts`, and `formatting.test.ts`; Dependencies: T148, T149, T150, T151; Acceptance: tests cover min weight, PPN, warehouse fee, admin fees, surcharges, missing fee warnings, expired rows, and source IDs.
 
 ## Phase 17: Chat Persistence
 

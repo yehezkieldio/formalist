@@ -2,6 +2,7 @@ import { embed } from "ai";
 
 import { getModelConfiguration } from "#/server/ai/models";
 import { getOpenRouterProvider } from "#/server/ai/provider";
+import type { AiProviderState } from "#/server/ai/provider";
 import type { EmbeddingOwnerType } from "#/server/db/schema";
 
 export interface SearchableSource {
@@ -59,9 +60,9 @@ export type EmbeddingClientState =
           status: "setup-required";
       };
 
-export function getEmbeddingClient(): EmbeddingClientState {
-    const provider = getOpenRouterProvider();
-
+export function getEmbeddingClient(
+    provider: AiProviderState = getOpenRouterProvider()
+): EmbeddingClientState {
     if (provider.status === "setup-required") {
         return {
             reason: provider.reason,
