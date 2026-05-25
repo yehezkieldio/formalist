@@ -78,7 +78,6 @@ services:
             <<: *formalist-build
             dockerfile: docker/worker.Dockerfile
             target: tool
-        command: bun run db:migrate
         depends_on:
             postgres:
                 condition: service_healthy

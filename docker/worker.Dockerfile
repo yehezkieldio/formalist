@@ -11,7 +11,8 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
 FROM deps AS builder
 WORKDIR /app
 COPY . .
-RUN bun build src/worker.ts --target=bun --outfile=dist/worker.js
+RUN bun build src/worker.ts --target=bun --outfile=dist/worker.js \
+    && bun build scripts/migrate.ts --target=bun --outfile=dist/migrate.js
 
 FROM oven/bun:${BUN_VERSION}-slim AS dev
 WORKDIR /app
@@ -22,8 +23,12 @@ COPY . .
 RUN mkdir -p /data/uploads
 CMD ["bun", "run", "worker"]
 
-FROM dev AS tool
-CMD ["bun", "run", "db:migrate"]
+FROM oven/bun:${BUN_VERSION}-slim AS tool
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/dist/migrate.js ./migrate.js
+COPY drizzle ./drizzle
+CMD ["bun", "migrate.js"]
 
 # Keep production as the last stage so `docker build -f worker.Dockerfile .`
 # does not accidentally ship the dev/tool stage.
