@@ -390,11 +390,35 @@ filterable, linked to source evidence, and resolved through review actions.
   provide.
 - **FR-045**: PDF parsing MUST use `@opendataloader/pdf`, DOCX parsing MUST use
   `officeparser`, and semantic document chunking MUST use
-  `@langchain/textsplitters` as the base splitter with Formalist metadata and
-  review rules layered on top.
+  `@langchain/textsplitters` as the base splitter with `sentence-splitter` for
+  sentence-boundary preservation and `gpt-tokenizer` for token-aware sizing.
+  Formalist metadata and review rules are layered on top.
 - **FR-046**: When implementing AI tool orchestration features, the project MUST
   evaluate `ai-sdk-tools` or equivalent AI SDK-native utilities for tool state,
   cache, and reusable tool abstractions before adding custom state/cache code.
+- **FR-047**: Deterministic quote and currency calculations MUST use
+  `decimal.js` for decimal-safe arithmetic and explicit rounding. Floating
+  point JavaScript `number` arithmetic MUST NOT be the source of trusted money
+  totals.
+- **FR-048**: Alias resolution and fuzzy matching SHOULD use `fuse.js` for
+  ranked fuzzy search and `fastest-levenshtein` for deterministic edit-distance
+  tie-breaks or ambiguity checks.
+- **FR-049**: Local search indexes SHOULD evaluate `flexsearch` and
+  `minisearch` before adding custom in-memory keyword indexes. Postgres
+  full-text search remains the durable source for server retrieval, but local
+  indexes may be used for admin UI filtering, offline helpers, or small
+  candidate sets.
+- **FR-050**: Optional local reranking SHOULD be implemented behind an
+  abstraction using `@huggingface/transformers` when feasible. Candidate models
+  MUST be benchmarked for latency and quality before becoming defaults; current
+  candidates include small Ettin rerankers for fast CPU/local use and
+  BGE/Jina/mxbai rerankers when multilingual or higher-quality reranking is
+  required.
+- **FR-051**: Extraction and validation support code SHOULD evaluate
+  `jsonrepair` for repairing model JSON only before schema validation,
+  `json-rules-engine` for configurable validation rules, and `xstate` for
+  complex workflow/state machines if ingestion or review transitions outgrow
+  simple explicit TypeScript state handlers.
 
 ### Key Entities _(include if feature involves data)_
 

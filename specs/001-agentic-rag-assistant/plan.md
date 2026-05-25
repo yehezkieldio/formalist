@@ -33,11 +33,15 @@ lucide-react, Vitest, Playwright for browser verification,
 `@langchain/textsplitters` for semantic document splitting.
 
 **Package Policy**: Prefer modern, maintained, focused packages for reusable
-infrastructure primitives such as parsing, text splitting, AI tool state, and
-cache management. Keep custom code for Formalist-specific deterministic
-calculation, reviewed-fact trust gates, source evidence modeling, and metadata
-layering. Before custom AI tool state/cache abstractions are introduced,
-evaluate `ai-sdk-tools` or an AI SDK-native equivalent.
+infrastructure primitives such as parsing, text splitting, AI tool state, cache
+management, fuzzy matching, rule evaluation, JSON repair, and workflow state.
+Keep custom code for Formalist-specific deterministic calculation,
+reviewed-fact trust gates, source evidence modeling, and metadata layering.
+Before custom AI tool state/cache abstractions are introduced, evaluate
+`ai-sdk-tools` or an AI SDK-native equivalent. Before custom local search,
+reranking, JSON repair, validation-rule, or workflow-machine code is introduced,
+evaluate `flexsearch`/`minisearch`, `@huggingface/transformers`, `jsonrepair`,
+`json-rules-engine`, and `xstate` respectively.
 
 **Storage**: Postgres-compatible database with pgvector and full-text indexes;
 local Redis or Upstash Redis for queueing; `ingestion_jobs` DB fallback queue;

@@ -12,7 +12,7 @@ const parseResult: ParserResult = {
         {
             pageNumber: 1,
             rawText:
-                "PELITA AIR\nHarga tujuan Surabaya berlaku sampai akhir bulan.\nNote: belum termasuk PPN.",
+                "PELITA AIR\nHarga tujuan Surabaya berlaku sampai akhir bulan. Harga tujuan Makassar berlaku untuk direct flight. Note: belum termasuk PPN.",
         },
     ],
     rawText: "",
@@ -24,7 +24,7 @@ describe("document chunker", () => {
     it("uses stable indexes and preserves page metadata", async () => {
         const chunks = await createDocumentChunks("doc-1", parseResult, {
             chunkOverlap: 0,
-            chunkSize: 40,
+            chunkSize: 10,
         });
 
         expect(chunks.length).toBeGreaterThan(1);
@@ -36,9 +36,11 @@ describe("document chunker", () => {
                 documentId: "doc-1",
                 pageNumber: 1,
                 parser: "txt",
+                sentenceCount: 1,
                 sourceDocumentId: "doc-1",
             },
             pageNumber: 1,
         });
+        expect(chunks[0]?.metadata.tokenCount).toBeGreaterThan(0);
     });
 });

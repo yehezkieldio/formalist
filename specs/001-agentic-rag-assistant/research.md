@@ -46,8 +46,26 @@ constraints.
 - PDF parsing: `@opendataloader/pdf`.
 - DOCX parsing: `officeparser`.
 - Semantic text splitting: `@langchain/textsplitters`.
+- Sentence boundaries: `sentence-splitter`.
+- Token-aware chunk sizing: `gpt-tokenizer`.
+- Currency and quote arithmetic: `decimal.js`.
+- Alias fuzzy search: `fuse.js` with `fastest-levenshtein` tie-breaks.
 - AI tool state/cache: evaluate `ai-sdk-tools` or an AI SDK-native equivalent
   during AI tool orchestration implementation.
+- Local in-memory keyword indexes: evaluate `flexsearch` and `minisearch` for
+  admin UI filtering, small candidate sets, or offline helper indexes. Postgres
+  FTS remains the durable server retrieval layer.
+- Local reranking: evaluate `@huggingface/transformers` behind the reranker
+  abstraction. As of May 2026, likely candidates are
+  `cross-encoder/ettin-reranker-17m-v1`, `cross-encoder/ettin-reranker-32m-v1`,
+  and `cross-encoder/ettin-reranker-68m-v1` for fast local CPU use, with
+  BGE/Jina/mxbai rerankers kept as higher-quality or multilingual candidates.
+- LLM JSON cleanup: evaluate `jsonrepair` before schema validation, while
+  preserving raw evidence and validation warnings.
+- Configurable validation rules: evaluate `json-rules-engine` if the extraction
+  issue rules become admin-configurable.
+- Workflow/state machines: evaluate `xstate` if ingestion/review transitions
+  become complex enough to outgrow explicit state handlers.
 
 **Alternatives considered**:
 
@@ -57,6 +75,9 @@ constraints.
 - Fully custom parsers and splitters: rejected as brittle unless Formalist's
   provenance or verification contract requires custom logic around package
   output.
+- Custom fuzzy indexes, edit distance, currency math, JSON repair, and workflow
+  engines: rejected by default until the focused packages above fail a concrete
+  Formalist requirement.
 
 ## Decision: Drizzle ORM, drizzle-kit, pgvector, And Postgres Full-Text Search
 

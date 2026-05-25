@@ -16,7 +16,7 @@
 - [x] T004 [P] Install AI Elements and create initial AI component wrappers in `src/components/ai/ai-elements-provider.tsx` and `src/components/ai/index.ts`; Dependencies: T001; Acceptance: AI Elements imports compile without client/server boundary errors.
 - [x] T005 [P] Install AI SDK v6 and `@openrouter/ai-sdk-provider` and create package scripts in `package.json`; Dependencies: T001; Acceptance: `bun run typecheck` resolves AI SDK and OpenRouter imports.
 - [x] T006 [P] Install Drizzle ORM, drizzle-kit, PostgreSQL client, and pgvector-compatible dependencies in `package.json` and `drizzle.config.ts`; Dependencies: T001; Acceptance: `bun run db:generate` can locate schema config once schema is added.
-- [x] T007 [P] Install queue, validation, form, table, date, icon, test, parser, and splitter dependencies in `package.json`; Dependencies: T001; Acceptance: imports for BullMQ, Upstash Redis, Zod, React Hook Form, TanStack Table, date-fns, lucide-react, Vitest, `@opendataloader/pdf`, `officeparser`, TXT parsing, and `@langchain/textsplitters` compile.
+- [x] T007 [P] Install queue, validation, form, table, date, icon, test, parser, splitter, fuzzy-search, tokenization, and decimal math dependencies in `package.json`; Dependencies: T001; Acceptance: imports for BullMQ, Upstash Redis, Zod, React Hook Form, TanStack Table, date-fns, lucide-react, Vitest, `@opendataloader/pdf`, `officeparser`, TXT parsing, `@langchain/textsplitters`, `sentence-splitter`, `gpt-tokenizer`, `decimal.js`, `fuse.js`, and `fastest-levenshtein` compile.
 - [x] T008 Create environment validation with t3 env in `src/env.ts`; Dependencies: T001; Acceptance: invalid `DEPLOYMENT_MODE`, `DATABASE_PROVIDER`, `QUEUE_PROVIDER`, booleans, and required secrets produce typed startup validation errors.
 - [x] T009 [P] Create `.env.example` with every required environment variable in `.env.example`; Dependencies: T008; Acceptance: `.env.example` includes Docker and managed fallback examples without real secrets.
 - [x] T010 Configure root scripts for app, worker, migrations, tests, lint, typecheck, and managed fallback in `package.json`; Dependencies: T001, T006, T007; Acceptance: `bun run` lists `dev`, `build`, `start`, `worker`, `db:generate`, `db:migrate`, `test`, `test:integration`, `test:e2e`, `typecheck`, and `lint`.
@@ -107,7 +107,7 @@
 
 ## Phase 9: Chunking
 
-- [x] T074 Create document chunker in `src/server/ingestion/chunkers/document-chunker.ts`; Dependencies: T065, T071; Acceptance: chunker uses `@langchain/textsplitters` as the base splitter and creates narrative, note, heading, mixed, or unknown chunks with stable chunk indexes.
+- [x] T074 Create document chunker in `src/server/ingestion/chunkers/document-chunker.ts`; Dependencies: T065, T071; Acceptance: chunker uses `@langchain/textsplitters` as the base splitter, `sentence-splitter` for sentence boundaries, and `gpt-tokenizer` for token-aware sizing while creating narrative, note, heading, mixed, or unknown chunks with stable chunk indexes.
 - [x] T075 Create table-aware chunker in `src/server/ingestion/chunkers/table-chunker.ts`; Dependencies: T069, T071; Acceptance: chunker creates row/table chunks with header text, row text, markdown, table index, and row index.
 - [x] T076 Create chunk metadata builder in `src/server/ingestion/chunkers/metadata.ts`; Dependencies: T074, T075; Acceptance: metadata includes page, section title, table id, row number, nearby headers, and source document id.
 - [x] T077 Create nearby note and footnote association in `src/server/ingestion/chunkers/notes.ts`; Dependencies: T074, T075; Acceptance: row chunks include relevant surrounding notes without duplicating unrelated text.
@@ -120,7 +120,7 @@
 
 - [ ] T082 Create OpenRouter provider setup in `src/server/ai/provider.ts`; Dependencies: T005, T008; Acceptance: provider uses `@openrouter/ai-sdk-provider` and returns setup-required state when key is missing.
 - [ ] T083 Create model configuration helpers in `src/server/ai/models.ts`; Dependencies: T082; Acceptance: default chat model is `deepseek/deepseek-v4-flash` and default embedding model is `qwen/qwen3-embedding-8b`.
-- [ ] T084 Create structured extraction schemas in `src/server/ingestion/extractors/schemas.ts`; Dependencies: T007; Acceptance: Zod schemas cover document metadata, facts, tariff rows, fee rules, confidence, and raw evidence.
+- [ ] T084 Create structured extraction schemas in `src/server/ingestion/extractors/schemas.ts`; Dependencies: T007; Acceptance: Zod schemas cover document metadata, facts, tariff rows, fee rules, confidence, and raw evidence, with `jsonrepair` evaluated before accepting any model JSON repair path.
 - [ ] T085 Create document metadata extractor in `src/server/ingestion/extractors/document-metadata.ts`; Dependencies: T082, T084; Acceptance: extractor returns origin, dates, validity, promo, airline, commodity, and source confidence.
 - [ ] T086 Create fact extractor in `src/server/ingestion/extractors/facts.ts`; Dependencies: T082, T084; Acceptance: extractor returns fact types listed in the data model with source chunk/table references.
 - [ ] T087 Create tariff row extractor in `src/server/ingestion/extractors/tariff-rows.ts`; Dependencies: T082, T084; Acceptance: extractor returns airline, destination, route, flight, price status, schedule, validity, promo, raw row, and confidence.
@@ -134,12 +134,12 @@
 
 - [ ] T093 Create price parser in `src/server/ingestion/normalizers/price.ts`; Dependencies: T087; Acceptance: parser handles IDR formats, separators, N/A, missing, and invalid price strings.
 - [ ] T094 Create airline normalizer in `src/server/ingestion/normalizers/airline.ts`; Dependencies: T025; Acceptance: normalizer trims aliases, preserves canonical values, and flags unknown airlines.
-- [ ] T095 Create city and airport code normalizer in `src/server/ingestion/normalizers/city-code.ts`; Dependencies: T025; Acceptance: normalizer handles Jogja/YIA/JOG ambiguity and city/code mismatch signals.
+- [ ] T095 Create city and airport code normalizer in `src/server/ingestion/normalizers/city-code.ts`; Dependencies: T025; Acceptance: normalizer handles Jogja/YIA/JOG ambiguity and city/code mismatch signals and uses `fuse.js`/`fastest-levenshtein` where fuzzy alias matching is needed.
 - [ ] T096 Create route normalizer in `src/server/ingestion/normalizers/route.ts`; Dependencies: T087; Acceptance: normalizer maps direct/transit/any/unknown and preserves transit routes.
 - [ ] T097 Create date and validity parser in `src/server/ingestion/normalizers/date.ts`; Dependencies: T085; Acceptance: parser handles effective date, valid from/until, missing dates, and expired validity warnings.
 - [ ] T098 Create promo propagation helper in `src/server/ingestion/normalizers/promo.ts`; Dependencies: T085, T087; Acceptance: document/table promo context propagates to rows without overriding explicit row values.
 - [ ] T099 Create duplicate detector in `src/server/ingestion/validators/duplicates.ts`; Dependencies: T087, T089; Acceptance: detector flags duplicate airline/destination/route/validity/promo rows.
-- [ ] T100 Create city/code mismatch and ambiguous alias validators in `src/server/ingestion/validators/location.ts`; Dependencies: T095; Acceptance: validators create high or medium severity issues as appropriate.
+- [ ] T100 Create city/code mismatch and ambiguous alias validators in `src/server/ingestion/validators/location.ts`; Dependencies: T095; Acceptance: validators create high or medium severity issues as appropriate and evaluate `json-rules-engine` before custom configurable rule logic is added.
 - [ ] T101 Create extracted fact and tariff row validators in `src/server/ingestion/validators/facts.ts` and `tariff-rows.ts`; Dependencies: T093, T094, T095, T096, T097, T098, T099, T100; Acceptance: validators cover every issue type from the spec.
 - [ ] T102 Create fee rule validator in `src/server/ingestion/validators/fee-rules.ts`; Dependencies: T088, T097; Acceptance: validator flags missing fee rules, invalid values, and low-confidence fee extraction.
 - [ ] T103 Create extraction issue writer in `src/server/ingestion/validators/issues.ts`; Dependencies: T023, T101, T102; Acceptance: issues persist with source type/id, severity, message, and status `open`.
@@ -148,7 +148,7 @@
 
 ## Phase 12: Aliases
 
-- [ ] T106 Create alias query helpers in `src/server/retrieval/aliases.ts`; Dependencies: T031; Acceptance: helpers create, update, delete, list, and resolve aliases with ambiguity flags.
+- [ ] T106 Create alias query helpers in `src/server/retrieval/aliases.ts`; Dependencies: T031; Acceptance: helpers create, update, delete, list, and resolve aliases with ambiguity flags using exact matching first, then `fuse.js` ranking and `fastest-levenshtein` tie-breaks for fuzzy candidates.
 - [ ] T107 Create built-in alias constants in `src/server/retrieval/built-in-aliases.ts`; Dependencies: T106; Acceptance: constants include common city/airport/airline aliases without tariff rows or prices.
 - [ ] T108 Create alias initialization migration or idempotent setup in `drizzle/migrations/0004_builtin_aliases.sql` or `src/server/retrieval/alias-bootstrap.ts`; Dependencies: T106, T107; Acceptance: built-in aliases are non-tariff lookup data and do not create seed tariff data.
 - [ ] T109 Create ambiguity handling service in `src/server/retrieval/ambiguity.ts`; Dependencies: T106; Acceptance: service returns clarification candidates for ambiguous city, airport, airline, promo, route, and date inputs.
@@ -191,10 +191,10 @@
 - [ ] T137 Create table chunk search in `src/server/retrieval/table-search.ts`; Dependencies: T132, T079; Acceptance: search returns row/header/table metadata and status filters.
 - [ ] T138 Create fact search in `src/server/retrieval/fact-search.ts`; Dependencies: T031, T132; Acceptance: search filters by fact type, airline, destination, status, validity, and source.
 - [ ] T139 Create structured tariff search in `src/server/retrieval/structured-search.ts`; Dependencies: T031, T106; Acceptance: search returns only active reviewed rows by default and supports route, promo, date, airline, origin, and destination filters.
-- [ ] T140 Create Postgres full-text search helpers in `src/server/retrieval/full-text.ts`; Dependencies: T028; Acceptance: helpers query chunks, table chunks, facts, tariff rows, and fee rules with ranked results.
+- [ ] T140 Create Postgres full-text search helpers in `src/server/retrieval/full-text.ts`; Dependencies: T028; Acceptance: helpers query chunks, table chunks, facts, tariff rows, and fee rules with ranked results, and document whether `flexsearch` or `minisearch` is useful for local/admin-side indexes without replacing Postgres FTS.
 - [ ] T141 Create reciprocal rank fusion in `src/server/retrieval/rrf.ts`; Dependencies: T136, T140; Acceptance: RRF combines full-text and vector ranks deterministically with configurable weights.
 - [ ] T142 Create hybrid search orchestration in `src/server/retrieval/hybrid-search.ts`; Dependencies: T136, T137, T138, T140, T141; Acceptance: hybrid search returns mixed ranked sources and component scores.
-- [ ] T143 Create optional reranker interface in `src/server/retrieval/reranker.ts`; Dependencies: T142; Acceptance: disabled reranker is a no-op and enabled path is behind a provider abstraction.
+- [ ] T143 Create optional reranker interface in `src/server/retrieval/reranker.ts`; Dependencies: T142; Acceptance: disabled reranker is a no-op and enabled path is behind a provider abstraction, with `@huggingface/transformers` evaluated for local cross-encoder reranking and current candidates documented.
 - [ ] T144 Create source evidence lookup in `src/server/tariff/evidence.ts` and `src/server/retrieval/source-evidence.ts`; Dependencies: T031, T113; Acceptance: lookup returns document, page, snippet/raw row, effective date, validity, route, fee rules, and source type.
 - [ ] T145 Create destination listing in `src/server/retrieval/destination-list.ts`; Dependencies: T139; Acceptance: lists active reviewed destinations with airline, route, promo, origin, validity, and source counts.
 - [ ] T146 Create tariff comparison in `src/server/retrieval/compare-tariffs.ts`; Dependencies: T139, T144; Acceptance: comparison handles cheapest/latest/promo/regular and flags ambiguity when user intent is underspecified.
@@ -204,7 +204,7 @@
 
 - [ ] T148 Create tariff status and validation helpers in `src/server/tariff/status.ts` and `src/server/tariff/validation.ts`; Dependencies: T139; Acceptance: helpers classify active, expired, unreviewed, conflicting, and missing data states.
 - [ ] T149 Create fee rule lookup in `src/server/tariff/fee-rules.ts`; Dependencies: T031, T144; Acceptance: lookup returns applicable active fee rules by airline, document, origin, destination, validity, and warnings.
-- [ ] T150 Create deterministic quote calculator in `src/server/tariff/calculator.ts`; Dependencies: T148, T149; Acceptance: calculator computes billable weight, base SMU, admin fees, warehouse fees, surcharge, PPN, total, lines, source IDs, and warnings.
+- [ ] T150 Create deterministic quote calculator in `src/server/tariff/calculator.ts`; Dependencies: T148, T149; Acceptance: calculator uses `decimal.js` for currency-safe arithmetic and computes billable weight, base SMU, admin fees, warehouse fees, surcharge, PPN, total, lines, source IDs, and warnings.
 - [ ] T151 Create quote formatting helpers in `src/server/tariff/formatting.ts`; Dependencies: T150; Acceptance: formatting returns concise source-grounded quote lines for chat without doing math in the LLM.
 - [ ] T152 Add quote tool contract implementation in `src/server/ai/tools/calculate-quote.ts`; Dependencies: T150, T151; Acceptance: tool requires active tariff row and returns NEEDS_CONFIRMATION for missing required fees.
 - [ ] T153 [P] Add calculator tests in `tests/unit/tariff/calculator.test.ts`, `fee-rules.test.ts`, `validation.test.ts`, and `formatting.test.ts`; Dependencies: T148, T149, T150, T151; Acceptance: tests cover min weight, PPN, warehouse fee, admin fees, surcharges, missing fee warnings, expired rows, and source IDs.

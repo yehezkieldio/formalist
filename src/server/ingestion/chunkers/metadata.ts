@@ -11,8 +11,10 @@ export interface ChunkMetadata {
     parser?: string;
     rowIndex?: number;
     sectionTitle?: string;
+    sentenceCount?: number;
     sourceDocumentId: string;
     tableIndex?: number;
+    tokenCount?: number;
 }
 
 export function inferSectionTitle(text: string): string | undefined {
