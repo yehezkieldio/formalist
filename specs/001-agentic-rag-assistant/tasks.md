@@ -148,13 +148,13 @@
 
 ## Phase 12: Aliases
 
-- [ ] T106 Create alias query helpers in `src/server/retrieval/aliases.ts`; Dependencies: T031; Acceptance: helpers create, update, delete, list, and resolve aliases with ambiguity flags using exact matching first, then `fuse.js` ranking and `fastest-levenshtein` tie-breaks for fuzzy candidates.
-- [ ] T107 Create built-in alias constants in `src/server/retrieval/built-in-aliases.ts`; Dependencies: T106; Acceptance: constants include common city/airport/airline aliases without tariff rows or prices.
-- [ ] T108 Create alias initialization migration or idempotent setup in `drizzle/migrations/0004_builtin_aliases.sql` or `src/server/retrieval/alias-bootstrap.ts`; Dependencies: T106, T107; Acceptance: built-in aliases are non-tariff lookup data and do not create seed tariff data.
-- [ ] T109 Create ambiguity handling service in `src/server/retrieval/ambiguity.ts`; Dependencies: T106; Acceptance: service returns clarification candidates for ambiguous city, airport, airline, promo, route, and date inputs.
-- [ ] T110 Create alias API routes in `src/app/api/aliases/route.ts` and `src/app/api/aliases/[aliasId]/route.ts`; Dependencies: T045, T106; Acceptance: admin CRUD validates input, writes audit logs, and rejects duplicates.
-- [ ] T111 Create alias admin UI in `src/app/admin/aliases/page.tsx` and `src/components/admin/alias-table.tsx`; Dependencies: T003, T110; Acceptance: admin can list, filter, create, edit, mark ambiguous, and delete aliases.
-- [ ] T112 [P] Add alias tests in `tests/unit/retrieval/aliases.test.ts`, `ambiguity.test.ts`, and `tests/e2e/admin-aliases.spec.ts`; Dependencies: T106, T109, T110, T111; Acceptance: tests cover Jogja/YIA/JOG ambiguity, CRUD, and no seed tariff rows.
+- [x] T106 Create alias query helpers in `src/server/retrieval/aliases.ts`; Dependencies: T031; Acceptance: helpers create, update, delete, list, and resolve aliases with ambiguity flags using exact matching first, then `fuse.js` ranking and `fastest-levenshtein` tie-breaks for fuzzy candidates.
+- [x] T107 Create built-in alias constants in `src/server/retrieval/built-in-aliases.ts`; Dependencies: T106; Acceptance: constants include common city/airport/airline aliases without tariff rows or prices.
+- [x] T108 Create alias initialization migration or idempotent setup in `drizzle/migrations/0004_builtin_aliases.sql` or `src/server/retrieval/alias-bootstrap.ts`; Dependencies: T106, T107; Acceptance: built-in aliases are non-tariff lookup data and do not create seed tariff data.
+- [x] T109 Create ambiguity handling service in `src/server/retrieval/ambiguity.ts`; Dependencies: T106; Acceptance: service returns clarification candidates for ambiguous city, airport, airline, promo, route, and date inputs.
+- [x] T110 Create alias API routes in `src/app/api/aliases/route.ts` and `src/app/api/aliases/[aliasId]/route.ts`; Dependencies: T045, T106; Acceptance: admin CRUD validates input, writes audit logs, and rejects duplicates.
+- [x] T111 Create alias admin UI in `src/app/admin/aliases/page.tsx` and `src/components/admin/alias-table.tsx`; Dependencies: T003, T110; Acceptance: admin can list, filter, create, edit, mark ambiguous, and delete aliases.
+- [x] T112 [P] Add alias tests in `tests/unit/retrieval/aliases.test.ts`, `ambiguity.test.ts`, and `tests/e2e/admin-aliases.spec.ts`; Dependencies: T106, T109, T110, T111; Acceptance: tests cover Jogja/YIA/JOG ambiguity, CRUD, and no seed tariff rows.
 
 ## Phase 13: Fact And Tariff Review UI
 
