@@ -132,19 +132,19 @@
 
 ## Phase 11: Normalization And Validation
 
-- [ ] T093 Create price parser in `src/server/ingestion/normalizers/price.ts`; Dependencies: T087; Acceptance: parser handles IDR formats, separators, N/A, missing, and invalid price strings.
-- [ ] T094 Create airline normalizer in `src/server/ingestion/normalizers/airline.ts`; Dependencies: T025; Acceptance: normalizer trims aliases, preserves canonical values, and flags unknown airlines.
-- [ ] T095 Create city and airport code normalizer in `src/server/ingestion/normalizers/city-code.ts`; Dependencies: T025; Acceptance: normalizer handles Jogja/YIA/JOG ambiguity and city/code mismatch signals and uses `fuse.js`/`fastest-levenshtein` where fuzzy alias matching is needed.
-- [ ] T096 Create route normalizer in `src/server/ingestion/normalizers/route.ts`; Dependencies: T087; Acceptance: normalizer maps direct/transit/any/unknown and preserves transit routes.
-- [ ] T097 Create date and validity parser in `src/server/ingestion/normalizers/date.ts`; Dependencies: T085; Acceptance: parser handles effective date, valid from/until, missing dates, and expired validity warnings.
-- [ ] T098 Create promo propagation helper in `src/server/ingestion/normalizers/promo.ts`; Dependencies: T085, T087; Acceptance: document/table promo context propagates to rows without overriding explicit row values.
-- [ ] T099 Create duplicate detector in `src/server/ingestion/validators/duplicates.ts`; Dependencies: T087, T089; Acceptance: detector flags duplicate airline/destination/route/validity/promo rows.
-- [ ] T100 Create city/code mismatch and ambiguous alias validators in `src/server/ingestion/validators/location.ts`; Dependencies: T095; Acceptance: validators create high or medium severity issues as appropriate and evaluate `json-rules-engine` before custom configurable rule logic is added.
-- [ ] T101 Create extracted fact and tariff row validators in `src/server/ingestion/validators/facts.ts` and `tariff-rows.ts`; Dependencies: T093, T094, T095, T096, T097, T098, T099, T100; Acceptance: validators cover every issue type from the spec.
-- [ ] T102 Create fee rule validator in `src/server/ingestion/validators/fee-rules.ts`; Dependencies: T088, T097; Acceptance: validator flags missing fee rules, invalid values, and low-confidence fee extraction.
-- [ ] T103 Create extraction issue writer in `src/server/ingestion/validators/issues.ts`; Dependencies: T023, T101, T102; Acceptance: issues persist with source type/id, severity, message, and status `open`.
-- [ ] T104 Wire validate-extraction job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T103; Acceptance: validation creates issues and moves documents to `needs_review` when reviewable records exist.
-- [ ] T105 [P] Add validation tests in `tests/unit/ingestion/normalizers/*.test.ts` and `tests/unit/ingestion/validators/*.test.ts`; Dependencies: T093, T094, T095, T096, T097, T098, T099, T100, T101, T102, T103; Acceptance: tests cover price parsing, aliases, city/code mismatch, duplicates, promo/regular conflicts, expired validity, missing fees, and issue creation.
+- [x] T093 Create price parser in `src/server/ingestion/normalizers/price.ts`; Dependencies: T087; Acceptance: parser handles IDR formats, separators, N/A, missing, and invalid price strings.
+- [x] T094 Create airline normalizer in `src/server/ingestion/normalizers/airline.ts`; Dependencies: T025; Acceptance: normalizer trims aliases, preserves canonical values, and flags unknown airlines.
+- [x] T095 Create city and airport code normalizer in `src/server/ingestion/normalizers/city-code.ts`; Dependencies: T025; Acceptance: normalizer handles Jogja/YIA/JOG ambiguity and city/code mismatch signals and uses `fuse.js`/`fastest-levenshtein` where fuzzy alias matching is needed.
+- [x] T096 Create route normalizer in `src/server/ingestion/normalizers/route.ts`; Dependencies: T087; Acceptance: normalizer maps direct/transit/any/unknown and preserves transit routes.
+- [x] T097 Create date and validity parser in `src/server/ingestion/normalizers/date.ts`; Dependencies: T085; Acceptance: parser handles effective date, valid from/until, missing dates, and expired validity warnings.
+- [x] T098 Create promo propagation helper in `src/server/ingestion/normalizers/promo.ts`; Dependencies: T085, T087; Acceptance: document/table promo context propagates to rows without overriding explicit row values.
+- [x] T099 Create duplicate detector in `src/server/ingestion/validators/duplicates.ts`; Dependencies: T087, T089; Acceptance: detector flags duplicate airline/destination/route/validity/promo rows.
+- [x] T100 Create city/code mismatch and ambiguous alias validators in `src/server/ingestion/validators/location.ts`; Dependencies: T095; Acceptance: validators create high or medium severity issues as appropriate and evaluate `json-rules-engine` before custom configurable rule logic is added.
+- [x] T101 Create extracted fact and tariff row validators in `src/server/ingestion/validators/facts.ts` and `tariff-rows.ts`; Dependencies: T093, T094, T095, T096, T097, T098, T099, T100; Acceptance: validators cover every issue type from the spec.
+- [x] T102 Create fee rule validator in `src/server/ingestion/validators/fee-rules.ts`; Dependencies: T088, T097; Acceptance: validator flags missing fee rules, invalid values, and low-confidence fee extraction.
+- [x] T103 Create extraction issue writer in `src/server/ingestion/validators/issues.ts`; Dependencies: T023, T101, T102; Acceptance: issues persist with source type/id, severity, message, and status `open`.
+- [x] T104 Wire validate-extraction job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T103; Acceptance: validation creates issues and moves documents to `needs_review` when reviewable records exist.
+- [x] T105 [P] Add validation tests in `tests/unit/ingestion/normalizers/*.test.ts` and `tests/unit/ingestion/validators/*.test.ts`; Dependencies: T093, T094, T095, T096, T097, T098, T099, T100, T101, T102, T103; Acceptance: tests cover price parsing, aliases, city/code mismatch, duplicates, promo/regular conflicts, expired validity, missing fees, and issue creation.
 
 ## Phase 12: Aliases
 

@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm";
+
 import { getDatabase } from "#/server/db";
 import { extractedFacts, feeRules, tariffRows } from "#/server/db/schema";
 
@@ -27,4 +29,27 @@ export function insertFeeRules(records: InsertFeeRuleInput[]) {
     }
 
     return getDatabase().insert(feeRules).values(records).returning();
+}
+
+export async function listExtractedRecordsForValidation(documentId: string) {
+    const [facts, rows, rules] = await Promise.all([
+        getDatabase()
+            .select()
+            .from(extractedFacts)
+            .where(eq(extractedFacts.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(tariffRows)
+            .where(eq(tariffRows.documentId, documentId)),
+        getDatabase()
+            .select()
+            .from(feeRules)
+            .where(eq(feeRules.documentId, documentId)),
+    ]);
+
+    return {
+        facts,
+        feeRules: rules,
+        tariffRows: rows,
+    };
 }

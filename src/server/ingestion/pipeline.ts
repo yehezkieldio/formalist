@@ -25,6 +25,7 @@ import { persistStructuredExtraction } from "./persist-extracted";
 import { persistParsedPages } from "./persist-pages";
 import { persistTableChunks } from "./persist-table-chunks";
 import { setIngestionDocumentStatus } from "./status";
+import { validateExtraction } from "./validators";
 
 interface ChunkJobPayload {
     parseResult?: ParserResult;
@@ -149,6 +150,7 @@ export async function dispatchIngestionJob(job: QueueJob) {
     }
 
     if (job.type === "validate-extraction") {
+        await validateExtraction(job.documentId);
         await setIngestionDocumentStatus({ job, status: "needs_review" });
         return;
     }
