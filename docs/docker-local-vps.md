@@ -5,24 +5,34 @@ Postgres with pgvector, local Redis, and a local upload volume.
 
 ## Setup
 
+```bash
 cp .env.example .env
-
-````
+```
 
 Development mode uses bind mounts, full dependencies, hot reload, and persistent
 local artifacts:
 
 ```bash
-bun run docker:migrate
-bun run docker:dev
-````
+just db-migrate
+just local-all
+```
 
 Production mode uses multi-stage images, standalone Next output, no source bind
 mounts, health checks, and persistent local artifacts:
 
 ```bash
-bun run docker:migrate
-bun run docker:prod
+just docker-migrate
+just docker-prod
+```
+
+If you want only Postgres and Redis in Docker while running the app and worker
+directly on the host:
+
+```bash
+just infra-up
+just db-migrate
+just local-dev
+just local-worker
 ```
 
 The app listens on `http://localhost:3000` by default.

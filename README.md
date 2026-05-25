@@ -17,8 +17,8 @@ implemented.
 
 ```bash
 cp .env.example .env
-bun run docker:migrate
-bun run docker:dev
+just db-migrate
+just local-all
 ```
 
 Open `http://localhost:3000`, log in at `/admin/login`, upload tariff files
@@ -37,13 +37,22 @@ Docker local/VPS mode uses:
 Run the optimized production-style stack:
 
 ```bash
-bun run docker:prod
+just docker-prod
 ```
 
 Run the hot-reload development stack:
 
 ```bash
-bun run docker:dev
+just docker-dev
+```
+
+Run only Postgres and Redis in Docker, with the app and worker on the host:
+
+```bash
+just infra-up
+just db-migrate
+just local-dev
+just local-worker
 ```
 
 See [docs/docker-local-vps.md](docs/docker-local-vps.md).
