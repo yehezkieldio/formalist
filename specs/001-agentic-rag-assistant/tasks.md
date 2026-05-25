@@ -240,19 +240,19 @@
 - [x] T174 Create tool call card component in `src/components/ai/tool-call-card.tsx`; Dependencies: T156, T165; Acceptance: card renders tool name, summary, pending/running/success/error state, and error message.
 - [x] T175 Create tool-call timeline in `src/components/ai/tool-call-timeline.tsx`; Dependencies: T156, T174; Acceptance: timeline orders tool calls by started_at and shows duration.
 - [x] T176 Create collapsed and expanded tool-call modes in `src/components/ai/tool-call-card.tsx`; Dependencies: T174; Acceptance: normal users see summaries and admins can expand debug JSON.
-- [ ] T177 Create tool result serializers in `src/server/ai/stream-events.ts`; Dependencies: T156; Acceptance: serializers remove secrets, preserve source IDs, and expose safe summaries.
+- [x] T177 Create tool result serializers in `src/server/ai/stream-events.ts`; Dependencies: T156; Acceptance: serializers remove secrets, preserve source IDs, and expose safe summaries.
 - [x] T178 Integrate tool cards into message list in `src/components/ai/message-list.tsx`; Dependencies: T165, T174, T175, T176; Acceptance: tool calls appear inline or in timeline for streamed and persisted messages.
-- [ ] T179 [P] Add tool-call UI tests in `tests/e2e/tool-calls.spec.ts` and `tests/unit/ai/stream-events.test.ts`; Dependencies: T174, T175, T176, T177, T178; Acceptance: tests cover states, duration, collapsed/expanded mode, safe serialization, and admin debug JSON.
+- [x] T179 [P] Add tool-call UI tests in `tests/e2e/tool-calls.spec.ts` and `tests/unit/ai/stream-events.test.ts`; Dependencies: T174, T175, T176, T177, T178; Acceptance: tests cover states, duration, collapsed/expanded mode, safe serialization, and admin debug JSON.
 
 ## Phase 20: Source UI
 
 - [x] T180 Create source card component in `src/components/ai/source-card.tsx`; Dependencies: T157, T144; Acceptance: card shows source type, title, document, page, confidence, validity, and snippet.
-- [ ] T181 Create source preview API route in `src/app/api/source/[sourceType]/[sourceId]/route.ts`; Dependencies: T045, T144; Acceptance: route returns source preview for every supported source type.
-- [ ] T182 Create source detail panel in `src/components/ai/source-preview.tsx`; Dependencies: T180, T181; Acceptance: panel shows chunk, table chunk, fact, tariff row, fee rule, document, or page details.
-- [ ] T183 Create source preview modal in `src/components/ai/source-preview-modal.tsx`; Dependencies: T182; Acceptance: modal is keyboard accessible and works on mobile and desktop.
-- [ ] T184 Create fact, tariff row, and fee rule detail cards in `src/components/ai/fact-detail-card.tsx`, `tariff-row-detail-card.tsx`, and `fee-rule-detail-card.tsx`; Dependencies: T182; Acceptance: cards expose all high-stakes evidence fields from the spec.
-- [ ] T185 Integrate source cards into message list in `src/components/ai/message-list.tsx`; Dependencies: T165, T180, T182, T183, T184; Acceptance: every persisted source can be inspected from an assistant answer.
-- [ ] T186 [P] Add source UI tests in `tests/e2e/source-preview.spec.ts`; Dependencies: T180, T181, T182, T183, T184, T185; Acceptance: tests inspect chunk, table row, fact, tariff row, fee rule, document, and page previews.
+- [x] T181 Create source preview API route in `src/app/api/source/[sourceType]/[sourceId]/route.ts`; Dependencies: T045, T144; Acceptance: route returns source preview for every supported source type.
+- [x] T182 Create source detail panel in `src/components/ai/source-preview.tsx`; Dependencies: T180, T181; Acceptance: panel shows chunk, table chunk, fact, tariff row, fee rule, document, or page details.
+- [x] T183 Create source preview modal in `src/components/ai/source-preview-modal.tsx`; Dependencies: T182; Acceptance: modal is keyboard accessible and works on mobile and desktop.
+- [x] T184 Create fact, tariff row, and fee rule detail cards in `src/components/ai/fact-detail-card.tsx`, `tariff-row-detail-card.tsx`, and `fee-rule-detail-card.tsx`; Dependencies: T182; Acceptance: cards expose all high-stakes evidence fields from the spec.
+- [x] T185 Integrate source cards into message list in `src/components/ai/message-list.tsx`; Dependencies: T165, T180, T182, T183, T184; Acceptance: every persisted source can be inspected from an assistant answer.
+- [x] T186 [P] Add source UI tests in `tests/e2e/source-preview.spec.ts`; Dependencies: T180, T181, T182, T183, T184, T185; Acceptance: tests inspect chunk, table row, fact, tariff row, fee rule, document, and page previews.
 
 ## Phase 21: AI Chat Route
 

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDatabase } from "#/server/db";
 import {
     documentChunks,
+    documentPages,
     documents,
     extractedFacts,
     feeRules,
@@ -103,6 +104,23 @@ export async function getSourceEvidence(sourceType: string, sourceId: string) {
 
         return document
             ? { documentId: document.id, source: document, sourceType }
+            : null;
+    }
+
+    if (sourceType === "document_page") {
+        const [page] = await getDatabase()
+            .select()
+            .from(documentPages)
+            .where(eq(documentPages.id, sourceId));
+
+        return page
+            ? {
+                  documentId: page.documentId,
+                  pageNumber: page.pageNumber,
+                  snippet: page.rawText,
+                  source: page,
+                  sourceType,
+              }
             : null;
     }
 
