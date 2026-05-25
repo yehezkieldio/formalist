@@ -233,7 +233,7 @@
 - [x] T170 Create chain-of-thought and reasoning summary components in `src/components/ai/chain-of-thought.tsx` and `src/components/ai/reasoning.tsx`; Dependencies: T165; Acceptance: components show visible reasoning summaries and verification traces without exposing private chain-of-thought.
 - [x] T171 Create empty-state examples in `src/components/ai/empty-state-examples.tsx`; Dependencies: T162; Acceptance: examples include representative tariff, quote, source, and summary questions.
 - [x] T172 Create dark mode provider and toggle in `src/components/theme-provider.tsx` and `src/components/theme-toggle.tsx`; Dependencies: T003, T162; Acceptance: light/dark mode works without layout shifts.
-- [ ] T173 [P] Add chat UI browser tests in `tests/e2e/chat-ui.spec.ts`; Dependencies: T162, T163, T164, T165, T166, T167, T168, T169, T170, T171, T172; Acceptance: tests cover responsive layout, new chat, search, rename, delete, copy, stop, regenerate, markdown, confidence badge, and dark mode.
+- [x] T173 [P] Add chat UI browser tests in `tests/e2e/chat-ui.spec.ts`; Dependencies: T162, T163, T164, T165, T166, T167, T168, T169, T170, T171, T172; Acceptance: tests cover responsive layout, new chat, search, rename, delete, copy, stop, regenerate, markdown, confidence badge, and dark mode.
 
 ## Phase 19: Tool-Call UI
 
@@ -282,16 +282,16 @@
 
 ## Phase 23: Tests
 
-- [ ] T207 Create Vitest config and test setup in `vitest.config.mts` and `tests/setup.ts`; Dependencies: T010; Acceptance: `bun run test` executes unit tests with path aliases.
-- [ ] T208 Create integration test database harness in `tests/integration/helpers/db.ts`; Dependencies: T015, T026; Acceptance: integration tests can run migrations and clean tables without seed tariff data.
-- [ ] T209 Create parser fixture utilities in `tests/fixtures/documents/README.md` and `tests/helpers/document-fixtures.ts`; Dependencies: T073; Acceptance: fixtures are synthetic parser inputs, not seed tariff data for app runtime.
-- [ ] T210 Create upload and review flow integration test in `tests/integration/flows/upload-review.test.ts`; Dependencies: T053, T080, T091, T104, T120, T121; Acceptance: test uploads a fixture, ingests, validates issues, reviews a row, and verifies active status.
-- [ ] T211 Create retrieval and quote integration test in `tests/integration/flows/retrieval-quote.test.ts`; Dependencies: T147, T153; Acceptance: test verifies active reviewed rows power numeric lookup and deterministic quote totals.
-- [ ] T212 Create chat tool integration test in `tests/integration/flows/chat-tools.test.ts`; Dependencies: T199; Acceptance: test verifies tool call persistence, source persistence, verified numeric refusal for unreviewed data, and missing key response.
-- [ ] T213 Create deployment config integration test in `tests/integration/deployment/managed-fallback.test.ts`; Dependencies: T019, T032, T133; Acceptance: test covers Supabase URL selection, Upstash selection, DB fallback queue, and vector compatibility checks.
-- [ ] T214 Create Playwright config and base fixtures in `playwright.config.ts` and `tests/e2e/helpers.ts`; Dependencies: T173; Acceptance: `bun run test:e2e` starts app and can authenticate as admin.
-- [ ] T215 Create complete browser smoke flow in `tests/e2e/formalist-smoke.spec.ts`; Dependencies: T173, T186, T206, T214; Acceptance: smoke covers login, upload page, review page, settings page, chat page, source preview, responsive layout, and no eval dashboard route.
-- [ ] T216 Create CI-style verification script in `scripts/verify.sh`; Dependencies: T207, T208, T214, T215; Acceptance: script runs typecheck, lint, unit tests, integration tests, and e2e smoke where services are available.
+- [x] T207 Create Vitest config and test setup in `vitest.config.mts` and `tests/setup.ts`; Dependencies: T010; Acceptance: `bun run test` executes unit tests with path aliases.
+- [x] T208 Create integration test database harness in `tests/integration/helpers/db.ts`; Dependencies: T015, T026; Acceptance: integration tests can run migrations and clean tables without seed tariff data.
+- [x] T209 Create parser fixture utilities in `tests/fixtures/documents/README.md` and `tests/helpers/document-fixtures.ts`; Dependencies: T073; Acceptance: fixtures are synthetic parser inputs, not seed tariff data for app runtime.
+- [x] T210 Create upload and review flow integration test in `tests/integration/flows/upload-review.test.ts`; Dependencies: T053, T080, T091, T104, T120, T121; Acceptance: test uploads a fixture, ingests, validates issues, reviews a row, and verifies active status.
+- [x] T211 Create retrieval and quote integration test in `tests/integration/flows/retrieval-quote.test.ts`; Dependencies: T147, T153; Acceptance: test verifies active reviewed rows power numeric lookup and deterministic quote totals.
+- [x] T212 Create chat tool integration test in `tests/integration/flows/chat-tools.test.ts`; Dependencies: T199; Acceptance: test verifies tool call persistence, source persistence, verified numeric refusal for unreviewed data, and missing key response.
+- [x] T213 Create deployment config integration test in `tests/integration/deployment/managed-fallback.test.ts`; Dependencies: T019, T032, T133; Acceptance: test covers Supabase URL selection, Upstash selection, DB fallback queue, and vector compatibility checks.
+- [x] T214 Create Playwright config and base fixtures in `playwright.config.ts` and `tests/e2e/helpers.ts`; Dependencies: T173; Acceptance: `bun run test:e2e` starts app and can authenticate as admin.
+- [x] T215 Create complete browser smoke flow in `tests/e2e/formalist-smoke.playwright.ts`; Dependencies: T173, T186, T206, T214; Acceptance: smoke covers login, upload page, review page, settings page, chat page, source preview, responsive layout, and no eval dashboard route.
+- [x] T216 Create CI-style verification script in `scripts/verify.sh`; Dependencies: T207, T208, T214, T215; Acceptance: script runs typecheck, lint, unit tests, integration tests, and e2e smoke where services are available.
 
 ## Phase 24: Documentation
 

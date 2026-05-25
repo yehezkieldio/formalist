@@ -8,5 +8,12 @@ export default defineConfig({
     },
     test: {
         environment: "node",
+        exclude: [
+            "**/node_modules/**",
+            "**/.next/**",
+            "**/formalist-smoke.spec.ts",
+            "**/tests/e2e/formalist-smoke.spec.ts",
+        ],
+        setupFiles: ["tests/setup.ts"],
     },
 });
