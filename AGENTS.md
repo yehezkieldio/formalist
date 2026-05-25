@@ -132,3 +132,10 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 6. **Documentation** - Add comments for complex logic, but prefer self-documenting code
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `bun x ultracite fix` before committing to ensure compliance.
+
+<!-- SPECKIT START -->
+
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+
+<!-- SPECKIT END -->
