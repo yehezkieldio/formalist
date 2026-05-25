@@ -8,12 +8,10 @@ COPY package.json bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile --ignore-scripts
 
-FROM oven/bun:${BUN_VERSION}-slim AS prod-deps
+FROM deps AS builder
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile --production --ignore-scripts \
-    && rm -rf /root/.bun/install/cache /tmp/*
+COPY . .
+RUN bun build src/worker.ts --target=bun --outfile=dist/worker.js
 
 FROM oven/bun:${BUN_VERSION}-slim AS dev
 WORKDIR /app
@@ -39,10 +37,8 @@ RUN groupadd --system --gid 1001 formalist \
     && mkdir -p /data/uploads \
     && chown -R formalist:formalist /app /data/uploads
 
-COPY --from=prod-deps --chown=formalist:formalist /app/node_modules ./node_modules
-COPY --chown=formalist:formalist package.json tsconfig.json ./
-COPY --chown=formalist:formalist src ./src
+COPY --from=builder --chown=formalist:formalist /app/dist/worker.js ./worker.js
 COPY --chown=formalist:formalist drizzle ./drizzle
 
 USER formalist
-CMD ["bun", "src/worker.ts"]
+CMD ["bun", "worker.js"]
