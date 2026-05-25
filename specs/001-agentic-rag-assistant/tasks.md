@@ -53,12 +53,12 @@
 
 ## Phase 4: Local Storage
 
-- [ ] T035 Create safe path utilities in `src/server/storage/paths.ts`; Dependencies: T008; Acceptance: utilities reject traversal, public-root paths, and paths outside `UPLOAD_ROOT`.
-- [ ] T036 Create upload root initialization and writability checks in `src/server/storage/local.ts`; Dependencies: T035; Acceptance: startup can create required directories or return a persistence warning.
-- [ ] T037 Create checksum generation helpers in `src/server/storage/checksum.ts`; Dependencies: T035; Acceptance: tests verify stable checksums for buffers and streams.
-- [ ] T038 Create original file save/read/delete helpers in `src/server/storage/local.ts`; Dependencies: T035, T036, T037; Acceptance: helpers respect `STORE_ORIGINAL_FILES` and never write under public root.
-- [ ] T039 Create page image, extracted raw JSON, and debug artifact path helpers in `src/server/ingestion/artifacts.ts`; Dependencies: T035, T036; Acceptance: helpers respect `STORE_PAGE_IMAGES` and `STORE_DEBUG_ARTIFACTS`.
-- [ ] T040 [P] Add storage tests in `tests/unit/storage/paths.test.ts`, `checksum.test.ts`, and `local.test.ts`; Dependencies: T035, T036, T037, T038, T039; Acceptance: tests cover disabled storage, path traversal, unwritable root warnings, and delete behavior.
+- [x] T035 Create safe path utilities in `src/server/storage/paths.ts`; Dependencies: T008; Acceptance: utilities reject traversal, public-root paths, and paths outside `UPLOAD_ROOT`.
+- [x] T036 Create upload root initialization and writability checks in `src/server/storage/local.ts`; Dependencies: T035; Acceptance: startup can create required directories or return a persistence warning.
+- [x] T037 Create checksum generation helpers in `src/server/storage/checksum.ts`; Dependencies: T035; Acceptance: tests verify stable checksums for buffers and streams.
+- [x] T038 Create original file save/read/delete helpers in `src/server/storage/local.ts`; Dependencies: T035, T036, T037; Acceptance: helpers respect `STORE_ORIGINAL_FILES` and never write under public root.
+- [x] T039 Create page image, extracted raw JSON, and debug artifact path helpers in `src/server/ingestion/artifacts.ts`; Dependencies: T035, T036; Acceptance: helpers respect `STORE_PAGE_IMAGES` and `STORE_DEBUG_ARTIFACTS`.
+- [x] T040 [P] Add storage tests in `tests/unit/storage/paths.test.ts`, `checksum.test.ts`, and `local.test.ts`; Dependencies: T035, T036, T037, T038, T039; Acceptance: tests cover disabled storage, path traversal, unwritable root warnings, and delete behavior.
 
 ## Phase 5: Admin Auth
 
