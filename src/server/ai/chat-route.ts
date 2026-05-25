@@ -10,8 +10,14 @@ import * as z from "zod";
 import { getModelConfiguration } from "#/server/ai/models";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { AiProviderState } from "#/server/ai/provider";
+import {
+    createResponseCacheKey,
+    getCachedChatResponse,
+    setCachedChatResponse,
+} from "#/server/ai/response-cache";
 import { formalistSystemPrompt } from "#/server/ai/system-prompt";
 import { createAssistantTools } from "#/server/ai/tools";
+import type { ClassifiedIntent } from "#/server/ai/tools/classify-intent";
 import { classifyIntent } from "#/server/ai/tools/classify-intent";
 import { verifyAnswer } from "#/server/ai/tools/verify-answer";
 import { chatMessageService } from "#/server/chat/messages";
@@ -33,6 +39,60 @@ function getLastUserText(messages: UIMessage[]) {
     const message = messages.findLast((item) => item.role === "user");
 
     return message ? getMessageText(message) : "";
+}
+
+function modeFromIntent(intent: ClassifiedIntent) {
+    return intent === "quote" || intent === "verified_numeric"
+        ? "verified_numeric"
+        : "general_rag";
+}
+
+function getDirectEvidenceSnippet(record: Record<string, unknown>) {
+    if (typeof record.snippet === "string") {
+        return [record.snippet];
+    }
+
+    if (typeof record.rawEvidence === "string") {
+        return [record.rawEvidence];
+    }
+
+    if (typeof record.rawRowText === "string") {
+        return [record.rawRowText];
+    }
+
+    return [];
+}
+
+function extractEvidenceSnippets(value: unknown): string[] {
+    if (!value) {
+        return [];
+    }
+
+    if (typeof value === "string") {
+        return value.trim().length > 0 ? [value] : [];
+    }
+
+    if (Array.isArray(value)) {
+        return value.flatMap((item) => extractEvidenceSnippets(item));
+    }
+
+    if (typeof value !== "object") {
+        return [];
+    }
+
+    const record = value as Record<string, unknown>;
+    const directSnippet = getDirectEvidenceSnippet(record);
+
+    return [
+        ...directSnippet,
+        ...extractEvidenceSnippets(record.sources),
+        ...extractEvidenceSnippets(record.results),
+        ...extractEvidenceSnippets(record.evidence),
+    ];
+}
+
+function extractMessageEvidenceSnippets(message: UIMessage) {
+    return extractEvidenceSnippets(message.parts);
 }
 
 async function persistLatestUserMessage(
@@ -59,24 +119,28 @@ async function persistLatestUserMessage(
     });
 }
 
-async function persistAssistantMessage(input: {
-    message: UIMessage;
+async function persistAssistantContent(input: {
+    content: string;
+    evidenceSnippets: string[];
+    metadata?: unknown;
     mode: "general_rag" | "verified_numeric";
+    parts?: unknown;
     sessionId?: string;
 }) {
     if (!input.sessionId) {
         return;
     }
 
-    const content = getMessageText(input.message);
     const message = await chatMessageService.create({
-        content,
-        metadata: input.message.metadata,
-        parts: input.message.parts,
+        content: input.content,
+        metadata: input.metadata,
+        parts: input.parts,
         role: "assistant",
         sessionId: input.sessionId,
     });
     const verification = verifyAnswer({
+        draftText: input.content,
+        evidenceSnippets: input.evidenceSnippets,
         mode: input.mode,
         sourceCount: 1,
         trustedSourceCount: input.mode === "verified_numeric" ? 1 : 0,
@@ -93,6 +157,34 @@ async function persistAssistantMessage(input: {
     });
 }
 
+async function persistAssistantMessage(input: {
+    message: UIMessage;
+    mode: "general_rag" | "verified_numeric";
+    sessionId?: string;
+}) {
+    await persistAssistantContent({
+        content: getMessageText(input.message),
+        evidenceSnippets: extractMessageEvidenceSnippets(input.message),
+        metadata: input.message.metadata,
+        mode: input.mode,
+        parts: input.message.parts,
+        sessionId: input.sessionId,
+    });
+}
+
+function createCachedChatStreamResponse(content: string) {
+    const textId = crypto.randomUUID();
+    const stream = createUIMessageStream({
+        execute: ({ writer }) => {
+            writer.write({ id: textId, type: "text-start" });
+            writer.write({ delta: content, id: textId, type: "text-delta" });
+            writer.write({ id: textId, type: "text-end" });
+        },
+    });
+
+    return createUIMessageStreamResponse({ status: 200, stream });
+}
+
 async function streamChatResponse(input: {
     messages: UIMessage[];
     provider: Extract<AiProviderState, { status: "ready" }>;
@@ -100,9 +192,29 @@ async function streamChatResponse(input: {
 }) {
     const { chatModel } = getModelConfiguration();
     const lastUserText = getLastUserText(input.messages);
-    const intent = classifyIntent({
+    const intent = await classifyIntent({
         query: lastUserText || "general question",
     });
+    const mode = modeFromIntent(intent);
+    const cacheKey = await createResponseCacheKey({
+        intent,
+        query: lastUserText,
+    });
+    const cachedResponse = await getCachedChatResponse(cacheKey);
+
+    if (cachedResponse) {
+        await persistAssistantContent({
+            content: cachedResponse.content,
+            evidenceSnippets: [],
+            metadata: { cached: true, intent: cachedResponse.intent },
+            mode: cachedResponse.mode,
+            parts: [{ text: cachedResponse.content, type: "text" }],
+            sessionId: input.sessionId,
+        });
+
+        return createCachedChatStreamResponse(cachedResponse.content);
+    }
+
     const result = streamText({
         maxOutputTokens: 1200,
         messages: await convertToModelMessages(input.messages),
@@ -115,11 +227,14 @@ async function streamChatResponse(input: {
         onFinish: async ({ responseMessage }) => {
             await persistAssistantMessage({
                 message: responseMessage,
-                mode:
-                    intent === "quote" || intent === "verified_numeric"
-                        ? "verified_numeric"
-                        : "general_rag",
+                mode,
                 sessionId: input.sessionId,
+            });
+            await setCachedChatResponse(cacheKey, {
+                content: getMessageText(responseMessage),
+                intent,
+                mode,
+                warnings: [],
             });
         },
         originalMessages: input.messages,

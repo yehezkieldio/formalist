@@ -63,13 +63,20 @@ upload directory when artifacts are enabled.
 **Performance Goals**: First streamed chat content within 5 seconds for at
 least 90% of ordinary document questions; admin can review one extracted row in
 under 90 seconds; ingestion progress visible within 2 minutes after upload.
+Chunk retrieval must remain database-bounded at scale: no general RAG path may
+load all chunks into Node.js for filtering. Retrieval uses Postgres FTS ranking,
+pgvector similarity over stored Qwen embeddings, RRF, and metadata freshness
+filters.
 
 **Constraints**: Trusted numeric answers must use reviewed active facts/table
 rows or deterministic calculations; raw chunks alone are never trusted numeric
 truth; the app boots without `OPENROUTER_API_KEY`; artifacts are never stored
 under public web root; original files/page images/debug artifacts are optional;
 no managed object storage, seed tariff data, eval dashboard, Pages Router, or
-third-party auth provider dependency.
+third-party auth provider dependency. Intent routing should use structured LLM
+classification when available and a conservative deterministic fallback when
+not. Draft answers must be checked against retrieved evidence before being
+marked trusted.
 
 **Scale/Scope**: Complete first version for a single-organization air cargo
 tariff/pricelist assistant, covering chat, ingestion, review, retrieval,

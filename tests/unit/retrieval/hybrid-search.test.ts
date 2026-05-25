@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const chunkMock = {
     searchDocumentChunks: vi.fn(() =>
@@ -35,6 +35,10 @@ vi.mock("#/server/retrieval/table-search", () => tableMock);
 vi.mock("#/server/retrieval/full-text", () => fullTextMock);
 
 describe("hybrid search", () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
     it("returns fused component scores", async () => {
         const { hybridSearch } =
             await import("#/server/retrieval/hybrid-search");
@@ -48,5 +52,31 @@ describe("hybrid search", () => {
                 ownerId: "chunk-1",
             }),
         ]);
+    });
+
+    it("excludes archived documents by default and opts in for history queries", async () => {
+        const { hybridSearch } =
+            await import("#/server/retrieval/hybrid-search");
+
+        await hybridSearch({ query: "pelita", validOn: "2026-05-26" });
+        expect(chunkMock.searchDocumentChunks).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                includeArchivedDocuments: false,
+                validOn: "2026-05-26",
+            })
+        );
+        expect(fullTextMock.fullTextSearch).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                includeArchivedDocuments: false,
+                ownerTypes: ["document_chunk", "table_chunk"],
+            })
+        );
+
+        await hybridSearch({ query: "historical pelita tariffs" });
+        expect(chunkMock.searchDocumentChunks).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                includeArchivedDocuments: true,
+            })
+        );
     });
 });

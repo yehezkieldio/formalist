@@ -89,6 +89,8 @@ export const ambiguityInputSchema = z.object({
 });
 
 export const verifyAnswerInputSchema = z.object({
+    draftText: z.string().optional(),
+    evidenceSnippets: z.array(z.string()).optional(),
     mode: z.enum(["general_rag", "verified_numeric"]),
     sourceCount: z.number().int().nonnegative(),
     trustedSourceCount: z.number().int().nonnegative(),

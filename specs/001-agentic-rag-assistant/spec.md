@@ -73,6 +73,16 @@ document references and do not claim unsupported details.
 3. **Given** no relevant chunks are found, **When** a user asks a document
    question, **Then** the assistant returns UNANSWERABLE with a useful next
    step instead of guessing.
+4. **Given** many ingested documents, **When** the assistant searches chunks or
+   table chunks, **Then** retrieval executes in Postgres using full-text
+   ranking, pgvector similarity, and metadata filters rather than fetching all
+   rows into Node.js memory.
+5. **Given** archived or superseded documents, **When** the user asks a normal
+   general RAG question, **Then** archived chunks are excluded unless the query
+   explicitly requests archived/history data.
+6. **Given** a draft answer and retrieved evidence, **When** the answer cannot
+   be grounded in retrieved snippets, **Then** verification marks the answer
+   UNVERIFIED or UNANSWERABLE instead of presenting unsupported claims.
 
 ---
 
@@ -318,6 +328,26 @@ filterable, linked to source evidence, and resolved through review actions.
 - **FR-019**: The system MUST support semantic chunk search, table-aware chunk
   search, structured fact search, exact tariff/fact lookup, alias lookup, hybrid
   search, and an optional reranking step.
+- **FR-019A**: Chunk and table-chunk search MUST NOT load all rows and filter
+  with JavaScript substring checks. Filtering, full-text ranking, metadata
+  filtering, and vector similarity MUST execute in Postgres.
+- **FR-019B**: General RAG retrieval MUST use stored Qwen embeddings through
+  pgvector when embeddings exist. If embedding generation is unavailable,
+  retrieval MUST fall back to ranked Postgres full-text or ILIKE lookup, not
+  in-memory scans.
+- **FR-019C**: Full-text retrieval MUST use `ts_rank` or `ts_rank_cd` scores
+  rather than a constant score so reciprocal-rank fusion receives meaningful
+  component rankings.
+- **FR-019D**: Hybrid retrieval MUST support metadata freshness filters,
+  including document status, owner type, document ID, and explicit opt-in for
+  archived/superseded documents.
+- **FR-019E**: Intent classification SHOULD use a lightweight structured LLM
+  classification step when a model provider is configured. The fallback
+  classifier MUST be conservative and MUST NOT route broad words such as
+  "review" away from general RAG without admin/tariff context.
+- **FR-019F**: The chat route SHOULD check a short-lived Redis response cache
+  before spending LLM tokens, while preserving source evidence and verified
+  numeric trust constraints.
 - **FR-020**: The system MUST extract tariff prices, destination availability,
   route type, transit route, flight number, schedule, validity rules, promo
   rules, fee rules, minimum weight, PPN rules, surcharge rules, N/A prices, and
