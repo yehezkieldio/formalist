@@ -26,10 +26,37 @@ chat and `qwen/qwen3-embedding-8b` for embeddings.
 
 **Alternatives considered**:
 
-- LangChain: rejected because the required tool/citation flow is narrower and
-  does not need a heavy orchestration framework.
+- LangChain orchestration: rejected because the required tool/citation flow is
+  narrower and does not need a heavy orchestration framework. Focused LangChain
+  packages such as `@langchain/textsplitters` remain acceptable where they solve
+  a bounded infrastructure problem without taking over agent orchestration.
 - Custom SSE protocol only: rejected because AI SDK already provides model,
   tool, and stream abstractions while allowing custom persistence.
+
+## Decision: Modern Focused Packages For Reusable Infrastructure
+
+**Rationale**: Formalist should not hand-roll brittle versions of generic
+parsing, splitting, tool-state, or cache primitives when maintained packages
+provide the same foundation. Package usage must still preserve Formalist's
+review-before-trust, deterministic calculation, source evidence, and deployment
+constraints.
+
+**Selected package direction**:
+
+- PDF parsing: `@opendataloader/pdf`.
+- DOCX parsing: `officeparser`.
+- Semantic text splitting: `@langchain/textsplitters`.
+- AI tool state/cache: evaluate `ai-sdk-tools` or an AI SDK-native equivalent
+  during AI tool orchestration implementation.
+
+**Alternatives considered**:
+
+- Broad LangChain orchestration: rejected for the first version because AI SDK
+  is the selected streaming/tooling layer, but focused LangChain utility
+  packages are allowed.
+- Fully custom parsers and splitters: rejected as brittle unless Formalist's
+  provenance or verification contract requires custom logic around package
+  output.
 
 ## Decision: Drizzle ORM, drizzle-kit, pgvector, And Postgres Full-Text Search
 

@@ -28,8 +28,16 @@ React Server Components by default.
 **Primary Dependencies**: Next.js 16, React, shadcn/ui, AI Elements, AI SDK v6,
 `@openrouter/ai-sdk-provider`, Drizzle ORM, drizzle-kit, pgvector, BullMQ,
 Upstash Redis client, Zod, React Hook Form, TanStack Table, date-fns,
-lucide-react, Vitest, Playwright for browser verification, document parsers for
-PDF/DOCX/TXT extraction.
+lucide-react, Vitest, Playwright for browser verification,
+`@opendataloader/pdf` for PDF parsing, `officeparser` for DOCX parsing, and
+`@langchain/textsplitters` for semantic document splitting.
+
+**Package Policy**: Prefer modern, maintained, focused packages for reusable
+infrastructure primitives such as parsing, text splitting, AI tool state, and
+cache management. Keep custom code for Formalist-specific deterministic
+calculation, reviewed-fact trust gates, source evidence modeling, and metadata
+layering. Before custom AI tool state/cache abstractions are introduced,
+evaluate `ai-sdk-tools` or an AI SDK-native equivalent.
 
 **Storage**: Postgres-compatible database with pgvector and full-text indexes;
 local Redis or Upstash Redis for queueing; `ingestion_jobs` DB fallback queue;

@@ -16,7 +16,7 @@
 - [x] T004 [P] Install AI Elements and create initial AI component wrappers in `src/components/ai/ai-elements-provider.tsx` and `src/components/ai/index.ts`; Dependencies: T001; Acceptance: AI Elements imports compile without client/server boundary errors.
 - [x] T005 [P] Install AI SDK v6 and `@openrouter/ai-sdk-provider` and create package scripts in `package.json`; Dependencies: T001; Acceptance: `bun run typecheck` resolves AI SDK and OpenRouter imports.
 - [x] T006 [P] Install Drizzle ORM, drizzle-kit, PostgreSQL client, and pgvector-compatible dependencies in `package.json` and `drizzle.config.ts`; Dependencies: T001; Acceptance: `bun run db:generate` can locate schema config once schema is added.
-- [x] T007 [P] Install queue, validation, form, table, date, icon, test, and parser dependencies in `package.json`; Dependencies: T001; Acceptance: imports for BullMQ, Upstash Redis, Zod, React Hook Form, TanStack Table, date-fns, lucide-react, Vitest, PDF, DOCX, and TXT parsing compile.
+- [x] T007 [P] Install queue, validation, form, table, date, icon, test, parser, and splitter dependencies in `package.json`; Dependencies: T001; Acceptance: imports for BullMQ, Upstash Redis, Zod, React Hook Form, TanStack Table, date-fns, lucide-react, Vitest, `@opendataloader/pdf`, `officeparser`, TXT parsing, and `@langchain/textsplitters` compile.
 - [x] T008 Create environment validation with t3 env in `src/env.ts`; Dependencies: T001; Acceptance: invalid `DEPLOYMENT_MODE`, `DATABASE_PROVIDER`, `QUEUE_PROVIDER`, booleans, and required secrets produce typed startup validation errors.
 - [x] T009 [P] Create `.env.example` with every required environment variable in `.env.example`; Dependencies: T008; Acceptance: `.env.example` includes Docker and managed fallback examples without real secrets.
 - [x] T010 Configure root scripts for app, worker, migrations, tests, lint, typecheck, and managed fallback in `package.json`; Dependencies: T001, T006, T007; Acceptance: `bun run` lists `dev`, `build`, `start`, `worker`, `db:generate`, `db:migrate`, `test`, `test:integration`, `test:e2e`, `typecheck`, and `lint`.
@@ -107,14 +107,14 @@
 
 ## Phase 9: Chunking
 
-- [ ] T074 Create document chunker in `src/server/ingestion/chunkers/document-chunker.ts`; Dependencies: T065, T071; Acceptance: chunker creates narrative, note, heading, mixed, or unknown chunks with stable chunk indexes.
-- [ ] T075 Create table-aware chunker in `src/server/ingestion/chunkers/table-chunker.ts`; Dependencies: T069, T071; Acceptance: chunker creates row/table chunks with header text, row text, markdown, table index, and row index.
-- [ ] T076 Create chunk metadata builder in `src/server/ingestion/chunkers/metadata.ts`; Dependencies: T074, T075; Acceptance: metadata includes page, section title, table id, row number, nearby headers, and source document id.
-- [ ] T077 Create nearby note and footnote association in `src/server/ingestion/chunkers/notes.ts`; Dependencies: T074, T075; Acceptance: row chunks include relevant surrounding notes without duplicating unrelated text.
-- [ ] T078 Create chunk persistence in `src/server/ingestion/persist-chunks.ts`; Dependencies: T021, T074, T076; Acceptance: semantic chunks persist with metadata and status `active`.
-- [ ] T079 Create table chunk persistence in `src/server/ingestion/persist-table-chunks.ts`; Dependencies: T021, T075, T076, T077; Acceptance: table chunks persist with status `extracted` or `needs_review`.
-- [ ] T080 Wire parse and chunk jobs in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T070, T071, T078, T079; Acceptance: parse-document enqueues chunk-document and chunk-document updates document status to `chunked`.
-- [ ] T081 [P] Add chunker tests in `tests/unit/ingestion/chunkers/document-chunker.test.ts`, `table-chunker.test.ts`, `metadata.test.ts`, and `notes.test.ts`; Dependencies: T074, T075, T076, T077; Acceptance: tests cover page preservation, row/header association, footnotes, and chunk persistence payloads.
+- [x] T074 Create document chunker in `src/server/ingestion/chunkers/document-chunker.ts`; Dependencies: T065, T071; Acceptance: chunker uses `@langchain/textsplitters` as the base splitter and creates narrative, note, heading, mixed, or unknown chunks with stable chunk indexes.
+- [x] T075 Create table-aware chunker in `src/server/ingestion/chunkers/table-chunker.ts`; Dependencies: T069, T071; Acceptance: chunker creates row/table chunks with header text, row text, markdown, table index, and row index.
+- [x] T076 Create chunk metadata builder in `src/server/ingestion/chunkers/metadata.ts`; Dependencies: T074, T075; Acceptance: metadata includes page, section title, table id, row number, nearby headers, and source document id.
+- [x] T077 Create nearby note and footnote association in `src/server/ingestion/chunkers/notes.ts`; Dependencies: T074, T075; Acceptance: row chunks include relevant surrounding notes without duplicating unrelated text.
+- [x] T078 Create chunk persistence in `src/server/ingestion/persist-chunks.ts`; Dependencies: T021, T074, T076; Acceptance: semantic chunks persist with metadata and status `active`.
+- [x] T079 Create table chunk persistence in `src/server/ingestion/persist-table-chunks.ts`; Dependencies: T021, T075, T076, T077; Acceptance: table chunks persist with status `extracted` or `needs_review`.
+- [x] T080 Wire parse and chunk jobs in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T070, T071, T078, T079; Acceptance: parse-document enqueues chunk-document and chunk-document updates document status to `chunked`.
+- [x] T081 [P] Add chunker tests in `tests/unit/ingestion/chunkers/document-chunker.test.ts`, `table-chunker.test.ts`, `metadata.test.ts`, and `notes.test.ts`; Dependencies: T074, T075, T076, T077; Acceptance: tests cover page preservation, row/header association, footnotes, and chunk persistence payloads.
 
 ## Phase 10: LLM Extraction
 
@@ -258,7 +258,7 @@
 
 - [ ] T187 Create system prompt in `src/server/ai/system-prompt.ts`; Dependencies: T082; Acceptance: prompt encodes general RAG mode, verified numeric mode, no invented prices, source evidence, clarification, and concise answers.
 - [ ] T188 Create tool schemas in `src/server/ai/tool-schemas.ts`; Dependencies: T007; Acceptance: schemas cover classifyIntent, retrieval, aliases, facts, tariffs, fee rules, quote, source evidence, destinations, comparison, verification, and ambiguity.
-- [ ] T189 Create AI tool registry in `src/server/ai/tools.ts`; Dependencies: T106, T136, T137, T138, T139, T142, T144, T145, T146, T152, T188; Acceptance: registry exposes all assistant tools with safe serialized outputs.
+- [ ] T189 Create AI tool registry in `src/server/ai/tools.ts`; Dependencies: T106, T136, T137, T138, T139, T142, T144, T145, T146, T152, T188; Acceptance: registry exposes all assistant tools with safe serialized outputs and records whether `ai-sdk-tools` or AI SDK-native state/cache utilities are used or intentionally bypassed.
 - [ ] T190 Create intent classification implementation in `src/server/ai/tools/classify-intent.ts`; Dependencies: T187, T188; Acceptance: classifier distinguishes general RAG, verified numeric, quote, lookup, admin/status, clarification, and unanswerable.
 - [ ] T191 Create answer verification implementation in `src/server/ai/tools/verify-answer.ts`; Dependencies: T148, T158, T188; Acceptance: verification returns CONFIDENT, NEEDS_CONFIRMATION, UNVERIFIED, or UNANSWERABLE with checks and warnings.
 - [ ] T192 Create chat route orchestration in `src/server/ai/chat-route.ts`; Dependencies: T082, T083, T154, T155, T156, T157, T158, T177, T187, T189, T190, T191; Acceptance: orchestration streams AI SDK UI messages and persists messages, tools, sources, and verifications.

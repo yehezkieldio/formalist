@@ -381,6 +381,20 @@ filterable, linked to source evidence, and resolved through review actions.
   OpenRouter, separate app and worker processes, local Postgres with pgvector,
   local Redis, Supabase Postgres fallback, Upstash Redis fallback, and Docker
   Compose for local/VPS operation.
+- **FR-044**: The implementation MUST prefer modern, maintained, focused
+  packages for reusable document parsing, text splitting, tool-state, caching,
+  and similar infrastructure primitives when those packages preserve Formalist's
+  verification and provenance requirements. Custom implementations are allowed
+  only when the domain contract requires deterministic behavior, source
+  traceability, or reviewed-fact enforcement that a package cannot safely
+  provide.
+- **FR-045**: PDF parsing MUST use `@opendataloader/pdf`, DOCX parsing MUST use
+  `officeparser`, and semantic document chunking MUST use
+  `@langchain/textsplitters` as the base splitter with Formalist metadata and
+  review rules layered on top.
+- **FR-046**: When implementing AI tool orchestration features, the project MUST
+  evaluate `ai-sdk-tools` or equivalent AI SDK-native utilities for tool state,
+  cache, and reusable tool abstractions before adding custom state/cache code.
 
 ### Key Entities _(include if feature involves data)_
 
