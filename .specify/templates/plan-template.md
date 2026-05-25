@@ -22,11 +22,11 @@
 
 **Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Storage**: [Postgres + pgvector, Redis, local filesystem artifacts, or N/A]
 
 **Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Target Platform**: [Docker local/VPS, managed providers, browser, or NEEDS CLARIFICATION]
 
 **Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
 
@@ -40,7 +40,41 @@
 
 _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+- **Agentic RAG Champion**: Plan identifies how the chatbot plans, retrieves,
+  calls tools, verifies, calculates, streams, and cites responses, or states why
+  the feature is outside chat orchestration.
+- **Multiple Document Memories**: Ingestion changes define semantic chunks,
+  table-aware chunks, structured facts, source references, optional artifacts,
+  and chat/tool-call history impacts.
+- **Verified Numeric Mode**: Price, fee, total, schedule, validity, route,
+  destination, promo, and quote behavior uses reviewed active facts/table rows
+  or deterministic calculations. Raw chunks alone are not accepted.
+- **Human Review Before Trust**: Extracted facts and tariff rows start as
+  `extracted` or `needs_review`; admin approval is required before active use.
+- **Deterministic Calculation**: Quote and fee math is implemented in TypeScript
+  application code with unit tests; LLM output never performs source arithmetic.
+- **Source Traceability**: High-stakes answers expose document name, page when
+  available, chunk/table/fact reference, snippet or row text, effective date,
+  validity period, and fee rules.
+- **Product Quality**: User-facing work preserves streaming chat, persistent
+  history, sidebar navigation, message actions, visible tool calls, visible
+  reasoning summaries, citations, source cards, confidence states, markdown, and
+  responsive UI as applicable.
+- **Deployment And Storage**: Plan supports Docker local/VPS with local
+  Postgres + pgvector and Redis, plus managed Supabase + Upstash mode through
+  environment-based provider selection. Optional files/page artifacts use local
+  filesystem storage with configuration flags.
+- **Security**: Admin routes are protected, secrets come from environment
+  variables, uploads/artifacts are outside the public web root, and file access
+  paths are validated.
+- **Modular Boundaries**: Plan names owning modules for ingestion, parsing,
+  chunking, extraction, validation, retrieval, chat orchestration, tool calling,
+  quote calculation, provider adapters, storage, and UI changes.
+- **Graceful Degradation**: App behavior without `OPENROUTER_API_KEY` is
+  specified; non-LLM admin, stored document, review, lookup, and deterministic
+  calculation paths remain usable.
+- **Scope Exclusions**: Plan does not introduce seed demo tariff data or an
+  eval/test-question dashboard.
 
 ## Project Structure
 

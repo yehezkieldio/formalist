@@ -8,15 +8,22 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: Tests are REQUIRED for deterministic calculation, ingestion/parsing
+contracts, review state transitions, retrieval/verifier logic, provider
+selection, storage access controls, protected routes, and critical chat or admin
+workflows. Browser verification is REQUIRED for user-facing chat and admin
+review experiences.
 
-**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story. Each task should be a small reviewable vertical slice with a clear goal, exact files, implementation notes, acceptance criteria, and verification.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies)
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
+- Include constitution-driven verification when a task touches RAG, ingestion,
+  numeric facts, review, calculations, sources, providers, storage, security, UI,
+  or graceful degradation
 
 ## Path Conventions
 
@@ -68,6 +75,11 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T007 Create base models/entities that all stories depend on
 - [ ] T008 Configure error handling and logging infrastructure
 - [ ] T009 Setup environment configuration management
+- [ ] T010 [P] Configure provider selection for Docker local/VPS and managed fallback mode
+- [ ] T011 [P] Configure local filesystem artifact storage outside the public web root
+- [ ] T012 Define review-state model for extracted facts, table rows, and active trusted records
+- [ ] T013 Define deterministic calculation test harness for tariff/fee/quote math
+- [ ] T014 Verify app boots with setup-required LLM states when OPENROUTER_API_KEY is absent
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -79,21 +91,22 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 1 ⚠️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T015 [P] [US1] Contract test for [endpoint] in tests/contract/test\_[name].ts
+- [ ] T016 [P] [US1] Integration test for [user journey] in tests/integration/[name].test.ts
+- [ ] T017 [P] [US1] Browser verification for chat/admin workflow in tests/e2e/[name].spec.ts
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T018 [P] [US1] Create [Entity1] model in src/[boundary]/[entity1].ts
+- [ ] T019 [P] [US1] Create [Entity2] model in src/[boundary]/[entity2].ts
+- [ ] T020 [US1] Implement [Service] in src/[boundary]/[service].ts (depends on T018, T019)
+- [ ] T021 [US1] Implement [endpoint/feature] in src/[location]/[file].ts
+- [ ] T022 [US1] Add validation, error handling, source traceability, and confidence states
+- [ ] T023 [US1] Add logging for user story 1 operations without leaking secrets
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -105,17 +118,18 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 2 ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T024 [P] [US2] Contract test for [endpoint] in tests/contract/test\_[name].ts
+- [ ] T025 [P] [US2] Integration test for [user journey] in tests/integration/[name].test.ts
+- [ ] T026 [P] [US2] Browser verification for chat/admin workflow in tests/e2e/[name].spec.ts
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T027 [P] [US2] Create [Entity] model in src/[boundary]/[entity].ts
+- [ ] T028 [US2] Implement [Service] in src/[boundary]/[service].ts
+- [ ] T029 [US2] Implement [endpoint/feature] in src/[location]/[file].ts
+- [ ] T030 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -127,16 +141,17 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 3 ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test\_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test\_[name].py
+- [ ] T031 [P] [US3] Contract test for [endpoint] in tests/contract/test\_[name].ts
+- [ ] T032 [P] [US3] Integration test for [user journey] in tests/integration/[name].test.ts
+- [ ] T033 [P] [US3] Browser verification for chat/admin workflow in tests/e2e/[name].spec.ts
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T034 [P] [US3] Create [Entity] model in src/[boundary]/[entity].ts
+- [ ] T035 [US3] Implement [Service] in src/[boundary]/[service].ts
+- [ ] T036 [US3] Implement [endpoint/feature] in src/[location]/[file].ts
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -153,9 +168,11 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
+- [ ] TXXX [P] Additional unit tests in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
+- [ ] TXXX Verify no seed demo tariff data or eval/test-question dashboard was added
+- [ ] TXXX Verify behavior without OPENROUTER_API_KEY
 
 ---
 
@@ -178,7 +195,7 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Within Each User Story
 
-- Tests (if included) MUST be written and FAIL before implementation
+- Tests MUST be written and FAIL before implementation for required test areas
 - Models before services
 - Services before endpoints
 - Core implementation before integration
@@ -198,13 +215,14 @@ Examples of foundational tasks (adjust based on your project):
 ## Parallel Example: User Story 1
 
 ```bash
-# Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+# Launch all tests for User Story 1 together:
+Task: "Contract test for [endpoint] in tests/contract/test_[name].ts"
+Task: "Integration test for [user journey] in tests/integration/[name].test.ts"
+Task: "Browser verification for [workflow] in tests/e2e/[name].spec.ts"
 
 # Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+Task: "Create [Entity1] model in src/[boundary]/[entity1].ts"
+Task: "Create [Entity2] model in src/[boundary]/[entity2].ts"
 ```
 
 ---

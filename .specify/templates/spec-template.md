@@ -78,6 +78,33 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+### Constitution Requirements
+
+<!--
+  ACTION REQUIRED: Fill this section from the Formalist Constitution.
+  Mark "N/A" only when a principle truly does not apply to this feature.
+-->
+
+- **Agentic RAG Scope**: [How this feature affects planning, retrieval,
+  decomposition, tool calls, verification, calculation, streaming, or citations]
+- **Document Memories**: [Semantic chunks, table chunks, structured facts,
+  source references, optional file/page artifacts, chat/tool-call history impacts]
+- **Verified Numeric Mode**: [Whether the feature touches prices, fees, totals,
+  validity, schedules, routes, destinations, promos, or quotes; if yes, define
+  reviewed fact/table-row requirements]
+- **Human Review**: [Review states, approval flow, and audit requirements for
+  extracted facts, tariff rows, fee rules, or schedules]
+- **Deterministic Calculation**: [Which calculations must be performed by
+  TypeScript application code and what boundary cases matter]
+- **Source Traceability**: [Required source evidence: document name, page,
+  chunk/table/fact reference, snippet/row, effective date, validity, fee rules]
+- **Deployment/Storage**: [Docker local/VPS provider behavior, managed fallback
+  behavior, local filesystem artifact settings]
+- **Security/Degradation**: [Protected admin behavior, secret handling,
+  non-public artifact paths, behavior without OPENROUTER_API_KEY]
+- **Excluded Scope**: [Confirm no seed demo tariff data and no eval/test-question
+  dashboard are introduced]
+
 ## Requirements _(mandatory)_
 
 <!--
