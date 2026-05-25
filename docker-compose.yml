@@ -111,7 +111,7 @@ services:
         restart: unless-stopped
         shm_size: 256mb
         volumes:
-            - formalist_postgres:/var/lib/postgresql/data
+            - formalist_postgres:/var/lib/postgresql
 
     redis:
         image: redis:8-alpine

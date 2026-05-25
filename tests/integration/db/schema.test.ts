@@ -100,7 +100,7 @@ describe("database schema", () => {
         );
     });
 
-    it("creates pgvector and full-text indexes", async () => {
+    it("creates embedding owner and full-text indexes", async () => {
         const vectorMigration = await readMigration(
             "0002_embedding_indexes.sql"
         );
@@ -108,9 +108,8 @@ describe("database schema", () => {
             "0003_full_text_indexes.sql"
         );
 
-        expect(vectorMigration).toContain("USING hnsw");
-        expect(vectorMigration).toContain("vector_cosine_ops");
         expect(vectorMigration).toContain('"owner_type", "owner_id"');
+        expect(vectorMigration).not.toContain("USING hnsw");
         expect(fullTextMigration).toContain("document_chunks_content_fts_idx");
         expect(fullTextMigration).toContain("table_chunks_text_fts_idx");
         expect(fullTextMigration).toContain("tariff_rows_text_fts_idx");

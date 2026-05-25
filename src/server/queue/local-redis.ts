@@ -11,7 +11,7 @@ import type {
 import { QueueAdapterError } from "./adapter";
 import { createDatabaseQueueAdapter } from "./db-fallback";
 
-export const ingestionQueueName = "formalist:ingestion";
+export const ingestionQueueName = "formalist-ingestion";
 const defaultRetryDelayMs = 1000;
 const defaultWorkerConcurrency = 2;
 const redisRetryMaxDelayMs = 20_000;

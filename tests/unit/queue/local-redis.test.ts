@@ -7,7 +7,7 @@ import {
 
 describe("local Redis queue adapter", () => {
     it("uses the Formalist ingestion queue name", () => {
-        expect(ingestionQueueName).toBe("formalist:ingestion");
+        expect(ingestionQueueName).toBe("formalist-ingestion");
     });
 
     it("builds BullMQ retry options with exponential backoff", () => {
