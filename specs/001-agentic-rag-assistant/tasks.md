@@ -187,18 +187,18 @@
 
 ## Phase 15: Retrieval
 
-- [ ] T136 Create semantic chunk search in `src/server/retrieval/chunk-search.ts`; Dependencies: T132, T078; Acceptance: search returns chunk sources with snippets, page, document, and scores.
-- [ ] T137 Create table chunk search in `src/server/retrieval/table-search.ts`; Dependencies: T132, T079; Acceptance: search returns row/header/table metadata and status filters.
-- [ ] T138 Create fact search in `src/server/retrieval/fact-search.ts`; Dependencies: T031, T132; Acceptance: search filters by fact type, airline, destination, status, validity, and source.
-- [ ] T139 Create structured tariff search in `src/server/retrieval/structured-search.ts`; Dependencies: T031, T106; Acceptance: search returns only active reviewed rows by default and supports route, promo, date, airline, origin, and destination filters.
-- [ ] T140 Create Postgres full-text search helpers in `src/server/retrieval/full-text.ts`; Dependencies: T028; Acceptance: helpers query chunks, table chunks, facts, tariff rows, and fee rules with ranked results, and document whether `flexsearch` or `minisearch` is useful for local/admin-side indexes without replacing Postgres FTS.
-- [ ] T141 Create reciprocal rank fusion in `src/server/retrieval/rrf.ts`; Dependencies: T136, T140; Acceptance: RRF combines full-text and vector ranks deterministically with configurable weights.
-- [ ] T142 Create hybrid search orchestration in `src/server/retrieval/hybrid-search.ts`; Dependencies: T136, T137, T138, T140, T141; Acceptance: hybrid search returns mixed ranked sources and component scores.
-- [ ] T143 Create optional reranker interface in `src/server/retrieval/reranker.ts`; Dependencies: T142; Acceptance: disabled reranker is a no-op and enabled path is behind a provider abstraction, with `@huggingface/transformers` evaluated for local cross-encoder reranking and current candidates documented.
-- [ ] T144 Create source evidence lookup in `src/server/tariff/evidence.ts` and `src/server/retrieval/source-evidence.ts`; Dependencies: T031, T113; Acceptance: lookup returns document, page, snippet/raw row, effective date, validity, route, fee rules, and source type.
-- [ ] T145 Create destination listing in `src/server/retrieval/destination-list.ts`; Dependencies: T139; Acceptance: lists active reviewed destinations with airline, route, promo, origin, validity, and source counts.
-- [ ] T146 Create tariff comparison in `src/server/retrieval/compare-tariffs.ts`; Dependencies: T139, T144; Acceptance: comparison handles cheapest/latest/promo/regular and flags ambiguity when user intent is underspecified.
-- [ ] T147 [P] Add retrieval tests in `tests/unit/retrieval/rrf.test.ts`, `hybrid-search.test.ts`, `structured-search.test.ts`, `source-evidence.test.ts`, `compare-tariffs.test.ts`, and `list-destinations.test.ts`; Dependencies: T136, T137, T138, T139, T141, T142, T144, T145, T146; Acceptance: tests cover active-only numeric lookup, hybrid RRF, source evidence, promo/regular ambiguity, and destination listing.
+- [x] T136 Create semantic chunk search in `src/server/retrieval/chunk-search.ts`; Dependencies: T132, T078; Acceptance: search returns chunk sources with snippets, page, document, and scores.
+- [x] T137 Create table chunk search in `src/server/retrieval/table-search.ts`; Dependencies: T132, T079; Acceptance: search returns row/header/table metadata and status filters.
+- [x] T138 Create fact search in `src/server/retrieval/fact-search.ts`; Dependencies: T031, T132; Acceptance: search filters by fact type, airline, destination, status, validity, and source.
+- [x] T139 Create structured tariff search in `src/server/retrieval/structured-search.ts`; Dependencies: T031, T106; Acceptance: search returns only active reviewed rows by default and supports route, promo, date, airline, origin, and destination filters.
+- [x] T140 Create Postgres full-text search helpers in `src/server/retrieval/full-text.ts`; Dependencies: T028; Acceptance: helpers query chunks, table chunks, facts, tariff rows, and fee rules with ranked results, and document whether `flexsearch` or `minisearch` is useful for local/admin-side indexes without replacing Postgres FTS.
+- [x] T141 Create reciprocal rank fusion in `src/server/retrieval/rrf.ts`; Dependencies: T136, T140; Acceptance: RRF combines full-text and vector ranks deterministically with configurable weights.
+- [x] T142 Create hybrid search orchestration in `src/server/retrieval/hybrid-search.ts`; Dependencies: T136, T137, T138, T140, T141; Acceptance: hybrid search returns mixed ranked sources and component scores.
+- [x] T143 Create optional reranker interface in `src/server/retrieval/reranker.ts`; Dependencies: T142; Acceptance: disabled reranker is a no-op and enabled path is behind a provider abstraction, with `@huggingface/transformers` evaluated for local cross-encoder reranking and current candidates documented.
+- [x] T144 Create source evidence lookup in `src/server/tariff/evidence.ts` and `src/server/retrieval/source-evidence.ts`; Dependencies: T031, T113; Acceptance: lookup returns document, page, snippet/raw row, effective date, validity, route, fee rules, and source type.
+- [x] T145 Create destination listing in `src/server/retrieval/destination-list.ts`; Dependencies: T139; Acceptance: lists active reviewed destinations with airline, route, promo, origin, validity, and source counts.
+- [x] T146 Create tariff comparison in `src/server/retrieval/compare-tariffs.ts`; Dependencies: T139, T144; Acceptance: comparison handles cheapest/latest/promo/regular and flags ambiguity when user intent is underspecified.
+- [x] T147 [P] Add retrieval tests in `tests/unit/retrieval/rrf.test.ts`, `hybrid-search.test.ts`, `structured-search.test.ts`, `source-evidence.test.ts`, `compare-tariffs.test.ts`, and `list-destinations.test.ts`; Dependencies: T136, T137, T138, T139, T141, T142, T144, T145, T146; Acceptance: tests cover active-only numeric lookup, hybrid RRF, source evidence, promo/regular ambiguity, and destination listing.
 
 ## Phase 16: Quote Calculation
 
