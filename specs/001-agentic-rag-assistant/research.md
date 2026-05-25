@@ -10,6 +10,7 @@ be small Client Components. Route handlers under `src/app/api/**/route.ts`
 handle chat streaming, uploads, review actions, settings, and lookup endpoints.
 
 **Alternatives considered**:
+
 - Pages Router: rejected because the user explicitly prohibited old patterns.
 - Client-heavy SPA: rejected because secrets, database access, and admin data
   should stay server-side, and it would increase client bundle size.
@@ -24,6 +25,7 @@ timelines in the chat UI. OpenRouter is selected through
 chat and `qwen/qwen3-embedding-8b` for embeddings.
 
 **Alternatives considered**:
+
 - LangChain: rejected because the required tool/citation flow is narrower and
   does not need a heavy orchestration framework.
 - Custom SSE protocol only: rejected because AI SDK already provides model,
@@ -38,6 +40,7 @@ EXISTS vector`, HNSW/vector indexes for embeddings, and GIN indexes for full
 text search over chunk/table/fact/tariff searchable text.
 
 **Alternatives considered**:
+
 - Prisma: rejected because pgvector/full-text/custom SQL work is more direct
   with Drizzle for this project.
 - Managed vector database: rejected by project constraints.
@@ -51,6 +54,7 @@ reciprocal rank fusion, then optionally rerank through a provider abstraction.
 Verified numeric mode then filters to reviewed active structured records.
 
 **Alternatives considered**:
+
 - Vector-only retrieval: rejected because city/code and tariff rows require
   precise lexical matching.
 - FTS-only retrieval: rejected because summaries and prose Q&A need semantic
@@ -65,6 +69,7 @@ source metadata for audit, and embeddings for retrieval. This is the minimum
 shape that supports both general RAG mode and verified numeric mode.
 
 **Alternatives considered**:
+
 - Single `chunks` table: rejected because it cannot enforce reviewed numeric
   truth or table row lineage.
 - Direct table extraction only: rejected because non-numeric document Q&A still
@@ -78,6 +83,7 @@ query `active` rows/facts/rules. Review decisions write audit logs and keep
 source evidence visible.
 
 **Alternatives considered**:
+
 - Auto-activation above confidence threshold: rejected because the constitution
   requires human review before trust.
 - Soft warnings while still using unreviewed data: rejected for trusted numeric
@@ -92,6 +98,7 @@ the math. Tests cover minimum weight, PPN, missing fee rules, promo/regular
 ambiguity, and source evidence propagation.
 
 **Alternatives considered**:
+
 - LLM-calculated totals: rejected because calculations must be repeatable and
   auditable.
 - Spreadsheet-style formula storage for v1: deferred because current fee rules
@@ -107,6 +114,7 @@ uses `ingestion_jobs` with enqueue, claim, retry, fail, complete, attempts, and
 visibility timing.
 
 **Alternatives considered**:
+
 - BullMQ only: rejected because Upstash compatibility may not cover every worker
   feature and DB fallback is required.
 - Database queue only: rejected because local Redis/BullMQ is better for
@@ -119,6 +127,7 @@ stored under `UPLOAD_ROOT`, never under `public/`. The app keeps working from
 database text, chunks, facts, and metadata when file storage is disabled.
 
 **Alternatives considered**:
+
 - S3/R2/Supabase Storage: rejected by first-version constraints.
 - Mandatory file retention: rejected because the constitution says file storage
   is optional and the core system must work from stored text and metadata.
@@ -131,6 +140,7 @@ session cookie. This can be replaced later behind `src/server/auth/*` without
 changing admin pages.
 
 **Alternatives considered**:
+
 - Supabase Auth: rejected because Supabase is only a Postgres fallback provider
   in this project.
 - No auth in local mode: rejected because admin routes must be protected.
@@ -143,6 +153,7 @@ tests cover async Server Component pages, chat streaming, source preview,
 admin review, upload progress, theme/responsive layout, and auth protection.
 
 **Alternatives considered**:
+
 - Vitest-only UI coverage: rejected because current Next.js guidance recommends
   E2E tests for async Server Components.
 - Manual-only UI verification: rejected because chat/admin workflows are core

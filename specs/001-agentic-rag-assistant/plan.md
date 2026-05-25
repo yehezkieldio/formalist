@@ -188,8 +188,8 @@ calculation code in one typed codebase while preserving runtime boundaries.
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-| --------- | ---------- | ------------------------------------ |
-| Separate worker process | Ingestion, extraction, embeddings, and artifact writes are long-running and must not block chat/API requests | Running ingestion entirely inside route handlers would make uploads brittle and conflict with managed platform request limits |
-| Queue adapter with three providers | Formalist must run in Docker local/VPS mode, managed fallback mode, and Redis-unavailable mode | A single BullMQ-only queue would fail the Upstash/DB-fallback requirement and hard-code one infrastructure provider |
-| Separate structured facts, tariff rows, fee rules, chunks, and table chunks | Verified numeric mode needs reviewed structured truth while general RAG still needs chunk evidence | A single chunk table would force trusted numeric answers to rely on raw text and violate the constitution |
+| Violation                                                                   | Why Needed                                                                                                   | Simpler Alternative Rejected Because                                                                                          |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Separate worker process                                                     | Ingestion, extraction, embeddings, and artifact writes are long-running and must not block chat/API requests | Running ingestion entirely inside route handlers would make uploads brittle and conflict with managed platform request limits |
+| Queue adapter with three providers                                          | Formalist must run in Docker local/VPS mode, managed fallback mode, and Redis-unavailable mode               | A single BullMQ-only queue would fail the Upstash/DB-fallback requirement and hard-code one infrastructure provider           |
+| Separate structured facts, tariff rows, fee rules, chunks, and table chunks | Verified numeric mode needs reviewed structured truth while general RAG still needs chunk evidence           | A single chunk table would force trusted numeric answers to rely on raw text and violate the constitution                     |

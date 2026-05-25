@@ -6,11 +6,11 @@ structured errors:
 
 ```json
 {
-  "error": {
-    "code": "string",
-    "message": "string",
-    "details": {}
-  }
+    "error": {
+        "code": "string",
+        "message": "string",
+        "details": {}
+    }
 }
 ```
 
@@ -24,17 +24,18 @@ Request:
 
 ```json
 {
-  "sessionId": "uuid | null",
-  "messages": [],
-  "clientOptions": {
-    "showToolCalls": true
-  }
+    "sessionId": "uuid | null",
+    "messages": [],
+    "clientOptions": {
+        "showToolCalls": true
+    }
 }
 ```
 
 Response: AI SDK UI message stream.
 
 Side effects:
+
 - Creates session when `sessionId` is null.
 - Persists user message, assistant message parts, tool calls, sources, and
   answer verification.
@@ -54,7 +55,7 @@ Request:
 
 ```json
 {
-  "title": "string | null"
+    "title": "string | null"
 }
 ```
 
@@ -66,8 +67,8 @@ Request:
 
 ```json
 {
-  "title": "string | null",
-  "deleted": false
+    "title": "string | null",
+    "deleted": false
 }
 ```
 
@@ -83,6 +84,7 @@ session.
 Admin-only multipart upload.
 
 Fields:
+
 - `file`: PDF, DOCX, or TXT
 - `storeOriginalFile`: boolean
 - `storePageImages`: boolean
@@ -93,13 +95,14 @@ Response:
 
 ```json
 {
-  "documentId": "uuid",
-  "jobId": "uuid",
-  "status": "uploaded"
+    "documentId": "uuid",
+    "jobId": "uuid",
+    "status": "uploaded"
 }
 ```
 
 Validation:
+
 - File type and size must pass `MAX_UPLOAD_MB`.
 - Stored paths must resolve below `UPLOAD_ROOT` and outside public assets.
 
@@ -160,24 +163,25 @@ Request:
 
 ```json
 {
-  "fields": {
-    "airline": "string | null",
-    "destinationCity": "string | null",
-    "destinationCode": "string | null",
-    "routeType": "DIRECT | TRANSIT | ANY | UNKNOWN",
-    "smuPricePerKg": 0,
-    "priceStatus": "NUMERIC | NA | MISSING",
-    "schedule": "string | null",
-    "validFrom": "date | null",
-    "validUntil": "date | null",
-    "isPromo": false
-  },
-  "action": "save | approve | reject | archive | reopen",
-  "note": "string | null"
+    "fields": {
+        "airline": "string | null",
+        "destinationCity": "string | null",
+        "destinationCode": "string | null",
+        "routeType": "DIRECT | TRANSIT | ANY | UNKNOWN",
+        "smuPricePerKg": 0,
+        "priceStatus": "NUMERIC | NA | MISSING",
+        "schedule": "string | null",
+        "validFrom": "date | null",
+        "validUntil": "date | null",
+        "isPromo": false
+    },
+    "action": "save | approve | reject | archive | reopen",
+    "note": "string | null"
 }
 ```
 
 Rules:
+
 - `approve` requires source evidence and no unresolved high-severity blocking
   issue.
 - Every action writes an audit log.
@@ -210,11 +214,11 @@ Request:
 
 ```json
 {
-  "type": "city | airport | airline | route | destination",
-  "canonicalValue": "string",
-  "alias": "string",
-  "isAmbiguous": false,
-  "metadata": {}
+    "type": "city | airport | airline | route | destination",
+    "canonicalValue": "string",
+    "alias": "string",
+    "isAmbiguous": false,
+    "metadata": {}
 }
 ```
 
@@ -257,6 +261,7 @@ Admin-only settings bundle, with secret values redacted.
 Admin-only settings update.
 
 Request keys:
+
 - `deploymentMode`
 - `databaseProvider`
 - `queueProvider`
@@ -276,6 +281,7 @@ Request keys:
 - `storeDebugArtifacts`
 
 Rules:
+
 - Environment-provided secrets are never returned.
 - Invalid provider combinations return validation errors.
 

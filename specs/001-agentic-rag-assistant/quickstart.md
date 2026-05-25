@@ -37,21 +37,21 @@ NODE_ENV=development
 
 1. Start Postgres with pgvector and Redis:
 
-   ```bash
-   docker compose up -d postgres redis
-   ```
+    ```bash
+    docker compose up -d postgres redis
+    ```
 
 2. Run migrations:
 
-   ```bash
-   bun run db:migrate
-   ```
+    ```bash
+    bun run db:migrate
+    ```
 
 3. Start the app and worker:
 
-   ```bash
-   docker compose up app worker
-   ```
+    ```bash
+    docker compose up app worker
+    ```
 
 4. Open the app at `http://localhost:3000`.
 
@@ -66,12 +66,12 @@ NODE_ENV=development
 
 9. Ask chat questions such as:
 
-   ```text
-   Harga Pelita ke Surabaya berapa?
-   Kalau 20 kg ke Surabaya pakai Pelita total berapa?
-   Ringkas isi dokumen ini
-   Tampilkan sumber harga ini dari file mana dan halaman berapa
-   ```
+    ```text
+    Harga Pelita ke Surabaya berapa?
+    Kalau 20 kg ke Surabaya pakai Pelita total berapa?
+    Ringkas isi dokumen ini
+    Tampilkan sumber harga ini dari file mana dan halaman berapa
+    ```
 
 ## Managed Fallback Mode
 
@@ -81,45 +81,45 @@ NODE_ENV=development
 
 3. Set:
 
-   ```bash
-   DEPLOYMENT_MODE=managed-fallback
-   DATABASE_PROVIDER=supabase
-   DATABASE_URL=<supabase-postgres-connection-string>
-   SUPABASE_DATABASE_URL=<optional-same-or-admin-connection-string>
-   ```
+    ```bash
+    DEPLOYMENT_MODE=managed-fallback
+    DATABASE_PROVIDER=supabase
+    DATABASE_URL=<supabase-postgres-connection-string>
+    SUPABASE_DATABASE_URL=<optional-same-or-admin-connection-string>
+    ```
 
 4. Run Drizzle migrations against the Supabase connection string:
 
-   ```bash
-   bun run db:migrate
-   ```
+    ```bash
+    bun run db:migrate
+    ```
 
 5. Provision Upstash Redis.
 
 6. Set:
 
-   ```bash
-   QUEUE_PROVIDER=upstash-redis
-   UPSTASH_REDIS_REST_URL=<url>
-   UPSTASH_REDIS_REST_TOKEN=<token>
-   ```
+    ```bash
+    QUEUE_PROVIDER=upstash-redis
+    UPSTASH_REDIS_REST_URL=<url>
+    UPSTASH_REDIS_REST_TOKEN=<token>
+    ```
 
 7. If the selected queue behavior is incompatible with Upstash REST semantics,
    switch to:
 
-   ```bash
-   QUEUE_PROVIDER=db-fallback
-   ```
+    ```bash
+    QUEUE_PROVIDER=db-fallback
+    ```
 
 8. Configure a persistent local upload directory if original files, page images,
    or debug artifacts are enabled.
 
 9. Start the app and worker as separate Node.js processes:
 
-   ```bash
-   bun run start
-   bun run worker
-   ```
+    ```bash
+    bun run start
+    bun run worker
+    ```
 
 ## Missing OpenRouter Key Behavior
 

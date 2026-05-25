@@ -11,8 +11,8 @@ Input:
 
 ```json
 {
-  "message": "string",
-  "sessionContext": {}
+    "message": "string",
+    "sessionContext": {}
 }
 ```
 
@@ -20,11 +20,11 @@ Output:
 
 ```json
 {
-  "intent": "general_rag | verified_numeric | quote | document_lookup | admin_status | clarification | unanswerable",
-  "requiresVerifiedNumeric": true,
-  "requiresQuoteCalculation": false,
-  "missingInputs": ["weightKg"],
-  "reason": "string"
+    "intent": "general_rag | verified_numeric | quote | document_lookup | admin_status | clarification | unanswerable",
+    "requiresVerifiedNumeric": true,
+    "requiresQuoteCalculation": false,
+    "missingInputs": ["weightKg"],
+    "reason": "string"
 }
 ```
 
@@ -34,8 +34,8 @@ Input:
 
 ```json
 {
-  "terms": ["Jogja", "Pelita"],
-  "types": ["city", "airport", "airline", "destination"]
+    "terms": ["Jogja", "Pelita"],
+    "types": ["city", "airport", "airline", "destination"]
 }
 ```
 
@@ -43,16 +43,16 @@ Output:
 
 ```json
 {
-  "resolved": [
-    {
-      "input": "Jogja",
-      "type": "destination",
-      "canonicalValue": "Yogyakarta",
-      "isAmbiguous": true,
-      "candidates": []
-    }
-  ],
-  "needsClarification": true
+    "resolved": [
+        {
+            "input": "Jogja",
+            "type": "destination",
+            "canonicalValue": "Yogyakarta",
+            "isAmbiguous": true,
+            "candidates": []
+        }
+    ],
+    "needsClarification": true
 }
 ```
 
@@ -64,12 +64,12 @@ Input:
 
 ```json
 {
-  "query": "string",
-  "filters": {
-    "documentId": "uuid | null",
-    "airline": "string | null"
-  },
-  "topK": 8
+    "query": "string",
+    "filters": {
+        "documentId": "uuid | null",
+        "airline": "string | null"
+    },
+    "topK": 8
 }
 ```
 
@@ -77,16 +77,16 @@ Output:
 
 ```json
 {
-  "results": [
-    {
-      "sourceType": "document_chunk",
-      "sourceId": "uuid",
-      "score": 0.82,
-      "documentId": "uuid",
-      "pageNumber": 2,
-      "snippet": "string"
-    }
-  ]
+    "results": [
+        {
+            "sourceType": "document_chunk",
+            "sourceId": "uuid",
+            "score": 0.82,
+            "documentId": "uuid",
+            "pageNumber": 2,
+            "snippet": "string"
+        }
+    ]
 }
 ```
 
@@ -105,14 +105,14 @@ Input:
 
 ```json
 {
-  "query": "string",
-  "filters": {},
-  "topK": 12,
-  "weights": {
-    "fullText": 0.5,
-    "vector": 0.5
-  },
-  "rerank": false
+    "query": "string",
+    "filters": {},
+    "topK": 12,
+    "weights": {
+        "fullText": 0.5,
+        "vector": 0.5
+    },
+    "rerank": false
 }
 ```
 
@@ -126,13 +126,13 @@ Input:
 
 ```json
 {
-  "filters": {
-    "factType": "tariff_price | fee_rule | validity_rule | schedule | route | destination | document_metadata | surcharge | minimum_weight | ppn | other",
-    "airline": "string | null",
-    "destinationCity": "string | null",
-    "destinationCode": "string | null",
-    "status": "active"
-  }
+    "filters": {
+        "factType": "tariff_price | fee_rule | validity_rule | schedule | route | destination | document_metadata | surcharge | minimum_weight | ppn | other",
+        "airline": "string | null",
+        "destinationCity": "string | null",
+        "destinationCode": "string | null",
+        "status": "active"
+    }
 }
 ```
 
@@ -146,18 +146,18 @@ Input:
 
 ```json
 {
-  "filters": {
-    "airline": "string | null",
-    "destinationCity": "string | null",
-    "destinationCode": "string | null",
-    "originCity": "string | null",
-    "originAirport": "string | null",
-    "routeType": "DIRECT | TRANSIT | ANY | null",
-    "isPromo": "boolean | null",
-    "asOfDate": "date | null",
-    "status": "active"
-  },
-  "allowUnreviewed": false
+    "filters": {
+        "airline": "string | null",
+        "destinationCity": "string | null",
+        "destinationCode": "string | null",
+        "originCity": "string | null",
+        "originAirport": "string | null",
+        "routeType": "DIRECT | TRANSIT | ANY | null",
+        "isPromo": "boolean | null",
+        "asOfDate": "date | null",
+        "status": "active"
+    },
+    "allowUnreviewed": false
 }
 ```
 
@@ -165,13 +165,14 @@ Output:
 
 ```json
 {
-  "rows": [],
-  "warnings": [],
-  "needsClarification": false
+    "rows": [],
+    "warnings": [],
+    "needsClarification": false
 }
 ```
 
 Rules:
+
 - `allowUnreviewed` is false for trusted numeric answers.
 - Expired rows are excluded unless the query is historical.
 
@@ -188,13 +189,13 @@ Input:
 
 ```json
 {
-  "tariffRowId": "uuid",
-  "weightKg": 20,
-  "feeRuleIds": ["uuid"],
-  "options": {
-    "includePpn": true,
-    "dangerousGoods": false
-  }
+    "tariffRowId": "uuid",
+    "weightKg": 20,
+    "feeRuleIds": ["uuid"],
+    "options": {
+        "includePpn": true,
+        "dangerousGoods": false
+    }
 }
 ```
 
@@ -202,23 +203,24 @@ Output:
 
 ```json
 {
-  "billableWeightKg": 20,
-  "smuPricePerKg": 0,
-  "baseCost": 0,
-  "airlineAdminFee": 0,
-  "warehouseFee": 0,
-  "warehouseAdminFee": 0,
-  "surcharge": 0,
-  "ppn": 0,
-  "total": 0,
-  "currency": "IDR",
-  "lines": [],
-  "sourceIds": [],
-  "warnings": []
+    "billableWeightKg": 20,
+    "smuPricePerKg": 0,
+    "baseCost": 0,
+    "airlineAdminFee": 0,
+    "warehouseFee": 0,
+    "warehouseAdminFee": 0,
+    "surcharge": 0,
+    "ppn": 0,
+    "total": 0,
+    "currency": "IDR",
+    "lines": [],
+    "sourceIds": [],
+    "warnings": []
 }
 ```
 
 Rules:
+
 - Must be called for total price questions.
 - Fails with `NEEDS_CONFIRMATION` when required active fee rules are missing.
 
@@ -228,8 +230,8 @@ Input:
 
 ```json
 {
-  "sourceType": "document_chunk | table_chunk | extracted_fact | tariff_row | fee_rule | document | document_page",
-  "sourceId": "uuid"
+    "sourceType": "document_chunk | table_chunk | extracted_fact | tariff_row | fee_rule | document | document_page",
+    "sourceId": "uuid"
 }
 ```
 
@@ -253,10 +255,10 @@ Input:
 
 ```json
 {
-  "mode": "general_rag | verified_numeric",
-  "claims": [],
-  "sources": [],
-  "warnings": []
+    "mode": "general_rag | verified_numeric",
+    "claims": [],
+    "sources": [],
+    "warnings": []
 }
 ```
 
@@ -264,9 +266,9 @@ Output:
 
 ```json
 {
-  "confidenceState": "CONFIDENT | NEEDS_CONFIRMATION | UNVERIFIED | UNANSWERABLE",
-  "checks": [],
-  "warnings": []
+    "confidenceState": "CONFIDENT | NEEDS_CONFIRMATION | UNVERIFIED | UNANSWERABLE",
+    "checks": [],
+    "warnings": []
 }
 ```
 

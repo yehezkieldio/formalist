@@ -8,11 +8,11 @@ separate Node.js process. Queue behavior is accessed only through
 
 ```ts
 interface QueueAdapter<TPayload = unknown> {
-  enqueue(input: EnqueueJobInput<TPayload>): Promise<QueuedJob>
-  claim(options: ClaimOptions): Promise<ClaimedJob<TPayload> | null>
-  complete(jobId: string, output?: unknown): Promise<void>
-  fail(jobId: string, error: Error, options?: FailOptions): Promise<void>
-  retry(jobId: string, options?: RetryOptions): Promise<void>
+    enqueue(input: EnqueueJobInput<TPayload>): Promise<QueuedJob>;
+    claim(options: ClaimOptions): Promise<ClaimedJob<TPayload> | null>;
+    complete(jobId: string, output?: unknown): Promise<void>;
+    fail(jobId: string, error: Error, options?: FailOptions): Promise<void>;
+    retry(jobId: string, options?: RetryOptions): Promise<void>;
 }
 ```
 
@@ -49,11 +49,12 @@ Input:
 
 ```json
 {
-  "documentId": "uuid"
+    "documentId": "uuid"
 }
 ```
 
 Steps:
+
 - Load document metadata and optional original path.
 - Parse PDF, DOCX, or TXT.
 - Store page text records.
@@ -66,11 +67,12 @@ Input:
 
 ```json
 {
-  "documentId": "uuid"
+    "documentId": "uuid"
 }
 ```
 
 Steps:
+
 - Create semantic chunks.
 - Create table-aware chunks.
 - Include page, section, table, row, headers, and metadata.
@@ -83,11 +85,12 @@ Input:
 
 ```json
 {
-  "documentId": "uuid"
+    "documentId": "uuid"
 }
 ```
 
 Steps:
+
 - Extract document metadata, facts, tariff rows, and fee rules.
 - Set extracted records to `extracted` or `needs_review`.
 - Create raw evidence links.
@@ -100,11 +103,12 @@ Input:
 
 ```json
 {
-  "documentId": "uuid"
+    "documentId": "uuid"
 }
 ```
 
 Steps:
+
 - Run validators for missing price, N/A price, invalid price format, missing
   airline/destination/code, city/code mismatch, ambiguous aliases, duplicates,
   promo/regular conflicts, expired validity, missing validity, missing fee
@@ -118,12 +122,18 @@ Input:
 
 ```json
 {
-  "documentId": "uuid",
-  "ownerTypes": ["document_chunk", "table_chunk", "extracted_fact", "tariff_row"]
+    "documentId": "uuid",
+    "ownerTypes": [
+        "document_chunk",
+        "table_chunk",
+        "extracted_fact",
+        "tariff_row"
+    ]
 }
 ```
 
 Steps:
+
 - Generate embeddings through configured embedding model when available.
 - If the model key is missing, mark embedding generation setup-required without
   blocking non-LLM review and deterministic flows.
@@ -140,6 +150,7 @@ Steps:
 ## Worker Health
 
 Worker health endpoint or command reports:
+
 - queue provider
 - database connectivity
 - model key availability
