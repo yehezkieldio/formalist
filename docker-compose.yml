@@ -1,0 +1,78 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/app.Dockerfile
+        command: bun run dev
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        env_file:
+            - path: .env
+              required: false
+        environment:
+            DATABASE_URL: postgres://formalist:formalist@postgres:5432/formalist
+            DEPLOYMENT_MODE: docker-local
+            QUEUE_PROVIDER: local-redis
+            REDIS_URL: redis://redis:6379
+            UPLOAD_ROOT: /data/uploads
+        ports:
+            - "3000:3000"
+        volumes:
+            - .:/app
+            - /app/node_modules
+            - formalist_uploads:/data/uploads
+
+    worker:
+        build:
+            context: .
+            dockerfile: docker/worker.Dockerfile
+        command: bun run worker
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_started
+        env_file:
+            - path: .env
+              required: false
+        environment:
+            DATABASE_URL: postgres://formalist:formalist@postgres:5432/formalist
+            DEPLOYMENT_MODE: docker-local
+            QUEUE_PROVIDER: local-redis
+            REDIS_URL: redis://redis:6379
+            UPLOAD_ROOT: /data/uploads
+        volumes:
+            - .:/app
+            - /app/node_modules
+            - formalist_uploads:/data/uploads
+
+    postgres:
+        image: pgvector/pgvector:pg18
+        environment:
+            POSTGRES_DB: formalist
+            POSTGRES_PASSWORD: formalist
+            POSTGRES_USER: formalist
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U formalist -d formalist"]
+            interval: 5s
+            timeout: 5s
+            retries: 12
+        ports:
+            - "5432:5432"
+        volumes:
+            - formalist_postgres:/var/lib/postgresql
+
+    redis:
+        image: redis:8-alpine
+        ports:
+            - "6379:6379"
+        volumes:
+            - formalist_redis:/data
+
+volumes:
+    formalist_postgres:
+    formalist_redis:
+    formalist_uploads:

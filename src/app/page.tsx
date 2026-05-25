@@ -1,67 +1,116 @@
-export default function Home() {
-    const verses = [
-        [
-            "Do not go gentle into that good night",
-            "Hold the last light plainly in your hands.",
-            "Let dusk arrive without surrender.",
-        ],
-        [
-            "The quiet has no claim on fire.",
-            "Evening can gather at the glass,",
-            "but the heart keeps its weather bright.",
-        ],
-        [
-            "Stand where the dark begins to speak.",
-            "Answer with breath, with pulse, with nerve.",
-            "Make night remember what you carried.",
-        ],
-    ];
+import { ArrowRightIcon, DatabaseIcon, ShieldCheckIcon } from "lucide-react";
+import Link from "next/link";
 
+import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "#/components/ui/card";
+
+const capabilities = [
+    {
+        description:
+            "General document questions use semantic and table-aware chunks with citations.",
+        title: "Source-grounded RAG",
+    },
+    {
+        description:
+            "Prices, dates, routes, fees, and quotes are gated by reviewed active facts.",
+        title: "Verified numeric mode",
+    },
+    {
+        description:
+            "Quote totals are produced by deterministic TypeScript application code.",
+        title: "Deterministic quoting",
+    },
+] as const;
+
+export default function Home() {
     return (
-        <main className="min-h-dvh bg-[oklch(0.985_0.004_106)] px-5 py-6 text-[oklch(0.16_0.012_255)] sm:px-8 lg:px-12">
-            <article className="mx-auto flex min-h-[calc(100dvh-3rem)] max-w-384 flex-col justify-between gap-8">
-                <header className="flex items-start justify-between gap-8">
-                    <p className="text-[0.7rem] font-medium tracking-[0.34em] text-[oklch(0.47_0.014_255)] uppercase">
-                        Dylan Thomas
-                    </p>
-                    <p className="max-w-42 text-right text-xs leading-5 text-[oklch(0.48_0.012_255)]">
-                        A spare study in resistance, light, and refusal.
-                    </p>
+        <main className="min-h-dvh bg-background text-foreground">
+            <section className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col gap-10 px-5 py-8 sm:px-8 lg:px-10">
+                <header className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-9 items-center justify-center rounded-md border bg-card">
+                            <DatabaseIcon aria-hidden="true" />
+                        </div>
+                        <div>
+                            <p className="font-semibold">Formalist</p>
+                            <p className="text-muted-foreground text-xs">
+                                Air cargo tariff assistant
+                            </p>
+                        </div>
+                    </div>
+                    <Badge variant="secondary">First version build</Badge>
                 </header>
 
-                <div className="grid items-end gap-9 lg:grid-cols-[minmax(25rem,1fr)_minmax(0,1.7fr)] lg:gap-12">
-                    <h1 className="max-w-148 text-balance font-medium text-[clamp(2.25rem,4.6vw,4.8rem)] leading-[0.94] tracking-tight">
-                        Do not go gentle into that strong night
-                    </h1>
+                <div className="grid flex-1 items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div className="flex flex-col gap-7">
+                        <div className="flex max-w-3xl flex-col gap-5">
+                            <Badge className="w-fit" variant="outline">
+                                Agentic RAG with human-reviewed facts
+                            </Badge>
+                            <h1 className="max-w-3xl text-balance font-semibold text-4xl tracking-normal sm:text-5xl lg:text-6xl">
+                                Chat with tariff documents without trusting raw
+                                table text blindly.
+                            </h1>
+                            <p className="max-w-2xl text-lg text-muted-foreground leading-8">
+                                Formalist ingests PDF, DOCX, and TXT pricelists,
+                                extracts structured tariff memory, requires
+                                operator review for high-stakes numeric data,
+                                and answers with source evidence.
+                            </p>
+                        </div>
 
-                    <div className="grid gap-6 md:grid-cols-3 md:gap-6">
-                        {verses.map((verse, index) => (
-                            <section
-                                className="space-y-2 text-pretty text-[0.9rem] leading-6 text-[oklch(0.28_0.014_255)]"
-                                key={verse[0]}
-                            >
-                                <p className="mb-4 text-sm text-[oklch(0.63_0.012_255)]">
-                                    0{index + 1}
-                                </p>
-                                {verse.map((line) => (
-                                    <p className="text-xs" key={line}>
-                                        {line}
-                                    </p>
-                                ))}
-                            </section>
-                        ))}
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <Button asChild>
+                                <Link href="/chat">
+                                    Open chat
+                                    <ArrowRightIcon
+                                        aria-hidden="true"
+                                        data-icon="inline-end"
+                                    />
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link href="/admin">Admin dashboard</Link>
+                            </Button>
+                        </div>
                     </div>
-                </div>
 
-                <footer className="flex items-end justify-between gap-8 text-xs text-[oklch(0.52_0.012_255)]">
-                    <p>
-                        Minimalist Next.js template to quicky prototype ideas.
-                    </p>
-                    <p className="text-[0.7rem] font-medium tracking-[0.34em] text-[oklch(0.47_0.014_255)] uppercase text-right">
-                        Vespasian
-                    </p>
-                </footer>
-            </article>
+                    <Card>
+                        <CardHeader>
+                            <div className="mb-2 flex size-10 items-center justify-center rounded-md border bg-background">
+                                <ShieldCheckIcon aria-hidden="true" />
+                            </div>
+                            <CardTitle>Trust boundary</CardTitle>
+                            <CardDescription>
+                                The chatbot may summarize chunks, but trusted
+                                price answers require active reviewed data.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            {capabilities.map((capability) => (
+                                <div
+                                    className="rounded-md border bg-background p-4"
+                                    key={capability.title}
+                                >
+                                    <p className="font-medium">
+                                        {capability.title}
+                                    </p>
+                                    <p className="mt-1 text-muted-foreground text-sm leading-6">
+                                        {capability.description}
+                                    </p>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+            </section>
         </main>
     );
 }

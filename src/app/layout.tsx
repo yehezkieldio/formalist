@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    description: "Minimalist. Template. Quick.",
-    title: "Vespasian",
+    description:
+        "Agentic RAG assistant for air cargo tariff and pricelist documents.",
+    title: "Formalist",
 };
 
 export default function RootLayout({
@@ -28,7 +29,7 @@ export default function RootLayout({
             lang="en"
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
         >
-            <body className="min-h-full flex flex-col">{children}</body>
+            <body className="flex min-h-full flex-col">{children}</body>
         </html>
     );
 }

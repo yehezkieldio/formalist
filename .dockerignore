@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.git/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+drizzle/meta/
+tmp/
