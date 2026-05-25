@@ -81,17 +81,17 @@
 
 ## Phase 7: Ingestion Queue And Worker
 
-- [ ] T054 Create queue adapter types in `src/server/queue/adapter.ts`; Dependencies: T016, T023; Acceptance: interface supports enqueue, claim, complete, fail, retry, attempts, and payload typing.
-- [ ] T055 Create local Redis BullMQ adapter in `src/server/queue/local-redis.ts`; Dependencies: T054; Acceptance: adapter supports attempts, backoff, concurrency, and writes ingestion job audit state.
-- [ ] T056 Create Upstash Redis adapter in `src/server/queue/upstash-redis.ts`; Dependencies: T054; Acceptance: adapter implements compatible enqueue/claim semantics or returns explicit fallback-required errors.
-- [ ] T057 Create database fallback queue adapter in `src/server/queue/db-fallback.ts`; Dependencies: T030, T054; Acceptance: adapter supports enqueue, claim, retry, fail, complete, max attempts, and stale running job recovery.
-- [ ] T058 Create queue adapter factory in `src/server/queue/index.ts`; Dependencies: T055, T056, T057; Acceptance: provider selection returns the configured adapter and clear warnings for fallback.
-- [ ] T059 Create worker entrypoint in `src/server/ingestion/worker.ts` and `src/worker.ts`; Dependencies: T058; Acceptance: `bun run worker` claims and processes ingestion jobs.
-- [ ] T060 Create worker pipeline dispatch in `src/server/ingestion/pipeline.ts`; Dependencies: T059; Acceptance: dispatch supports parse-document, chunk-document, extract-structured-data, validate-extraction, and embed-sources job types.
-- [ ] T061 Add ingestion status update helpers in `src/server/ingestion/status.ts`; Dependencies: T030, T060; Acceptance: document status transitions match `data-model.md`.
-- [ ] T062 Add retry and error handling policy in `src/server/ingestion/errors.ts`; Dependencies: T057, T060, T061; Acceptance: transient failures retry and exhausted failures mark job/document failed.
-- [ ] T063 Wire worker service into Docker and managed scripts in `docker-compose.yml`, `docker/worker.Dockerfile`, and `scripts/start-managed-worker.sh`; Dependencies: T059; Acceptance: Docker and non-Docker worker commands start the same entrypoint.
-- [ ] T064 [P] Add queue adapter tests in `tests/unit/queue/local-redis.test.ts`, `upstash-redis.test.ts`, and `db-fallback.test.ts`; Dependencies: T055, T056, T057, T058; Acceptance: tests cover enqueue, claim, retry, fail, complete, and provider selection.
+- [x] T054 Create queue adapter types in `src/server/queue/adapter.ts`; Dependencies: T016, T023; Acceptance: interface supports enqueue, claim, complete, fail, retry, attempts, and payload typing.
+- [x] T055 Create local Redis BullMQ adapter in `src/server/queue/local-redis.ts`; Dependencies: T054; Acceptance: adapter supports attempts, backoff, concurrency, and writes ingestion job audit state.
+- [x] T056 Create Upstash Redis adapter in `src/server/queue/upstash-redis.ts`; Dependencies: T054; Acceptance: adapter implements compatible enqueue/claim semantics or returns explicit fallback-required errors.
+- [x] T057 Create database fallback queue adapter in `src/server/queue/db-fallback.ts`; Dependencies: T030, T054; Acceptance: adapter supports enqueue, claim, retry, fail, complete, max attempts, and stale running job recovery.
+- [x] T058 Create queue adapter factory in `src/server/queue/index.ts`; Dependencies: T055, T056, T057; Acceptance: provider selection returns the configured adapter and clear warnings for fallback.
+- [x] T059 Create worker entrypoint in `src/server/ingestion/worker.ts` and `src/worker.ts`; Dependencies: T058; Acceptance: `bun run worker` claims and processes ingestion jobs.
+- [x] T060 Create worker pipeline dispatch in `src/server/ingestion/pipeline.ts`; Dependencies: T059; Acceptance: dispatch supports parse-document, chunk-document, extract-structured-data, validate-extraction, and embed-sources job types.
+- [x] T061 Add ingestion status update helpers in `src/server/ingestion/status.ts`; Dependencies: T030, T060; Acceptance: document status transitions match `data-model.md`.
+- [x] T062 Add retry and error handling policy in `src/server/ingestion/errors.ts`; Dependencies: T057, T060, T061; Acceptance: transient failures retry and exhausted failures mark job/document failed.
+- [x] T063 Wire worker service into Docker and managed scripts in `docker-compose.yml`, `docker/worker.Dockerfile`, and `scripts/start-managed-worker.sh`; Dependencies: T059; Acceptance: Docker and non-Docker worker commands start the same entrypoint.
+- [x] T064 [P] Add queue adapter tests in `tests/unit/queue/local-redis.test.ts`, `upstash-redis.test.ts`, and `db-fallback.test.ts`; Dependencies: T055, T056, T057, T058; Acceptance: tests cover enqueue, claim, retry, fail, complete, and provider selection.
 
 ## Phase 8: Parsers
 

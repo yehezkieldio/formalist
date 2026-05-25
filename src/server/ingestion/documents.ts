@@ -2,7 +2,7 @@ import {
     createDocument,
     updateDocumentOriginalPath,
 } from "#/server/db/queries/documents";
-import { enqueueIngestionJob } from "#/server/db/queries/ingestion-jobs";
+import { createQueueAdapter } from "#/server/queue";
 import { checksumBuffer } from "#/server/storage/checksum";
 import { saveOriginalFile } from "#/server/storage/local";
 import type { LocalStorageSettings } from "#/server/storage/local";
@@ -43,7 +43,8 @@ export async function createUploadedDocument(
         ? await updateDocumentOriginalPath(document.id, originalPath)
         : document;
 
-    const job = await enqueueIngestionJob({
+    const queue = createQueueAdapter();
+    const job = await queue.enqueue({
         documentId: updatedDocument.id,
         payload: { documentId: updatedDocument.id },
         type: "parse-document",

@@ -1,4 +1,4 @@
-import { and, asc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, eq, lt, lte, sql } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { ingestionJobs } from "#/server/db/schema";
@@ -85,4 +85,48 @@ export async function updateIngestionJobStatus(
         .returning();
 
     return job;
+}
+
+export async function rescheduleIngestionJob(
+    jobId: string,
+    availableAt: Date,
+    error?: string
+) {
+    const [job] = await getDatabase()
+        .update(ingestionJobs)
+        .set({
+            availableAt,
+            error,
+            status: "queued",
+            updatedAt: new Date(),
+        })
+        .where(eq(ingestionJobs.id, jobId))
+        .returning();
+
+    return job;
+}
+
+export async function recoverStaleRunningIngestionJobs(input: {
+    availableAt?: Date;
+    error?: string;
+    staleBefore: Date;
+}) {
+    const now = new Date();
+    const jobs = await getDatabase()
+        .update(ingestionJobs)
+        .set({
+            availableAt: input.availableAt ?? now,
+            error: input.error,
+            status: "queued",
+            updatedAt: now,
+        })
+        .where(
+            and(
+                eq(ingestionJobs.status, "running"),
+                lt(ingestionJobs.startedAt, input.staleBefore)
+            )
+        )
+        .returning({ id: ingestionJobs.id });
+
+    return jobs.length;
 }
