@@ -70,3 +70,16 @@ export async function updateDocumentStatus(
 
     return document;
 }
+
+export async function updateDocumentOriginalPath(
+    documentId: string,
+    originalPath: string
+) {
+    const [document] = await getDatabase()
+        .update(documents)
+        .set({ originalPath, updatedAt: new Date() })
+        .where(eq(documents.id, documentId))
+        .returning();
+
+    return document;
+}

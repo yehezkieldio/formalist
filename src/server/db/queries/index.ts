@@ -17,6 +17,7 @@ import {
     createDocument,
     getDocument,
     listDocuments,
+    updateDocumentOriginalPath,
     updateDocumentStatus,
 } from "./documents";
 import {
@@ -54,6 +55,7 @@ export const queryHelpers = {
     searchActiveTariffRows,
     setSetting,
     updateChatToolCallState,
+    updateDocumentOriginalPath,
     updateDocumentStatus,
     updateFactReviewStatus,
     updateFeeRuleReviewStatus,

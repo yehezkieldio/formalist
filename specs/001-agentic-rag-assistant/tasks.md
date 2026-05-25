@@ -71,13 +71,13 @@
 
 ## Phase 6: Document Upload
 
-- [ ] T047 Create upload form UI in `src/app/admin/documents/page.tsx` and `src/components/admin/document-upload-form.tsx`; Dependencies: T003, T043; Acceptance: admin can choose PDF/DOCX/TXT file and artifact flags.
-- [ ] T048 Create upload validation schemas in `src/server/ingestion/upload-schema.ts`; Dependencies: T008; Acceptance: schema validates MIME type, extension, max size, metadata, and storage flags.
-- [ ] T049 Create document creation service in `src/server/ingestion/documents.ts`; Dependencies: T030, T037; Acceptance: service creates document with checksum, status `uploaded`, source metadata, and storage flags.
-- [ ] T050 Create upload API route in `src/app/api/upload/route.ts`; Dependencies: T045, T048, T049, T038; Acceptance: route stores optional original file, creates document, enqueues ingestion, and returns document/job IDs.
-- [ ] T051 Add non-stored file extraction handoff support in `src/server/ingestion/upload-buffer.ts`; Dependencies: T050; Acceptance: when original storage is disabled, upload bytes remain available long enough for initial parse job or a controlled error explains unsupported deployment.
-- [ ] T052 Create upload progress and error UI in `src/components/admin/document-upload-status.tsx`; Dependencies: T047, T050; Acceptance: admin sees queued, parsing, failed, and completed states.
-- [ ] T053 [P] Add upload tests in `tests/integration/upload/upload-route.test.ts` and `tests/e2e/document-upload.spec.ts`; Dependencies: T047, T048, T049, T050, T052; Acceptance: tests cover file validation, optional storage, enqueue, and admin error states.
+- [x] T047 Create upload form UI in `src/app/admin/documents/page.tsx` and `src/components/admin/document-upload-form.tsx`; Dependencies: T003, T043; Acceptance: admin can choose PDF/DOCX/TXT file and artifact flags.
+- [x] T048 Create upload validation schemas in `src/server/ingestion/upload-schema.ts`; Dependencies: T008; Acceptance: schema validates MIME type, extension, max size, metadata, and storage flags.
+- [x] T049 Create document creation service in `src/server/ingestion/documents.ts`; Dependencies: T030, T037; Acceptance: service creates document with checksum, status `uploaded`, source metadata, and storage flags.
+- [x] T050 Create upload API route in `src/app/api/upload/route.ts`; Dependencies: T045, T048, T049, T038; Acceptance: route stores optional original file, creates document, enqueues ingestion, and returns document/job IDs.
+- [x] T051 Add non-stored file extraction handoff support in `src/server/ingestion/upload-buffer.ts`; Dependencies: T050; Acceptance: when original storage is disabled, upload bytes remain available long enough for initial parse job or a controlled error explains unsupported deployment.
+- [x] T052 Create upload progress and error UI in `src/components/admin/document-upload-status.tsx`; Dependencies: T047, T050; Acceptance: admin sees queued, parsing, failed, and completed states.
+- [x] T053 [P] Add upload tests in `tests/integration/upload/upload-route.test.ts` and `tests/e2e/document-upload.spec.ts`; Dependencies: T047, T048, T049, T050, T052; Acceptance: tests cover file validation, optional storage, enqueue, and admin error states.
 
 ## Phase 7: Ingestion Queue And Worker
 
