@@ -5,6 +5,7 @@ import {
 import { getDocument } from "#/server/db/queries/documents";
 import { createQueueAdapter } from "#/server/queue";
 import type { QueueJob } from "#/server/queue/adapter";
+import { regenerateEmbeddingsForDocument } from "#/server/retrieval/regenerate-embeddings";
 import {
     getLocalStorageSettings,
     readOriginalFile,
@@ -156,6 +157,7 @@ export async function dispatchIngestionJob(job: QueueJob) {
     }
 
     if (job.type === "embed-sources") {
+        await regenerateEmbeddingsForDocument(job.documentId);
         return;
     }
 

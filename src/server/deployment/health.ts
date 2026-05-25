@@ -185,14 +185,19 @@ export async function checkVectorHealth(
         const result = await client.query<{ installed: boolean }>(
             "select exists(select 1 from pg_extension where extname = 'vector') as installed"
         );
+        const indexResult = await client.query<{ exists: boolean }>(
+            "select exists(select 1 from pg_indexes where indexname = 'embeddings_embedding_hnsw_idx') as exists"
+        );
         const isInstalled = result.rows.at(0)?.installed === true;
+        const hasIndex = indexResult.rows.at(0)?.exists === true;
 
         return {
-            details: { provider: database.provider },
-            message: isInstalled
-                ? "pgvector extension is installed."
-                : "pgvector extension is not installed.",
-            state: isInstalled ? "ok" : "degraded",
+            details: { hasIndex, provider: database.provider },
+            message:
+                isInstalled && hasIndex
+                    ? "pgvector extension and embedding index are usable."
+                    : "pgvector extension or embedding index is missing.",
+            state: isInstalled && hasIndex ? "ok" : "degraded",
         };
     } catch (error) {
         return {

@@ -174,16 +174,16 @@
 
 ## Phase 14: Embeddings
 
-- [ ] T126 Create searchable text builder in `src/server/retrieval/embeddings.ts`; Dependencies: T078, T079, T089; Acceptance: builder creates source-rich text for document chunks, table chunks, extracted facts, and tariff rows.
-- [ ] T127 Create OpenRouter embedding client in `src/server/retrieval/embeddings.ts`; Dependencies: T082, T083; Acceptance: client uses configured embedding model and returns setup-required when key is missing.
-- [ ] T128 Create embedding persistence for document chunks in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: document chunk embeddings upsert with owner type `document_chunk`.
-- [ ] T129 Create embedding persistence for table chunks in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: table chunk embeddings upsert with owner type `table_chunk`.
-- [ ] T130 Create embedding persistence for extracted facts and tariff rows in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: fact and tariff embeddings upsert with correct owner types.
-- [ ] T131 Create embedding regeneration service in `src/server/retrieval/regenerate-embeddings.ts`; Dependencies: T128, T129, T130; Acceptance: admin or worker can regenerate embeddings by document and owner type.
-- [ ] T132 Create vector search query helper in `src/server/retrieval/vector-search.ts`; Dependencies: T027, T127; Acceptance: helper returns owner type, owner id, score, and source metadata.
-- [ ] T133 Add Supabase pgvector compatibility check in `src/server/deployment/health.ts`; Dependencies: T018, T027, T132; Acceptance: health check verifies vector extension and index usability on Supabase Postgres.
-- [ ] T134 Wire embed-sources worker job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T128, T129, T130, T131; Acceptance: embedding job degrades cleanly without OpenRouter key.
-- [ ] T135 [P] Add embedding tests in `tests/unit/retrieval/embeddings.test.ts` and `tests/integration/retrieval/vector-search.test.ts`; Dependencies: T126, T127, T128, T129, T130, T132; Acceptance: tests cover searchable text, missing key fallback, persistence owner types, and vector query shape.
+- [x] T126 Create searchable text builder in `src/server/retrieval/embeddings.ts`; Dependencies: T078, T079, T089; Acceptance: builder creates source-rich text for document chunks, table chunks, extracted facts, and tariff rows.
+- [x] T127 Create OpenRouter embedding client in `src/server/retrieval/embeddings.ts`; Dependencies: T082, T083; Acceptance: client uses configured embedding model and returns setup-required when key is missing.
+- [x] T128 Create embedding persistence for document chunks in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: document chunk embeddings upsert with owner type `document_chunk`.
+- [x] T129 Create embedding persistence for table chunks in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: table chunk embeddings upsert with owner type `table_chunk`.
+- [x] T130 Create embedding persistence for extracted facts and tariff rows in `src/server/retrieval/embedding-jobs.ts`; Dependencies: T022, T126, T127; Acceptance: fact and tariff embeddings upsert with correct owner types.
+- [x] T131 Create embedding regeneration service in `src/server/retrieval/regenerate-embeddings.ts`; Dependencies: T128, T129, T130; Acceptance: admin or worker can regenerate embeddings by document and owner type.
+- [x] T132 Create vector search query helper in `src/server/retrieval/vector-search.ts`; Dependencies: T027, T127; Acceptance: helper returns owner type, owner id, score, and source metadata.
+- [x] T133 Add Supabase pgvector compatibility check in `src/server/deployment/health.ts`; Dependencies: T018, T027, T132; Acceptance: health check verifies vector extension and index usability on Supabase Postgres.
+- [x] T134 Wire embed-sources worker job in `src/server/ingestion/pipeline.ts`; Dependencies: T060, T128, T129, T130, T131; Acceptance: embedding job degrades cleanly without OpenRouter key.
+- [x] T135 [P] Add embedding tests in `tests/unit/retrieval/embeddings.test.ts` and `tests/integration/retrieval/vector-search.test.ts`; Dependencies: T126, T127, T128, T129, T130, T132; Acceptance: tests cover searchable text, missing key fallback, persistence owner types, and vector query shape.
 
 ## Phase 15: Retrieval
 
