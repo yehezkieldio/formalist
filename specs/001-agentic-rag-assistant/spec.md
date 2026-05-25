@@ -322,6 +322,16 @@ filterable, linked to source evidence, and resolved through review actions.
 - **FR-017**: The system MUST extract document text, page text when available,
   table-like structures, document metadata, semantic chunks, table-aware chunks,
   structured facts, tariff rows, fee rules, and source evidence.
+- **FR-017A**: Tariff row extraction from table-shaped documents MUST be
+  deterministic-first. The system MUST parse rows, prices, routes, schedules,
+  promo flags, and source references with application code when table cells are
+  available, and MUST NOT send whole table-shaped documents to an LLM merely to
+  re-extract rows.
+- **FR-017B**: LLM extraction MUST be cost-controlled. Optional extraction calls
+  MUST have separate model settings, token caps, timeout caps, no unbounded
+  retries, and feature flags per extraction class. When a deterministic parser
+  can produce reviewable records, LLM extraction is additive/repair-oriented,
+  not the primary source of structured tariff rows.
 - **FR-018**: Chunks and table chunks MUST include metadata such as document,
   page, section title, table id, row number, nearby headers, and source
   references when available.

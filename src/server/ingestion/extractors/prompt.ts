@@ -73,3 +73,50 @@ export function buildExtractionPrompt(
         tables || "None detected.",
     ].join("\n");
 }
+
+export function buildCompactExtractionPrompt(input: {
+    context?: ExtractionSourceContext;
+    keywords: RegExp;
+    maxRows?: number;
+    parseResult: ParserResult;
+    task: string;
+}): string {
+    const maxRows = input.maxRows ?? 80;
+    const pageSnippets = input.parseResult.pages
+        .map((page) => {
+            const lines = page.rawText
+                .split("\n")
+                .filter((line) => input.keywords.test(line))
+                .slice(0, 12)
+                .join("\n");
+
+            return lines ? `Page ${page.pageNumber}\n${lines}` : "";
+        })
+        .filter(Boolean)
+        .join("\n\n");
+    const tableSnippets =
+        input.context?.tableChunks
+            .filter(
+                (chunk) =>
+                    input.keywords.test(chunk.rowText) ||
+                    input.keywords.test(chunk.headerText ?? "")
+            )
+            .slice(0, maxRows)
+            .map(
+                (chunk) =>
+                    `table_chunk ${chunk.id} page ${chunk.pageNumber ?? "unknown"} row ${chunk.rowIndex ?? "unknown"}: ${chunk.rowText}`
+            )
+            .join("\n") ?? "";
+
+    return [
+        input.task,
+        "Return only records directly supported by the provided snippets.",
+        "Use null for unknown fields. Do not infer missing prices, fees, routes, dates, or schedules.",
+        "",
+        "Relevant page snippets:",
+        pageSnippets || "No relevant page snippets found.",
+        "",
+        "Relevant table/source snippets:",
+        tableSnippets || "No relevant table snippets found.",
+    ].join("\n");
+}

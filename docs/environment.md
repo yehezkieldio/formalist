@@ -21,7 +21,20 @@ Copy `.env.example` to `.env` and set deployment-specific values.
 - `OPENROUTER_SITE_URL`: site URL sent to OpenRouter.
 - `OPENROUTER_APP_NAME`: app name sent to OpenRouter.
 - `CHAT_MODEL`: defaults to `deepseek/deepseek-v4-flash`.
+- `CLASSIFIER_MODEL`: defaults to `deepseek/deepseek-v4-flash`.
+- `EXTRACTION_MODEL`: defaults to `deepseek/deepseek-v4-flash`.
 - `EMBEDDING_MODEL`: defaults to `qwen/qwen3-embedding-8b`.
+- `ENABLE_LLM_FACT_EXTRACTION`: defaults to `false`. Keep disabled unless
+  deterministic extraction leaves unsupported gaps that need prose extraction.
+- `ENABLE_LLM_FEE_RULE_EXTRACTION`: defaults to `false`. Enable only for
+  compact note extraction after reviewing token budget.
+- `ENABLE_LLM_TARIFF_EXTRACTION`: defaults to `false`. Tariff rows are
+  deterministic-first; do not enable whole-document tariff extraction for
+  table-shaped PDFs.
+- `MAX_EXTRACTION_INPUT_TOKENS`: defaults to `8000`; extraction prompts are
+  truncated to this approximate token budget before LLM calls.
+- `LLM_EXTRACTION_TIMEOUT_MS`: defaults to `15000`; optional extraction falls
+  back deterministically after this timeout.
 
 ## Storage
 

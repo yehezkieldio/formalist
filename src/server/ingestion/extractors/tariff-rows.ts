@@ -5,6 +5,7 @@ import { getModelConfiguration } from "#/server/ai/models";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { ParserResult } from "#/server/ingestion/parsers/types";
 
+import { createBoundedExtractionPrompt } from "./cost-controls";
 import { ExtractionSetupRequiredError } from "./policy";
 import { buildExtractionPrompt } from "./prompt";
 import type { ExtractionSourceContext } from "./prompt";
@@ -25,14 +26,20 @@ export async function extractTariffRows(
         throw new ExtractionSetupRequiredError(provider.reason);
     }
 
-    const { chatModel } = getModelConfiguration();
+    const { extractionModel } = getModelConfiguration();
+    const boundedPrompt = createBoundedExtractionPrompt({
+        label: "tariff-row-extraction",
+        prompt: buildExtractionPrompt(parseResult, context),
+    });
     const result = await generateText({
-        model: provider.openrouter(chatModel),
+        maxOutputTokens: 2000,
+        maxRetries: 0,
+        model: provider.openrouter(extractionModel),
         output: Output.object({
             name: "TariffRowExtraction",
             schema: tariffRowsExtractionSchema,
         }),
-        prompt: buildExtractionPrompt(parseResult, context),
+        prompt: boundedPrompt.prompt,
         temperature: 0,
     });
 

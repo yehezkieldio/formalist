@@ -75,10 +75,10 @@ export async function classifyIntent(
     }
 
     try {
-        const { chatModel } = getModelConfiguration();
+        const { classifierModel } = getModelConfiguration();
         const result = await generateText({
             maxOutputTokens: 80,
-            model: provider.openrouter.chat(chatModel),
+            model: provider.openrouter.chat(classifierModel),
             output: Output.object({ schema: intentSchema }),
             prompt: `Classify this Formalist air-cargo assistant query: ${query}`,
             system: [

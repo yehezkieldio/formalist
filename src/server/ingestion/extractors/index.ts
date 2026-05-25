@@ -1,5 +1,6 @@
 import { setTimeout as wait } from "node:timers/promises";
 
+import { env } from "#/env";
 import type { ParserResult } from "#/server/ingestion/parsers/types";
 
 import {
@@ -12,8 +13,6 @@ import { isExtractionSetupRequired } from "./policy";
 import type { ExtractionSourceContext } from "./prompt";
 import type { StructuredExtraction } from "./schemas";
 import { extractTariffRows } from "./tariff-rows";
-
-const optionalLlmExtractionTimeoutMs = 45_000;
 
 class OptionalExtractionTimeoutError extends Error {
     constructor() {
@@ -32,11 +31,16 @@ function withTimeout<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 async function useOptionalLlmExtraction<T>(
-    task: Promise<T>,
+    enabled: boolean,
+    createTask: () => Promise<T>,
     fallback: T
 ): Promise<T> {
+    if (!enabled) {
+        return fallback;
+    }
+
     try {
-        return await withTimeout(task, optionalLlmExtractionTimeoutMs);
+        return await withTimeout(createTask(), env.LLM_EXTRACTION_TIMEOUT_MS);
     } catch (error) {
         if (isExtractionSetupRequired(error)) {
             throw error;
@@ -57,12 +61,21 @@ export async function extractStructuredRecords(
         context
     );
     const [facts, tariffRows, feeRules] = await Promise.all([
-        useOptionalLlmExtraction(extractFacts(parseResult, context), []),
         useOptionalLlmExtraction(
-            extractTariffRows(parseResult, context),
+            env.ENABLE_LLM_FACT_EXTRACTION,
+            () => extractFacts(parseResult, context),
+            []
+        ),
+        useOptionalLlmExtraction(
+            env.ENABLE_LLM_TARIFF_EXTRACTION,
+            () => extractTariffRows(parseResult, context),
             deterministicTariffRows
         ),
-        useOptionalLlmExtraction(extractFeeRules(parseResult, context), []),
+        useOptionalLlmExtraction(
+            env.ENABLE_LLM_FEE_RULE_EXTRACTION,
+            () => extractFeeRules(parseResult, context),
+            []
+        ),
     ]);
 
     return {

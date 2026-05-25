@@ -23,10 +23,18 @@ export const env = createEnv({
     runtimeEnv: {
         ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
         CHAT_MODEL: process.env.CHAT_MODEL,
+        CLASSIFIER_MODEL: process.env.CLASSIFIER_MODEL,
         DATABASE_PROVIDER: process.env.DATABASE_PROVIDER,
         DATABASE_URL: process.env.DATABASE_URL,
         DEPLOYMENT_MODE: process.env.DEPLOYMENT_MODE,
         EMBEDDING_MODEL: process.env.EMBEDDING_MODEL,
+        ENABLE_LLM_FACT_EXTRACTION: process.env.ENABLE_LLM_FACT_EXTRACTION,
+        ENABLE_LLM_FEE_RULE_EXTRACTION:
+            process.env.ENABLE_LLM_FEE_RULE_EXTRACTION,
+        ENABLE_LLM_TARIFF_EXTRACTION: process.env.ENABLE_LLM_TARIFF_EXTRACTION,
+        EXTRACTION_MODEL: process.env.EXTRACTION_MODEL,
+        LLM_EXTRACTION_TIMEOUT_MS: process.env.LLM_EXTRACTION_TIMEOUT_MS,
+        MAX_EXTRACTION_INPUT_TOKENS: process.env.MAX_EXTRACTION_INPUT_TOKENS,
         MAX_UPLOAD_MB: process.env.MAX_UPLOAD_MB,
         NODE_ENV: process.env.NODE_ENV,
         OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
@@ -46,12 +54,33 @@ export const env = createEnv({
     server: {
         ADMIN_PASSWORD: optionalSecret,
         CHAT_MODEL: z.string().min(1).default("deepseek/deepseek-v4-flash"),
+        CLASSIFIER_MODEL: z
+            .string()
+            .min(1)
+            .default("deepseek/deepseek-v4-flash"),
         DATABASE_PROVIDER: z.enum(["postgres", "supabase"]).default("postgres"),
         DATABASE_URL: optionalUrl,
         DEPLOYMENT_MODE: z
             .enum(["docker-local", "managed-fallback"])
             .default("docker-local"),
         EMBEDDING_MODEL: z.string().min(1).default("qwen/qwen3-embedding-8b"),
+        ENABLE_LLM_FACT_EXTRACTION: booleanString,
+        ENABLE_LLM_FEE_RULE_EXTRACTION: booleanString,
+        ENABLE_LLM_TARIFF_EXTRACTION: booleanString,
+        EXTRACTION_MODEL: z
+            .string()
+            .min(1)
+            .default("deepseek/deepseek-v4-flash"),
+        LLM_EXTRACTION_TIMEOUT_MS: z.coerce
+            .number()
+            .int()
+            .positive()
+            .default(15_000),
+        MAX_EXTRACTION_INPUT_TOKENS: z.coerce
+            .number()
+            .int()
+            .positive()
+            .default(8000),
         MAX_UPLOAD_MB: z.coerce.number().int().positive().default(50),
         NODE_ENV: z
             .enum(["development", "test", "production"])

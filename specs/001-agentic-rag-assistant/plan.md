@@ -67,6 +67,11 @@ Chunk retrieval must remain database-bounded at scale: no general RAG path may
 load all chunks into Node.js for filtering. Retrieval uses Postgres FTS ranking,
 pgvector similarity over stored Qwen embeddings, RRF, and metadata freshness
 filters.
+Ingestion must be cost-bounded: table-shaped tariff rows are extracted
+deterministically first; optional LLM extraction is disabled by default for
+tariff rows, separately configurable by extraction class, capped by token and
+timeout budgets, and used only for compact prose extraction or ambiguous-row
+repair.
 
 **Constraints**: Trusted numeric answers must use reviewed active facts/table
 rows or deterministic calculations; raw chunks alone are never trusted numeric
