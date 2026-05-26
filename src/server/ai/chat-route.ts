@@ -357,6 +357,8 @@ async function streamChatResponse(input: {
                         logger.info("tool:event", event);
                         writer.write({
                             data: {
+                                error:
+                                    "error" in event ? event.error : undefined,
                                 label:
                                     event.state === "running"
                                         ? `Using ${event.toolName}`

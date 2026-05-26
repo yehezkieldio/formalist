@@ -3,7 +3,9 @@ import * as z from "zod";
 import {
     aliasInputSchema,
     ambiguityInputSchema,
+    classifyIntentInputSchema,
     compareTariffsInputSchema,
+    documentListInputSchema,
     factSearchInputSchema,
     feeRuleInputSchema,
     retrievalInputSchema,
@@ -15,6 +17,7 @@ import {
     calculateQuoteInputSchema,
     calculateQuoteTool,
 } from "#/server/ai/tools/calculate-quote";
+import { classifyIntent } from "#/server/ai/tools/classify-intent";
 import { verifyAnswer } from "#/server/ai/tools/verify-answer";
 import { chatToolCallService } from "#/server/chat/tool-calls";
 import { resolveAlias } from "#/server/retrieval/aliases";
@@ -25,6 +28,7 @@ import {
 import { searchDocumentChunks } from "#/server/retrieval/chunk-search";
 import { compareTariffs } from "#/server/retrieval/compare-tariffs";
 import { listDestinations } from "#/server/retrieval/destination-list";
+import { listDocumentInventory } from "#/server/retrieval/document-list";
 import { searchFacts } from "#/server/retrieval/fact-search";
 import { hybridSearch } from "#/server/retrieval/hybrid-search";
 import { buildSourcePreview } from "#/server/retrieval/source-preview";
@@ -42,6 +46,7 @@ export type AssistantToolEvent =
           toolName: string;
       }
     | {
+          error?: string;
           state: "error" | "success";
           toolName: string;
       };
@@ -65,7 +70,15 @@ function createTrackedExecute<Input, Output>(
                 options.onToolEvent?.({ state: "success", toolName });
                 return output;
             } catch (error) {
-                options.onToolEvent?.({ state: "error", toolName });
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "Tool call failed.";
+                options.onToolEvent?.({
+                    error: message,
+                    state: "error",
+                    toolName,
+                });
                 throw error;
             }
         }
@@ -95,7 +108,7 @@ function createTrackedExecute<Input, Output>(
                 undefined,
                 message
             );
-            options.onToolEvent?.({ state: "error", toolName });
+            options.onToolEvent?.({ error: message, state: "error", toolName });
             throw error;
         }
     };
@@ -112,6 +125,16 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
                 options
             ),
             inputSchema: calculateQuoteInputSchema,
+        },
+        classifyIntent: {
+            description:
+                "Classify a user query into Formalist chat modes before choosing retrieval or quote tools.",
+            execute: createTrackedExecute(
+                "classifyIntent",
+                classifyIntent,
+                options
+            ),
+            inputSchema: classifyIntentInputSchema,
         },
         compareTariffs: {
             description:
@@ -185,6 +208,16 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
                 options
             ),
             inputSchema: listDestinationsInputSchema,
+        },
+        listDocuments: {
+            description:
+                "List uploaded source documents and their ingestion/review status. Use this when the user asks what documents, files, uploads, memories, or sources are available.",
+            execute: createTrackedExecute(
+                "listDocuments",
+                listDocumentInventory,
+                options
+            ),
+            inputSchema: documentListInputSchema,
         },
         resolveAliases: {
             description:

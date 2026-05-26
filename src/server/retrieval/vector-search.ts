@@ -3,6 +3,8 @@ import { sql } from "drizzle-orm";
 import { getDatabase } from "#/server/db";
 import type { EmbeddingOwnerType, ReviewStatus } from "#/server/db/schema";
 
+import { getSqlRows } from "./sql-rows";
+
 export interface VectorSearchResult {
     ownerId: string;
     ownerType: EmbeddingOwnerType;
@@ -80,5 +82,5 @@ export async function vectorSearch(input: {
         limit ${limit}
     `);
 
-    return result as unknown as VectorSearchResult[];
+    return getSqlRows<VectorSearchResult>(result);
 }

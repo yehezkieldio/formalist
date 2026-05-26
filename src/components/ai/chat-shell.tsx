@@ -60,6 +60,7 @@ export function ChatShell({
     const [visibleSessions, setVisibleSessions] = useState(sessions);
     const {
         error,
+        liveToolCalls,
         messages,
         regenerate,
         sendMessage,
@@ -127,6 +128,7 @@ export function ChatShell({
                 <div className="min-h-0 flex-1 overflow-auto">
                     <MessageList
                         isStreaming={isStreaming}
+                        liveToolCalls={liveToolCalls}
                         messages={displayMessages}
                         onRegenerate={() => {
                             void regenerate();

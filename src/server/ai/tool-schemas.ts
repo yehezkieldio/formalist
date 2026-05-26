@@ -22,6 +22,10 @@ export const retrievalInputSchema = z.object({
     query: z.string().min(1),
 });
 
+export const documentListInputSchema = z.object({
+    limit: z.number().int().positive().max(50).optional(),
+});
+
 export const aliasInputSchema = z.object({
     query: z.string().min(1),
     type: z.enum(["airline", "airport", "city", "destination", "route"]),

@@ -15,6 +15,7 @@ describe("assistant tool registry", () => {
             "getSourceEvidence",
             "hybridSearch",
             "listDestinations",
+            "listDocuments",
             "resolveAliases",
             "retrieveChunks",
             "retrieveTableChunks",

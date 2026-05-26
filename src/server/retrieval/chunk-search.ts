@@ -4,6 +4,7 @@ import { getDatabase } from "#/server/db";
 import { documentChunks } from "#/server/db/schema";
 
 import { getEmbeddingClient } from "./embeddings";
+import { getSqlRows } from "./sql-rows";
 import type { RetrievalSource } from "./types";
 import { vectorSearch } from "./vector-search";
 
@@ -122,16 +123,14 @@ async function searchDocumentChunksByText(
         limit ${limit}
     `);
 
-    return (
-        result as unknown as {
-            chunkIndex: number;
-            documentId: string;
-            ownerId: string;
-            pageNumber: number | null;
-            score: number;
-            snippet: string;
-        }[]
-    ).map((row) => ({
+    return getSqlRows<{
+        chunkIndex: number;
+        documentId: string;
+        ownerId: string;
+        pageNumber: number | null;
+        score: number;
+        snippet: string;
+    }>(result).map((row) => ({
         documentId: row.documentId,
         ownerId: row.ownerId,
         ownerType: "document_chunk",

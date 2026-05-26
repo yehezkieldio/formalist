@@ -3,6 +3,7 @@
 import { Streamdown } from "streamdown";
 
 import { ChainOfThought } from "#/components/ai/chain-of-thought";
+import { ConfidenceBadge } from "#/components/ai/confidence-badge";
 import { EmptyStateExamples } from "#/components/ai/empty-state-examples";
 import { MessageActions } from "#/components/ai/message-actions";
 import { Reasoning } from "#/components/ai/reasoning";
@@ -10,6 +11,7 @@ import { SourceCards } from "#/components/ai/source-cards";
 import { ToolCallTimeline } from "#/components/ai/tool-call-timeline";
 import type {
     ChatStreamStatus,
+    ChatToolCallData,
     FormalistChatMessage,
 } from "#/components/ai/types";
 import { cn } from "#/lib/utils";
@@ -80,13 +82,23 @@ function isAssistantWriting(message: FormalistChatMessage | undefined) {
     return message?.role === "assistant" && message.content.trim().length > 0;
 }
 
+function LiveToolCalls({ toolCalls }: { toolCalls?: ChatToolCallData[] }) {
+    if (!toolCalls?.length) {
+        return null;
+    }
+
+    return <ToolCallTimeline toolCalls={toolCalls} />;
+}
+
 export function MessageList({
     isStreaming = false,
+    liveToolCalls,
     messages,
     onRegenerate,
     streamStatus,
 }: {
     isStreaming?: boolean;
+    liveToolCalls?: ChatToolCallData[];
     messages: FormalistChatMessage[];
     onRegenerate?: () => void;
     streamStatus?: ChatStreamStatus;
@@ -137,6 +149,14 @@ export function MessageList({
                             {message.metadata?.reasoning ?? ""}
                         </Reasoning>
                         <MessageBody message={message} />
+                        {message.role === "assistant" &&
+                        message.verification ? (
+                            <div className="mt-3">
+                                <ConfidenceBadge
+                                    state={message.verification.confidenceState}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                     {message.role === "assistant" ? (
                         <div className="w-full max-w-4xl space-y-3">
@@ -157,7 +177,13 @@ export function MessageList({
                 </article>
             ))}
             {showPendingStatus ? (
-                <PendingAssistant status={streamStatus} />
+                <>
+                    <PendingAssistant status={streamStatus} />
+                    <LiveToolCalls toolCalls={liveToolCalls} />
+                </>
+            ) : null}
+            {isStreaming && !showPendingStatus ? (
+                <LiveToolCalls toolCalls={liveToolCalls} />
             ) : null}
         </div>
     );

@@ -5,6 +5,7 @@ import { tableChunks } from "#/server/db/schema";
 import type { ReviewStatus } from "#/server/db/schema";
 
 import { getEmbeddingClient } from "./embeddings";
+import { getSqlRows } from "./sql-rows";
 import type { RetrievalSource } from "./types";
 import { vectorSearch } from "./vector-search";
 
@@ -122,17 +123,15 @@ async function searchTableChunksByText(
         limit ${limit}
     `);
 
-    return (
-        result as unknown as {
-            documentId: string;
-            ownerId: string;
-            pageNumber: number | null;
-            rowIndex: number | null;
-            score: number;
-            snippet: string;
-            tableIndex: number | null;
-        }[]
-    ).map((row) => ({
+    return getSqlRows<{
+        documentId: string;
+        ownerId: string;
+        pageNumber: number | null;
+        rowIndex: number | null;
+        score: number;
+        snippet: string;
+        tableIndex: number | null;
+    }>(result).map((row) => ({
         documentId: row.documentId,
         ownerId: row.ownerId,
         ownerType: "table_chunk",

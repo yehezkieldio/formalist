@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 
+import { getSqlRows } from "./sql-rows";
 import type { RetrievalSource } from "./types";
 
 export const localIndexEvaluation = {
@@ -75,5 +76,5 @@ export async function fullTextSearch(input: {
         limit ${limit}
     `);
 
-    return result as unknown as RetrievalSource[];
+    return getSqlRows<RetrievalSource>(result);
 }

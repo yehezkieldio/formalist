@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 
 import type {
     ChatStreamStatus,
+    ChatToolCallData,
     FormalistChatMessage,
 } from "#/components/ai/types";
 
@@ -55,6 +56,7 @@ function parseStreamStatus(dataPart: unknown): ChatStreamStatus | undefined {
     }
 
     return {
+        error: typeof status.error === "string" ? status.error : undefined,
         label: status.label,
         state:
             status.state === "error" ||
@@ -79,6 +81,7 @@ export function useChatStream({
     const [streamStatus, setStreamStatus] = useState<
         ChatStreamStatus | undefined
     >();
+    const [liveToolCalls, setLiveToolCalls] = useState<ChatToolCallData[]>([]);
     const transport = useMemo(
         () =>
             new DefaultChatTransport({
@@ -100,6 +103,47 @@ export function useChatStream({
 
             if (status) {
                 setStreamStatus(status);
+
+                const { toolName } = status;
+                const { state } = status;
+
+                if (toolName && state) {
+                    setLiveToolCalls((current) => {
+                        const matchingIndex = current.findLastIndex(
+                            (toolCall) =>
+                                toolCall.toolName === toolName &&
+                                toolCall.state === "running"
+                        );
+
+                        if (matchingIndex !== -1 && state !== "running") {
+                            return current.map((toolCall, index) =>
+                                index === matchingIndex
+                                    ? {
+                                          ...toolCall,
+                                          completedAt: new Date().toISOString(),
+                                          error: status.error,
+                                          state,
+                                      }
+                                    : toolCall
+                            );
+                        }
+
+                        return [
+                            ...current,
+                            {
+                                completedAt:
+                                    state === "running"
+                                        ? null
+                                        : new Date().toISOString(),
+                                error: status.error,
+                                id: `${Date.now()}-${current.length}-${toolName}`,
+                                startedAt: new Date().toISOString(),
+                                state,
+                                toolName,
+                            },
+                        ];
+                    });
+                }
             }
         },
         onError: (error) => {
@@ -107,10 +151,11 @@ export function useChatStream({
         },
         onFinish: () => {
             setStreamStatus(undefined);
+            setLiveToolCalls([]);
             onFinish();
         },
         transport,
     });
 
-    return { ...chat, streamStatus };
+    return { ...chat, liveToolCalls, streamStatus };
 }
