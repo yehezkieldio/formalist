@@ -106,10 +106,7 @@ export function useChatStream({
             if (status) {
                 setStreamStatus(status);
 
-                if (
-                    status.label === "Preparing request" ||
-                    status.label === "Listing documents"
-                ) {
+                if (status.label === "Preparing request") {
                     setLiveToolCalls([]);
                 }
 

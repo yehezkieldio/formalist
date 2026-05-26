@@ -49,10 +49,9 @@ function mergeMessages(
 
 function mergeLiveToolCalls(
     messages: FormalistChatMessage[],
-    liveToolCalls: ChatToolCallData[],
-    isStreaming: boolean
+    liveToolCalls: ChatToolCallData[]
 ) {
-    if (!(isStreaming && liveToolCalls.length > 0)) {
+    if (liveToolCalls.length === 0) {
         return messages;
     }
 
@@ -74,7 +73,12 @@ function mergeLiveToolCalls(
 
     return messages.map((message, index) =>
         index === latestAssistantIndex
-            ? { ...message, toolCalls: liveToolCalls }
+            ? {
+                  ...message,
+                  toolCalls: message.toolCalls?.length
+                      ? message.toolCalls
+                      : liveToolCalls,
+              }
             : message
     );
 }
@@ -111,10 +115,9 @@ export function ChatShell({
         () =>
             mergeLiveToolCalls(
                 mergeMessages(initialMessages, messages),
-                liveToolCalls,
-                isStreaming
+                liveToolCalls
             ),
-        [initialMessages, isStreaming, liveToolCalls, messages]
+        [initialMessages, liveToolCalls, messages]
     );
 
     useEffect(() => {
