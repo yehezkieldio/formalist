@@ -92,6 +92,27 @@ describe("chat UI components", () => {
         expect(markup).toContain("tersedia dari Rp");
     });
 
+    it("bounds expanded reasoning content so long traces do not dominate the message", () => {
+        const markup = renderToStaticMarkup(
+            <MessageList
+                isStreaming
+                messages={[
+                    {
+                        content: "Saya cek data tarifnya.",
+                        id: "assistant-1",
+                        metadata: {
+                            reasoning: "Langkah panjang.\n".repeat(80),
+                        },
+                        role: "assistant",
+                    },
+                ]}
+            />
+        );
+
+        expect(markup).toContain("max-h-56");
+        expect(markup).toContain("overflow-y-auto");
+    });
+
     it("shows streaming status for an empty assistant message", () => {
         const markup = renderToStaticMarkup(
             <MessageList

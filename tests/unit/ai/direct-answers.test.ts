@@ -150,4 +150,108 @@ describe("direct chat answers", () => {
         expect(answer?.content).not.toContain("Let me");
         expect(answer?.content).not.toContain("Tool results:");
     });
+
+    it("compares the last two tariff answers from persisted chat metadata", async () => {
+        const { getDirectChatAnswer } =
+            await import("#/server/ai/chat/direct-answers");
+
+        const answer = await getDirectChatAnswer({
+            intent: "verified_numeric",
+            messages: [
+                {
+                    id: "user-1",
+                    parts: [
+                        {
+                            text: "harga tujuan denpasar dengan maskapai garuda?",
+                            type: "text",
+                        },
+                    ],
+                    role: "user",
+                },
+                {
+                    id: "assistant-1",
+                    metadata: {
+                        tariffAnswer: {
+                            airline: "Garuda / Citilink",
+                            destination: "DENPASAR",
+                            rows: [
+                                {
+                                    documentId: "doc-denpasar-1",
+                                    isPromo: false,
+                                    routeType: "TRANSIT via CGK",
+                                    smuPricePerKg: 23_700,
+                                },
+                                {
+                                    documentId: "doc-denpasar-2",
+                                    isPromo: false,
+                                    routeType: "TRANSIT via CGK",
+                                    smuPricePerKg: 24_950,
+                                },
+                            ],
+                        },
+                    },
+                    parts: [
+                        {
+                            text: "Tarif aktif Garuda / Citilink ke DENPASAR tersedia dari Rp 23.700/kg sampai Rp 24.950/kg.",
+                            type: "text",
+                        },
+                    ],
+                    role: "assistant",
+                },
+                {
+                    id: "user-2",
+                    parts: [{ text: "alau jakarta?", type: "text" }],
+                    role: "user",
+                },
+                {
+                    id: "assistant-2",
+                    metadata: {
+                        tariffAnswer: {
+                            airline: "Garuda / Citilink",
+                            destination: "JAKARTA",
+                            rows: [
+                                {
+                                    documentId: "doc-jakarta-1",
+                                    isPromo: false,
+                                    routeType: "DIRECT",
+                                    smuPricePerKg: 17_300,
+                                },
+                                {
+                                    documentId: "doc-jakarta-2",
+                                    isPromo: false,
+                                    routeType: "DIRECT",
+                                    smuPricePerKg: 18_250,
+                                },
+                            ],
+                        },
+                    },
+                    parts: [
+                        {
+                            text: "Tarif aktif Garuda / Citilink ke JAKARTA tersedia dari Rp 17.300/kg sampai Rp 18.250/kg.",
+                            type: "text",
+                        },
+                    ],
+                    role: "assistant",
+                },
+                {
+                    id: "user-3",
+                    parts: [
+                        {
+                            text: "itu selisih berapa meraka dua?",
+                            type: "text",
+                        },
+                    ],
+                    role: "user",
+                },
+            ],
+            mode: "verified_numeric",
+            query: "itu selisih berapa meraka dua?",
+        });
+
+        expect(structuredSearchMock.searchTariffs).not.toHaveBeenCalled();
+        expect(answer?.content).toContain("DENPASAR dan JAKARTA");
+        expect(answer?.content).toContain("Rp 6.400/kg");
+        expect(answer?.content).toContain("Rp 6.700/kg");
+        expect(answer?.content).not.toContain("Tool results:");
+    });
 });

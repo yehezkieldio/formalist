@@ -47,7 +47,7 @@ export function Reasoning({
                 />
             </button>
             {open ? (
-                <div className="border-t px-2.5 py-2 text-muted-foreground leading-5">
+                <div className="max-h-56 overflow-y-auto whitespace-pre-wrap border-t px-2.5 py-2 text-muted-foreground leading-5 sm:max-h-72">
                     {children}
                 </div>
             ) : null}

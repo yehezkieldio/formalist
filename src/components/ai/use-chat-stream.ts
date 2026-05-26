@@ -35,7 +35,16 @@ function toUiMessages(messages: FormalistChatMessage[]): UIMessage[] {
 
 function getMessagesKey(messages: FormalistChatMessage[]) {
     return messages
-        .map((message) => `${message.id}:${message.role}:${message.content}`)
+        .map((message) =>
+            JSON.stringify({
+                content: message.content,
+                id: message.id,
+                metadata: message.metadata,
+                parts: message.parts,
+                role: message.role,
+                toolCalls: message.toolCalls,
+            })
+        )
         .join("|");
 }
 

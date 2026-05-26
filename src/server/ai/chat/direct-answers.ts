@@ -39,6 +39,12 @@ function isTariffFollowUpQuery(query: string) {
     );
 }
 
+function isTariffComparisonQuery(query: string) {
+    return /\b(selisih|beda|perbedaan|banding|bandingin|compare|comparison|difference|lebih\s+(mahal|murah))\b/iu.test(
+        query
+    );
+}
+
 function escapeRegExp(value: string) {
     return value.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
@@ -168,6 +174,26 @@ function getPreviousTariffAirline(messages: UIMessage[]) {
     return match?.[1]?.trim();
 }
 
+function getPreviousTariffAnswers(messages: UIMessage[]) {
+    return messages
+        .slice(0, -1)
+        .filter((message) => message.role === "assistant")
+        .flatMap((message) => {
+            const { metadata } = message;
+
+            if (
+                isRecord(metadata) &&
+                isRecord(metadata.tariffAnswer) &&
+                typeof metadata.tariffAnswer.destination === "string" &&
+                Array.isArray(metadata.tariffAnswer.rows)
+            ) {
+                return [metadata.tariffAnswer as unknown as TariffAnswerData];
+            }
+
+            return [];
+        });
+}
+
 function formatDocumentInventory(
     rows: Awaited<ReturnType<typeof listDocumentInventory>>
 ) {
@@ -218,6 +244,85 @@ function toTariffAnswerRows(rows: Awaited<ReturnType<typeof searchTariffs>>) {
             transitRoute: row.transitRoute,
         };
     });
+}
+
+function getTariffPriceBounds(answer: TariffAnswerData) {
+    const prices = answer.rows
+        .map((row) => row.smuPricePerKg)
+        .filter((price) => Number.isFinite(price))
+        .toSorted((left, right) => left - right);
+    const min = prices.at(0);
+    const max = prices.at(-1);
+
+    if (!(min && max)) {
+        return;
+    }
+
+    return { max, min };
+}
+
+function formatCurrencyDelta(value: number) {
+    return `Rp ${Math.abs(value).toLocaleString("id-ID")}/kg`;
+}
+
+function describeMoreExpensive(input: {
+    delta: number;
+    left: TariffAnswerData;
+    right: TariffAnswerData;
+}) {
+    if (input.delta === 0) {
+        return "keduanya sama pada harga termurah.";
+    }
+
+    const higher =
+        input.delta > 0 ? input.left.destination : input.right.destination;
+
+    return `${higher} lebih mahal ${formatCurrencyDelta(input.delta)} pada harga termurah.`;
+}
+
+function getTariffComparisonAnswer(input: {
+    intent: ClassifiedIntent;
+    messages: UIMessage[];
+    query: string;
+}): DirectChatAnswer | undefined {
+    if (!isTariffComparisonQuery(input.query)) {
+        return;
+    }
+
+    const previousAnswers = getPreviousTariffAnswers(input.messages);
+    const [right, left] = previousAnswers.slice(-2).toReversed();
+
+    if (!(left && right)) {
+        return;
+    }
+
+    const leftBounds = getTariffPriceBounds(left);
+    const rightBounds = getTariffPriceBounds(right);
+
+    if (!(leftBounds && rightBounds)) {
+        return;
+    }
+
+    const minDelta = leftBounds.min - rightBounds.min;
+    const maxDelta = leftBounds.max - rightBounds.max;
+    const airline = left.airline ?? right.airline;
+    const contextLabel = airline ? ` untuk ${airline}` : "";
+
+    return {
+        content: `Selisih tarif ${left.destination} dan ${right.destination}${contextLabel}: ${describeMoreExpensive({ delta: minDelta, left, right })} Harga termurah ${left.destination} adalah Rp ${leftBounds.min.toLocaleString("id-ID")}/kg, sedangkan ${right.destination} Rp ${rightBounds.min.toLocaleString("id-ID")}/kg. Jika memakai harga tertinggi dari masing-masing daftar, selisihnya ${formatCurrencyDelta(maxDelta)}.`,
+        evidenceSnippets: [
+            `${left.destination}: ${left.rows
+                .map((row) => row.smuPricePerKg)
+                .join(", ")}`,
+            `${right.destination}: ${right.rows
+                .map((row) => row.smuPricePerKg)
+                .join(", ")}`,
+        ],
+        intent: input.intent,
+        mode: "verified_numeric",
+        stage: "direct:tariff-comparison",
+        status: "Comparing tariff answers",
+    };
 }
 
 async function getDocumentInventoryAnswer(input: {
@@ -335,6 +440,11 @@ export async function getDirectChatAnswer(input: {
 }) {
     return (
         (await getDocumentInventoryAnswer(input)) ??
+        getTariffComparisonAnswer({
+            intent: input.intent,
+            messages: input.messages,
+            query: input.query,
+        }) ??
         (await getTariffPriceAnswer({
             intent: input.intent,
             messages: input.messages,
