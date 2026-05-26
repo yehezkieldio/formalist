@@ -115,15 +115,15 @@ function mergeMessages(
         const mergedMetadata =
             reasoning.trim().length > 0
                 ? {
-                      ...metadata,
+                      ...(persisted?.metadata ?? metadata),
                       reasoning,
                   }
-                : metadata;
+                : (persisted?.metadata ?? metadata);
 
         return {
             content: content || persisted?.content || "",
             id: message.id,
-            metadata: persisted?.metadata ?? mergedMetadata,
+            metadata: mergedMetadata,
             parts: message.parts,
             role: message.role,
             sources: persisted?.sources,

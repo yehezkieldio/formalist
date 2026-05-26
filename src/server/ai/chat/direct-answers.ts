@@ -1,25 +1,12 @@
 import type { UIMessage } from "ai";
 
 import type { ClassifiedIntent } from "#/server/ai/tools/classify-intent";
+import { findAliasesByType } from "#/server/db/queries/aliases";
+import type { AliasType } from "#/server/db/schema";
+import type { AliasRecord } from "#/server/retrieval/aliases";
+import { builtInAliases } from "#/server/retrieval/built-in-aliases";
 import { listDocumentInventory } from "#/server/retrieval/document-list";
 import { searchTariffs } from "#/server/retrieval/structured-search";
-
-const directAirlineAliases = [
-    ["pelita", "Pelita Air"],
-    ["lion", "Lion Air"],
-    ["air asia", "Air Asia"],
-    ["airasia", "Air Asia"],
-] as const;
-
-const directDestinationAliases = [
-    ["surabaya", { city: "SURABAYA", code: "SUB" }],
-    ["sub", { city: "SURABAYA", code: "SUB" }],
-    ["makassar", { city: "UJUNG PANDANG", code: "UPG" }],
-    ["upg", { city: "UJUNG PANDANG", code: "UPG" }],
-    ["yogyakarta", { city: "YOGYAKARTA", code: "YIA" }],
-    ["jogja", { city: "YOGYAKARTA", code: "YIA" }],
-    ["yia", { city: "YOGYAKARTA", code: "YIA" }],
-] as const;
 
 export interface DirectChatAnswer {
     content: string;
@@ -42,18 +29,102 @@ function isTariffPriceQuery(query: string) {
     );
 }
 
-function findDirectAirline(query: string) {
-    const normalizedQuery = query.toLowerCase();
-    return directAirlineAliases.find(([alias]) =>
-        normalizedQuery.includes(alias)
-    )?.[1];
+function escapeRegExp(value: string) {
+    return value.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 }
 
-function findDirectDestination(query: string) {
-    const normalizedQuery = query.toLowerCase();
-    return directDestinationAliases.find(([alias]) =>
-        normalizedQuery.includes(alias)
-    )?.[1];
+function normalizeText(value: string) {
+    return value.trim().toLowerCase().replaceAll(/\s+/gu, " ");
+}
+
+function containsAlias(query: string, alias: string) {
+    const normalizedAlias = normalizeText(alias);
+
+    if (!normalizedAlias) {
+        return false;
+    }
+
+    return new RegExp(
+        `(^|[^\\p{L}\\p{N}])${escapeRegExp(normalizedAlias)}($|[^\\p{L}\\p{N}])`,
+        "iu"
+    ).test(normalizeText(query));
+}
+
+async function getAliasRecords(type: AliasType) {
+    const storedAliases = await findAliasesByType(type);
+    const fallbackAliases = builtInAliases.filter(
+        (alias) => alias.type === type
+    );
+
+    return [...storedAliases, ...fallbackAliases];
+}
+
+async function resolveAliasInQuery(input: {
+    query: string;
+    type: AliasType;
+}): Promise<AliasRecord | undefined> {
+    const records = await getAliasRecords(input.type);
+    const directMatches = records
+        .filter(
+            (record) =>
+                containsAlias(input.query, record.alias) ||
+                containsAlias(input.query, record.canonicalValue)
+        )
+        .toSorted((left, right) => right.alias.length - left.alias.length);
+    const [directMatch] = directMatches;
+
+    if (directMatch && !directMatch.isAmbiguous) {
+        return directMatch;
+    }
+}
+
+async function findDirectAirline(query: string) {
+    const alias = await resolveAliasInQuery({ query, type: "airline" });
+
+    return alias?.canonicalValue;
+}
+
+function getMetadataStringArray(record: AliasRecord, key: string) {
+    const { metadata } = record;
+
+    if (!metadata || typeof metadata !== "object") {
+        return [];
+    }
+
+    const value = (metadata as Record<string, unknown>)[key];
+
+    return Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === "string")
+        : [];
+}
+
+async function findDirectDestination(query: string) {
+    const airport = await resolveAliasInQuery({ query, type: "airport" });
+
+    if (airport) {
+        return {
+            city:
+                typeof airport.metadata === "object" &&
+                airport.metadata &&
+                typeof (airport.metadata as Record<string, unknown>).city ===
+                    "string"
+                    ? ((airport.metadata as Record<string, unknown>)
+                          .city as string)
+                    : undefined,
+            code: airport.canonicalValue,
+        };
+    }
+
+    const city = await resolveAliasInQuery({ query, type: "city" });
+
+    if (!city) {
+        return;
+    }
+
+    return {
+        city: city.canonicalValue,
+        code: getMetadataStringArray(city, "airportCodes")[0],
+    };
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -104,17 +175,26 @@ async function getTariffPriceAnswer(input: {
         return;
     }
 
-    const destination = findDirectDestination(input.query);
+    const destination = await findDirectDestination(input.query);
 
     if (!destination) {
         return;
     }
 
-    const airline = findDirectAirline(input.query);
-    const rows = await searchTariffs({
-        airline,
-        destinationCode: destination.code,
-    });
+    const airline = await findDirectAirline(input.query);
+    const rowsByCode = destination.code
+        ? await searchTariffs({
+              airline,
+              destinationCode: destination.code,
+          })
+        : [];
+    const rows =
+        rowsByCode.length > 0 || !destination.city
+            ? rowsByCode
+            : await searchTariffs({
+                  airline,
+                  destinationCity: destination.city,
+              });
     const pricedRows = rows
         .filter((row) => row.smuPricePerKg !== null)
         .toSorted((left, right) => {
@@ -132,7 +212,7 @@ async function getTariffPriceAnswer(input: {
 
     if (pricedRows.length === 0) {
         return {
-            content: `Belum ada tarif aktif untuk ${airline ? `${airline} ke ` : ""}${destination.city}.`,
+            content: `Belum ada tarif aktif yang sudah direview untuk ${airline ? `${airline} ke ` : ""}${destination.city ?? destination.code}.`,
             evidenceSnippets: [],
             intent: input.intent,
             mode: "verified_numeric",
@@ -153,7 +233,7 @@ async function getTariffPriceAnswer(input: {
 
     return {
         content: [
-            `Tarif aktif ke ${destination.city}${airline ? ` untuk ${airline}` : ""}:`,
+            `Tarif aktif ke ${destination.city ?? destination.code}${airline ? ` untuk ${airline}` : ""}:`,
             ...lines,
         ].join("\n"),
         evidenceSnippets: pricedRows.flatMap((row) =>

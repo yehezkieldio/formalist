@@ -45,6 +45,24 @@ export const builtInAliases = [
         type: "city",
     },
     {
+        alias: "jakarta",
+        canonicalValue: "JAKARTA",
+        metadata: { airportCodes: ["CGK", "HLP"] },
+        type: "city",
+    },
+    {
+        alias: "cgk",
+        canonicalValue: "CGK",
+        metadata: { city: "JAKARTA" },
+        type: "airport",
+    },
+    {
+        alias: "hlp",
+        canonicalValue: "HLP",
+        metadata: { city: "JAKARTA" },
+        type: "airport",
+    },
+    {
         alias: "upg",
         canonicalValue: "UPG",
         type: "airport",
@@ -57,6 +75,16 @@ export const builtInAliases = [
     {
         alias: "lion",
         canonicalValue: "Lion Air",
+        type: "airline",
+    },
+    {
+        alias: "garuda",
+        canonicalValue: "Garuda",
+        type: "airline",
+    },
+    {
+        alias: "garuda indonesia",
+        canonicalValue: "Garuda",
         type: "airline",
     },
 ] satisfies AliasInput[];

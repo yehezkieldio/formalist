@@ -153,6 +153,32 @@ function writeTextToStream(
     writer.write({ id: textId, type: "text-end" });
 }
 
+function getReasoningText(message: UIMessage) {
+    return message.parts
+        .filter((part) => part.type === "reasoning")
+        .map((part) => part.text)
+        .join("");
+}
+
+function buildRepairedMessageMetadata(message: UIMessage) {
+    const metadata =
+        message.metadata && typeof message.metadata === "object"
+            ? message.metadata
+            : {};
+    const reasoning = getReasoningText(message);
+
+    return reasoning.trim()
+        ? { ...metadata, reasoning, repaired: true }
+        : { ...metadata, repaired: true };
+}
+
+function buildRepairedMessageParts(message: UIMessage, fallback: string) {
+    return [
+        ...message.parts.filter((part) => part.type === "reasoning"),
+        { text: fallback, type: "text" as const },
+    ];
+}
+
 function streamModelResponse(input: {
     logger: ReturnType<typeof createChatLogger>;
     messages: UIMessage[];
@@ -253,9 +279,15 @@ function streamModelResponse(input: {
                                 evidenceSnippets: [fallback],
                                 id: assistantMessageId,
                                 logger: input.logger,
-                                metadata: { repaired: true },
+                                metadata:
+                                    buildRepairedMessageMetadata(
+                                        responseMessage
+                                    ),
                                 mode: input.mode,
-                                parts: [{ text: fallback, type: "text" }],
+                                parts: buildRepairedMessageParts(
+                                    responseMessage,
+                                    fallback
+                                ),
                                 sessionId: input.sessionId,
                             });
                         } else {

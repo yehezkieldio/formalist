@@ -216,7 +216,7 @@ export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
     const successfulEvents = toolEvents.filter(isSuccessfulToolEvent);
 
     if (successfulEvents.length === 0) {
-        return "I ran the retrieval tools, but they did not return a usable result. Please try a narrower question.";
+        return "Saya menjalankan pencarian, tetapi belum ada hasil yang cukup untuk membuat jawaban tepercaya. Coba persempit pertanyaan atau pastikan data sudah direview.";
     }
 
     const tariffFallback = buildTariffFallback(successfulEvents);
@@ -243,8 +243,8 @@ export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
     });
 
     if (lines.length === 0) {
-        return "The tools completed, but no readable answer payload was returned.";
+        return "Pencarian selesai, tetapi tidak ada hasil terstruktur yang cukup untuk dijadikan jawaban tepercaya.";
     }
 
-    return ["Tool results:", ...lines].join("\n");
+    return "Saya menemukan hasil retrieval, tetapi belum ada jawaban akhir yang aman dari data aktif yang sudah direview. Saya tidak akan menampilkan payload tool mentah sebagai jawaban.";
 }

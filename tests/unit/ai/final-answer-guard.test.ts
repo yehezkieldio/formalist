@@ -56,7 +56,7 @@ describe("final answer repair fallback", () => {
         expect(fallback).not.toContain("result");
     });
 
-    it("summarizes generic object tool output without raw JSON fragments", () => {
+    it("does not promote generic tool output into answer text", () => {
         const fallback = buildToolResultFallback([
             {
                 input: { query: "documents" },
@@ -71,8 +71,12 @@ describe("final answer repair fallback", () => {
             },
         ] satisfies AssistantToolEvent[]);
 
-        expect(fallback).toContain("listDocuments:");
-        expect(fallback).toContain("Returned 2 results.");
+        expect(fallback).toContain(
+            "tidak akan menampilkan payload tool mentah"
+        );
+        expect(fallback).not.toContain("listDocuments:");
+        expect(fallback).not.toContain("Returned 2 results.");
+        expect(fallback).not.toContain("Tool results:");
         expect(fallback).not.toContain("{");
         expect(fallback).not.toContain("}");
         expect(fallback).not.toContain('"items"');

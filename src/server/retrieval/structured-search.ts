@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { tariffRows } from "#/server/db/schema";
@@ -19,19 +19,23 @@ export function tariffSearchConditions(input: TariffSearchFilters) {
     const conditions = [eq(tariffRows.status, input.status ?? "active")];
 
     if (input.airline) {
-        conditions.push(eq(tariffRows.airline, input.airline));
+        conditions.push(ilike(tariffRows.airline, input.airline));
     }
     if (input.destinationCity) {
-        conditions.push(eq(tariffRows.destinationCity, input.destinationCity));
+        conditions.push(
+            ilike(tariffRows.destinationCity, input.destinationCity)
+        );
     }
     if (input.destinationCode) {
-        conditions.push(eq(tariffRows.destinationCode, input.destinationCode));
+        conditions.push(
+            ilike(tariffRows.destinationCode, input.destinationCode)
+        );
     }
     if (input.originCity) {
-        conditions.push(eq(tariffRows.originCity, input.originCity));
+        conditions.push(ilike(tariffRows.originCity, input.originCity));
     }
     if (input.originAirport) {
-        conditions.push(eq(tariffRows.originAirport, input.originAirport));
+        conditions.push(ilike(tariffRows.originAirport, input.originAirport));
     }
     if (input.routeType) {
         conditions.push(eq(tariffRows.routeType, input.routeType));
