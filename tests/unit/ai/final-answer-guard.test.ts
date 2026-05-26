@@ -55,4 +55,26 @@ describe("final answer repair fallback", () => {
         expect(fallback).not.toContain("resolveAliases");
         expect(fallback).not.toContain("result");
     });
+
+    it("summarizes generic object tool output without raw JSON fragments", () => {
+        const fallback = buildToolResultFallback([
+            {
+                input: { query: "documents" },
+                output: {
+                    items: [
+                        { filename: "tariff.pdf" },
+                        { filename: "fees.pdf" },
+                    ],
+                },
+                state: "success",
+                toolName: "listDocuments",
+            },
+        ] satisfies AssistantToolEvent[]);
+
+        expect(fallback).toContain("listDocuments:");
+        expect(fallback).toContain("Returned 2 results.");
+        expect(fallback).not.toContain("{");
+        expect(fallback).not.toContain("}");
+        expect(fallback).not.toContain('"items"');
+    });
 });

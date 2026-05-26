@@ -19,6 +19,59 @@ const nonAnswerPatterns = [
     /\busing (the )?(documents|tools|search)\b/iu,
 ] as const;
 
+function formatScalar(value: unknown) {
+    if (value === null || value === undefined || value === "") {
+        return;
+    }
+
+    if (
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean"
+    ) {
+        return String(value);
+    }
+}
+
+function summarizeRecord(record: Record<string, unknown>) {
+    const label =
+        formatScalar(record.title) ??
+        formatScalar(record.filename) ??
+        formatScalar(record.destinationCity) ??
+        formatScalar(record.destinationCode) ??
+        formatScalar(record.name) ??
+        "result";
+    const details = [
+        ["airline", record.airline],
+        ["origin", record.originCity ?? record.originCode],
+        ["destination", record.destinationCity ?? record.destinationCode],
+        ["route", record.routeType],
+        ["value", record.valueNumber ?? record.price ?? record.smuPricePerKg],
+        ["confidence", record.confidence ?? record.confidenceState],
+    ]
+        .map(([labelKey, value]) => {
+            const formatted = formatScalar(value);
+            return formatted ? `${labelKey}: ${formatted}` : undefined;
+        })
+        .filter(Boolean);
+
+    return details.length > 0 ? `${label} (${details.join(", ")})` : label;
+}
+
+function getRecordArrayCount(record: Record<string, unknown>) {
+    if (Array.isArray(record.results)) {
+        return record.results.length;
+    }
+
+    if (Array.isArray(record.rows)) {
+        return record.rows.length;
+    }
+
+    if (Array.isArray(record.items)) {
+        return record.items.length;
+    }
+}
+
 function summarizeToolOutput(value: unknown): string[] {
     if (!value) {
         return [];
@@ -35,20 +88,7 @@ function summarizeToolOutput(value: unknown): string[] {
             }
 
             if (typeof item === "object" && item) {
-                const record = item as Record<string, unknown>;
-                const title =
-                    record.title ??
-                    record.filename ??
-                    record.destinationCity ??
-                    record.destinationCode ??
-                    record.toolName ??
-                    "result";
-                const price =
-                    record.smuPricePerKg ??
-                    record.valueNumber ??
-                    record.price ??
-                    undefined;
-                return `${index + 1}. ${String(title)}${price ? ` - ${String(price)}` : ""}`;
+                return `${index + 1}. ${summarizeRecord(item as Record<string, unknown>)}`;
             }
 
             return `${index + 1}. ${String(item)}`;
@@ -56,7 +96,14 @@ function summarizeToolOutput(value: unknown): string[] {
     }
 
     if (typeof value === "object") {
-        return [JSON.stringify(value).slice(0, 500)];
+        const record = value as Record<string, unknown>;
+        const count = getRecordArrayCount(record);
+
+        if (count !== undefined) {
+            return [`Returned ${count} result${count === 1 ? "" : "s"}.`];
+        }
+
+        return [summarizeRecord(record)];
     }
 
     return [String(value)];

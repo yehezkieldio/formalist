@@ -3,11 +3,10 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type {
     ChatStreamStatus,
-    ChatToolCallData,
     FormalistChatMessage,
 } from "#/components/ai/types";
 
@@ -27,7 +26,9 @@ function toUiMessages(messages: FormalistChatMessage[]): UIMessage[] {
         .map((message) => ({
             id: message.id,
             metadata: message.metadata ?? undefined,
-            parts: [{ text: message.content, type: "text" }],
+            parts: Array.isArray(message.parts)
+                ? (message.parts as UIMessage["parts"])
+                : [{ text: message.content, type: "text" }],
             role: toUiRole(message.role),
         }));
 }
@@ -83,7 +84,6 @@ export function useChatStream({
     const [streamStatus, setStreamStatus] = useState<
         ChatStreamStatus | undefined
     >();
-    const [liveToolCalls, setLiveToolCalls] = useState<ChatToolCallData[]>([]);
     const transport = useMemo(
         () =>
             new DefaultChatTransport({
@@ -105,55 +105,6 @@ export function useChatStream({
 
             if (status) {
                 setStreamStatus(status);
-
-                if (status.label === "Preparing request") {
-                    setLiveToolCalls([]);
-                }
-
-                const { toolName } = status;
-                const { state } = status;
-
-                if (toolName && state) {
-                    setLiveToolCalls((current) => {
-                        const matchingIndex = current.findLastIndex(
-                            (toolCall) =>
-                                toolCall.toolName === toolName &&
-                                toolCall.state === "running"
-                        );
-
-                        if (matchingIndex !== -1 && state !== "running") {
-                            return current.map((toolCall, index) =>
-                                index === matchingIndex
-                                    ? {
-                                          ...toolCall,
-                                          completedAt: new Date().toISOString(),
-                                          error: status.error,
-                                          input: status.input,
-                                          output: status.output,
-                                          state,
-                                      }
-                                    : toolCall
-                            );
-                        }
-
-                        return [
-                            ...current,
-                            {
-                                completedAt:
-                                    state === "running"
-                                        ? null
-                                        : new Date().toISOString(),
-                                error: status.error,
-                                id: `${Date.now()}-${current.length}-${toolName}`,
-                                input: status.input,
-                                output: status.output,
-                                startedAt: new Date().toISOString(),
-                                state,
-                                toolName,
-                            },
-                        ];
-                    });
-                }
             }
         },
         onError: (error) => {
@@ -165,6 +116,15 @@ export function useChatStream({
         },
         transport,
     });
+    const { setMessages, status } = chat;
 
-    return { ...chat, liveToolCalls, streamStatus };
+    useEffect(() => {
+        if (status !== "ready") {
+            return;
+        }
+
+        setMessages(messages);
+    }, [messages, setMessages, status]);
+
+    return { ...chat, streamStatus };
 }

@@ -70,6 +70,7 @@ export async function persistLatestUserMessage(
     logger?.info("persist-user-message:start");
     await chatMessageService.create({
         content,
+        id: latestUserMessage.id,
         parts: latestUserMessage.parts,
         role: "user",
         sessionId,
@@ -82,6 +83,7 @@ export async function persistLatestUserMessage(
 export async function persistAssistantContent(input: {
     content: string;
     evidenceSnippets: string[];
+    id?: string;
     logger?: ChatLogger;
     metadata?: unknown;
     mode: "general_rag" | "verified_numeric";
@@ -99,6 +101,7 @@ export async function persistAssistantContent(input: {
     });
     const message = await chatMessageService.create({
         content: input.content,
+        id: input.id,
         metadata: input.metadata,
         parts: input.parts,
         role: "assistant",
@@ -147,6 +150,7 @@ export async function persistAssistantMessage(input: {
     await persistAssistantContent({
         content: getMessageText(input.message),
         evidenceSnippets: extractMessageEvidenceSnippets(input.message),
+        id: input.message.id,
         logger: input.logger,
         metadata: input.message.metadata,
         mode: input.mode,

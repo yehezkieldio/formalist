@@ -52,6 +52,7 @@ export interface FormalistChatMessage {
     parts?: unknown;
     role: ChatRole;
     sources?: ChatSourceCardData[];
+    statusLabel?: string;
     toolCalls?: ChatToolCallData[];
     verification?: ChatVerificationData | null;
 }

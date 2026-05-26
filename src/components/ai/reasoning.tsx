@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, BrainCircuitIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "#/lib/utils";
 
@@ -13,6 +13,12 @@ export function Reasoning({
     isStreaming?: boolean;
 }) {
     const [open, setOpen] = useState(isStreaming);
+
+    useEffect(() => {
+        if (isStreaming) {
+            setOpen(true);
+        }
+    }, [isStreaming]);
 
     if (!children.trim()) {
         return null;

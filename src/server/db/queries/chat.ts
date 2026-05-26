@@ -104,6 +104,7 @@ export async function softDeleteChatSession(sessionId: string) {
 
 export async function createChatMessage(input: {
     content: string;
+    id?: string;
     metadata?: unknown;
     parts?: unknown;
     role: string;
@@ -112,6 +113,16 @@ export async function createChatMessage(input: {
     const [message] = await getDatabase()
         .insert(chatMessages)
         .values(input)
+        .onConflictDoUpdate({
+            set: {
+                content: input.content,
+                metadata: input.metadata,
+                parts: input.parts,
+                role: input.role,
+                sessionId: input.sessionId,
+            },
+            target: chatMessages.id,
+        })
         .returning();
 
     return message;

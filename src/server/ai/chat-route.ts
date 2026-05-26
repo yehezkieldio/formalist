@@ -25,6 +25,7 @@ import { getModelConfiguration } from "#/server/ai/models";
 import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { AiProviderState } from "#/server/ai/provider";
+import { serializeToolCallForStream } from "#/server/ai/stream-events";
 import { formalistSystemPrompt } from "#/server/ai/system-prompt";
 import { createAssistantTools } from "#/server/ai/tools";
 import type { AssistantToolEvent } from "#/server/ai/tools";
@@ -65,9 +66,12 @@ function createPersistedTextStreamResponse(input: {
     sessionId?: string;
     status?: string;
 }) {
+    const messageId = crypto.randomUUID();
     const textId = crypto.randomUUID();
     const stream = createUIMessageStream({
         execute: async ({ writer }) => {
+            writer.write({ messageId, type: "start" });
+
             if (input.status) {
                 writeStatus(writer, { label: input.status });
             }
@@ -80,6 +84,7 @@ function createPersistedTextStreamResponse(input: {
             await persistAssistantContent({
                 content: input.content,
                 evidenceSnippets: input.evidenceSnippets ?? [input.content],
+                id: messageId,
                 logger: input.logger,
                 metadata: { intent: input.intent },
                 mode: input.mode,
@@ -111,15 +116,22 @@ function writeToolStatus(
     >[0]["writer"],
     event: AssistantToolEvent
 ) {
+    const serialized = serializeToolCallForStream({
+        input: event.input,
+        output: "output" in event ? event.output : undefined,
+        toolName: event.toolName,
+    });
+
     writeStatus(writer, {
         error: "error" in event ? event.error : undefined,
-        input: event.input,
+        input: serialized.input,
         label:
             event.state === "running"
                 ? `Using ${event.toolName}`
                 : `${event.toolName} ${event.state}`,
-        output: "output" in event ? event.output : undefined,
+        output: serialized.output,
         state: event.state,
+        summary: serialized.summary,
         toolName: event.toolName,
     });
 }
@@ -150,6 +162,7 @@ function streamModelResponse(input: {
     sessionId?: string;
 }) {
     const { chatModel } = getModelConfiguration();
+    const assistantMessageId = crypto.randomUUID();
     const toolEvents: AssistantToolEvent[] = [];
     const stream = createUIMessageStream({
         execute: async ({ writer }) => {
@@ -211,6 +224,7 @@ function streamModelResponse(input: {
 
             writer.merge(
                 result.toUIMessageStream({
+                    generateMessageId: () => assistantMessageId,
                     onError: (error) =>
                         error instanceof Error
                             ? error.message
@@ -237,6 +251,7 @@ function streamModelResponse(input: {
                             await persistAssistantContent({
                                 content: fallback,
                                 evidenceSnippets: [fallback],
+                                id: assistantMessageId,
                                 logger: input.logger,
                                 metadata: { repaired: true },
                                 mode: input.mode,
@@ -259,6 +274,7 @@ function streamModelResponse(input: {
                         });
                         input.logger.info("request:finish");
                     },
+                    originalMessages: input.messages,
                 })
             );
         },
@@ -322,9 +338,11 @@ async function streamChatResponse(input: {
 
 export function createSetupRequiredStreamResponse(reason: string) {
     const message = `Setup required: ${reason} Add OPENROUTER_API_KEY to enable LLM extraction and chat.`;
+    const messageId = crypto.randomUUID();
     const textId = crypto.randomUUID();
     const stream = createUIMessageStream({
         execute: ({ writer }) => {
+            writer.write({ messageId, type: "start" });
             writer.write({ id: textId, type: "text-start" });
             writer.write({ delta: message, id: textId, type: "text-delta" });
             writer.write({ id: textId, type: "text-end" });

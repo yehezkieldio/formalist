@@ -1,5 +1,6 @@
 "use client";
 
+import type { UIMessage } from "ai";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,10 +16,83 @@ import type {
 import { useChatStream } from "#/components/ai/use-chat-stream";
 import { ThemeToggle } from "#/components/theme-toggle";
 
-interface OptimisticTurn {
-    assistantId: string;
-    content: string;
-    userId: string;
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object";
+}
+
+function getTextContent(message: UIMessage) {
+    return message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("");
+}
+
+function getReasoningText(message: UIMessage) {
+    return message.parts
+        .filter((part) => part.type === "reasoning")
+        .map((part) => part.text)
+        .join("");
+}
+
+function getToolName(part: UIMessage["parts"][number]) {
+    if (part.type === "dynamic-tool") {
+        return part.toolName;
+    }
+
+    if (part.type.startsWith("tool-")) {
+        return part.type.slice("tool-".length);
+    }
+}
+
+function getToolCallState(part: Record<string, unknown>) {
+    if (typeof part.state !== "string") {
+        return "pending" as const;
+    }
+
+    if (part.state === "output-available") {
+        return "success" as const;
+    }
+
+    if (part.state === "output-error" || part.state === "output-denied") {
+        return "error" as const;
+    }
+
+    if (part.state === "input-streaming" || part.state === "input-available") {
+        return "running" as const;
+    }
+
+    return "pending" as const;
+}
+
+function getToolCalls(message: UIMessage): ChatToolCallData[] {
+    return message.parts.flatMap((part) => {
+        const toolName = getToolName(part);
+
+        if (!toolName || !isRecord(part)) {
+            return [];
+        }
+
+        const partRecord = part as Record<string, unknown>;
+        const state = getToolCallState(partRecord);
+        return [
+            {
+                completedAt: null,
+                error:
+                    typeof partRecord.errorText === "string"
+                        ? partRecord.errorText
+                        : undefined,
+                id:
+                    typeof partRecord.toolCallId === "string"
+                        ? partRecord.toolCallId
+                        : `${message.id}-${toolName}`,
+                input: partRecord.input,
+                output: partRecord.output,
+                startedAt: "1970-01-01T00:00:00.000Z",
+                state,
+                toolName,
+            },
+        ];
+    });
 }
 
 function mergeMessages(
@@ -31,110 +105,71 @@ function mergeMessages(
 
     return uiMessages.map<FormalistChatMessage>((message) => {
         const persisted = persistedById.get(message.id);
-
-        if (persisted) {
-            return persisted;
-        }
-
-        const content = message.parts
-            .filter((part) => part.type === "text")
-            .map((part) => part.text)
-            .join("");
+        const content = getTextContent(message);
+        const reasoning = getReasoningText(message);
+        const liveToolCalls = getToolCalls(message);
+        const metadata =
+            typeof message.metadata === "object" && message.metadata
+                ? (message.metadata as FormalistChatMessage["metadata"])
+                : null;
+        const mergedMetadata =
+            reasoning.trim().length > 0
+                ? {
+                      ...metadata,
+                      reasoning,
+                  }
+                : metadata;
 
         return {
-            content,
+            content: content || persisted?.content || "",
             id: message.id,
-            metadata:
-                typeof message.metadata === "object" && message.metadata
-                    ? (message.metadata as FormalistChatMessage["metadata"])
-                    : null,
+            metadata: persisted?.metadata ?? mergedMetadata,
+            parts: message.parts,
             role: message.role,
+            sources: persisted?.sources,
+            toolCalls: persisted?.toolCalls?.length
+                ? persisted.toolCalls
+                : liveToolCalls,
+            verification: persisted?.verification,
         };
     });
 }
 
-function appendOptimisticTurn(
+function appendStreamingPlaceholder(
     messages: FormalistChatMessage[],
-    optimisticTurn: OptimisticTurn | undefined
+    input: {
+        isStreaming: boolean;
+        statusLabel?: string;
+    }
 ) {
-    if (!optimisticTurn) {
+    if (!input.isStreaming) {
         return messages;
     }
 
-    const userIndex = messages.findIndex(
-        (message) =>
-            message.role === "user" &&
-            message.content.trim() === optimisticTurn.content
-    );
+    const lastMessage = messages.at(-1);
 
-    if (userIndex !== -1) {
-        const assistantAfterUser = messages
-            .slice(userIndex + 1)
-            .some((message) => message.role === "assistant");
-
-        if (assistantAfterUser) {
-            return messages;
-        }
-
-        return [
-            ...messages,
-            {
-                content: "",
-                id: optimisticTurn.assistantId,
-                role: "assistant" as const,
-            },
-        ];
+    if (lastMessage?.role === "assistant") {
+        return messages.map((message, index) =>
+            index === messages.length - 1 &&
+            !message.content.trim() &&
+            !message.toolCalls?.length
+                ? {
+                      ...message,
+                      statusLabel: input.statusLabel ?? "Working...",
+                  }
+                : message
+        );
     }
 
     return [
         ...messages,
         {
-            content: optimisticTurn.content,
-            id: optimisticTurn.userId,
-            role: "user" as const,
-        },
-        {
             content: "",
-            id: optimisticTurn.assistantId,
+            id: "streaming-assistant-placeholder",
             role: "assistant" as const,
+            statusLabel: input.statusLabel ?? "Working...",
         },
     ];
-}
-
-function mergeLiveToolCalls(
-    messages: FormalistChatMessage[],
-    liveToolCalls: ChatToolCallData[]
-) {
-    if (liveToolCalls.length === 0) {
-        return messages;
-    }
-
-    const latestAssistantIndex = messages.findLastIndex(
-        (message) => message.role === "assistant"
-    );
-
-    if (latestAssistantIndex === -1) {
-        return [
-            ...messages,
-            {
-                content: "",
-                id: "live-assistant-tool-calls",
-                role: "assistant" as const,
-                toolCalls: liveToolCalls,
-            },
-        ];
-    }
-
-    return messages.map((message, index) =>
-        index === latestAssistantIndex
-            ? {
-                  ...message,
-                  toolCalls: message.toolCalls?.length
-                      ? message.toolCalls
-                      : liveToolCalls,
-              }
-            : message
-    );
 }
 
 export function ChatShell({
@@ -147,17 +182,17 @@ export function ChatShell({
     sessions: FormalistChatSession[];
 }) {
     const router = useRouter();
+    const stickToBottomRef = useRef(true);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [optimisticTurn, setOptimisticTurn] = useState<OptimisticTurn>();
     const [visibleSessions, setVisibleSessions] = useState(sessions);
     const {
         error,
-        liveToolCalls,
         messages,
         regenerate,
         sendMessage,
         status,
+        streamStatus,
         stop,
     } = useChatStream({
         initialMessages,
@@ -167,20 +202,24 @@ export function ChatShell({
     const isStreaming = status === "streaming" || status === "submitted";
     const displayMessages = useMemo(
         () =>
-            mergeLiveToolCalls(
-                appendOptimisticTurn(
-                    mergeMessages(initialMessages, messages),
-                    optimisticTurn
-                ),
-                liveToolCalls
+            appendStreamingPlaceholder(
+                mergeMessages(initialMessages, messages),
+                {
+                    isStreaming,
+                    statusLabel: streamStatus?.label,
+                }
             ),
-        [initialMessages, liveToolCalls, messages, optimisticTurn]
+        [initialMessages, isStreaming, messages, streamStatus?.label]
     );
 
     useEffect(() => {
         const scrollArea = scrollAreaRef.current;
 
         if (!scrollArea) {
+            return;
+        }
+
+        if (!stickToBottomRef.current) {
             return;
         }
 
@@ -196,36 +235,11 @@ export function ChatShell({
         };
     }, [displayMessages]);
 
-    useEffect(() => {
-        if (!(optimisticTurn && isStreaming)) {
-            return;
-        }
-
-        const realUserIndex = messages.findIndex((message) =>
-            message.parts.some(
-                (part) =>
-                    part.type === "text" &&
-                    part.text.trim() === optimisticTurn.content
-            )
-        );
-        const hasRealAssistantAfterUser =
-            realUserIndex !== -1 &&
-            messages
-                .slice(realUserIndex + 1)
-                .some((message) => message.role === "assistant");
-
-        if (hasRealAssistantAfterUser) {
-            setOptimisticTurn(undefined);
-        }
-    }, [isStreaming, messages, optimisticTurn]);
-
     const submitMessage = (content: string) => {
-        setOptimisticTurn({
-            assistantId: `optimistic-assistant-${crypto.randomUUID()}`,
-            content,
-            userId: `optimistic-user-${crypto.randomUUID()}`,
+        void sendMessage({
+            messageId: crypto.randomUUID(),
+            text: content,
         });
-        void sendMessage({ text: content });
     };
 
     return (
@@ -270,6 +284,14 @@ export function ChatShell({
                 <div
                     ref={scrollAreaRef}
                     className="min-h-0 flex-1 overflow-auto"
+                    onScroll={(event) => {
+                        const element = event.currentTarget;
+                        const distanceFromBottom =
+                            element.scrollHeight -
+                            element.scrollTop -
+                            element.clientHeight;
+                        stickToBottomRef.current = distanceFromBottom < 120;
+                    }}
                 >
                     <MessageList
                         isStreaming={isStreaming}

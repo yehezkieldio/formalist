@@ -50,6 +50,58 @@ describe("chat UI components", () => {
         expect(markup).toContain("Pelita pricelist page 2");
     });
 
+    it("shows streaming status for an empty assistant message", () => {
+        const markup = renderToStaticMarkup(
+            <MessageList
+                isStreaming
+                messages={[
+                    {
+                        content: "Search active tariffs",
+                        id: "user-1",
+                        role: "user",
+                    },
+                    {
+                        content: "",
+                        id: "assistant-1",
+                        role: "assistant",
+                        statusLabel: "Starting model stream",
+                    },
+                ]}
+            />
+        );
+
+        expect(markup).toContain("Starting model stream");
+        expect(markup).not.toContain("No answer text was returned");
+    });
+
+    it("renders tool calls from streamed message state without answer text", () => {
+        const markup = renderToStaticMarkup(
+            <MessageList
+                isStreaming
+                messages={[
+                    {
+                        content: "",
+                        id: "assistant-1",
+                        role: "assistant",
+                        toolCalls: [
+                            {
+                                id: "call-1",
+                                input: { destination: "CGK" },
+                                output: { rows: 2 },
+                                startedAt: "1970-01-01T00:00:00.000Z",
+                                state: "success",
+                                toolName: "searchTariffs",
+                            },
+                        ],
+                    },
+                ]}
+            />
+        );
+
+        expect(markup).toContain("searchTariffs");
+        expect(markup).not.toContain("Working...");
+    });
+
     it("keeps the composer disabled without an active session", () => {
         const markup = renderToStaticMarkup(
             <PromptComposer disabled onSubmit={unexpectedSubmit} />

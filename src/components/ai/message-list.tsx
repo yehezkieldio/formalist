@@ -34,7 +34,7 @@ function MessageBody({
                 return (
                     <div className="flex items-center gap-2 py-1 text-muted-foreground">
                         <span className="size-1.5 animate-pulse bg-current" />
-                        <span>Working...</span>
+                        <span>{message.statusLabel ?? "Working..."}</span>
                     </div>
                 );
             }
@@ -66,6 +66,7 @@ function hasVisibleContent(message: FormalistChatMessage) {
         Boolean(message.metadata?.reasoning?.trim()) ||
         Boolean(message.metadata?.steps?.length) ||
         Boolean(message.sources?.length) ||
+        Boolean(message.statusLabel?.trim()) ||
         Boolean(message.toolCalls?.length)
     );
 }
