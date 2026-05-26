@@ -1,4 +1,4 @@
-import { FileTextIcon, UploadIcon } from "lucide-react";
+import { FileTextIcon } from "lucide-react";
 
 import {
     AdminMetricStrip,
@@ -59,26 +59,11 @@ export default async function DocumentsPage() {
                     },
                 ]}
             />
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-                <DocumentTable documents={documents} />
-                <div className="grid gap-4">
-                    <div className="border bg-muted/10 p-4">
-                        <div className="flex items-center gap-2">
-                            <UploadIcon aria-hidden="true" className="size-4" />
-                            <h2 className="font-semibold text-sm">
-                                Add document
-                            </h2>
-                        </div>
-                        <p className="mt-2 text-muted-foreground text-xs leading-5">
-                            Files are queued for parsing, chunking, extraction,
-                            and activation. Store originals only when the
-                            deployment storage is configured.
-                        </p>
-                    </div>
-                    <DocumentUploadForm />
-                    <DocumentUploadStatus />
-                </div>
-            </div>
+            <section className="grid gap-4 border bg-muted/10 p-4">
+                <DocumentUploadForm />
+                <DocumentUploadStatus />
+            </section>
+            <DocumentTable documents={documents} />
         </div>
     );
 }

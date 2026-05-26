@@ -83,7 +83,13 @@ function LiveToolCalls({ toolCalls }: { toolCalls?: ChatToolCallData[] }) {
         return null;
     }
 
-    return <ToolCallTimeline toolCalls={toolCalls} />;
+    return (
+        <article className="grid w-full gap-3">
+            <div className="grid max-w-4xl gap-3 text-sm">
+                <ToolCallTimeline toolCalls={toolCalls} />
+            </div>
+        </article>
+    );
 }
 
 export function MessageList({
@@ -156,6 +162,9 @@ export function MessageList({
                         <Reasoning isStreaming={isStreaming}>
                             {message.metadata?.reasoning ?? ""}
                         </Reasoning>
+                        {message.role === "assistant" ? (
+                            <ToolCallTimeline toolCalls={message.toolCalls} />
+                        ) : null}
                         <MessageBody message={message} />
                         {message.role === "assistant" &&
                         message.verification ? (
@@ -168,7 +177,6 @@ export function MessageList({
                     </div>
                     {message.role === "assistant" ? (
                         <div className="w-full max-w-4xl space-y-3">
-                            <ToolCallTimeline toolCalls={message.toolCalls} />
                             <SourceCards sources={message.sources} />
                             {message.content.trim() ? (
                                 <MessageActions

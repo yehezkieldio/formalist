@@ -49,7 +49,7 @@ export function AdminMetricStrip({
     }[];
 }) {
     return (
-        <section className="grid grid-cols-2 border-border border-t border-l bg-muted/5 font-mono text-xs md:grid-cols-4">
+        <section className="grid grid-cols-2 border-border border-t border-l bg-muted/5 font-mono text-xs md:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
             {metrics.map((metric) => (
                 <div
                     className="border-border border-r border-b p-4"

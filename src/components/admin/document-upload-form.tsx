@@ -7,7 +7,7 @@ export function DocumentUploadForm() {
         <section className="border bg-card p-4">
             <form
                 action="/api/upload"
-                className="grid gap-4"
+                className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)_13rem_auto] lg:items-end"
                 encType="multipart/form-data"
                 method="post"
             >
@@ -44,7 +44,10 @@ export function DocumentUploadForm() {
                         type="text"
                     />
                 </div>
-                <div className="grid gap-2 border-t pt-3">
+                <div className="grid gap-2 lg:border-l lg:pl-4">
+                    <span className="font-mono text-[10px] text-muted-foreground uppercase">
+                        Storage
+                    </span>
                     <label className="flex items-center gap-2 text-sm">
                         <input
                             aria-label="Store original file"
@@ -66,7 +69,7 @@ export function DocumentUploadForm() {
                 </div>
                 <Button className="h-10 font-mono text-xs" type="submit">
                     <UploadIcon aria-hidden="true" />
-                    Upload and enqueue
+                    Upload
                 </Button>
             </form>
         </section>

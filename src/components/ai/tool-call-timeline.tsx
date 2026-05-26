@@ -11,10 +11,7 @@ export function ToolCallTimeline({
     }
 
     return (
-        <div className="space-y-2">
-            <p className="font-medium text-muted-foreground text-xs uppercase tracking-normal">
-                Tool calls
-            </p>
+        <div className="my-2 space-y-1.5">
             {toolCalls.map((toolCall) => (
                 <ToolCallCard key={toolCall.id} toolCall={toolCall} />
             ))}

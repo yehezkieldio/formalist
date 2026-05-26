@@ -1,6 +1,11 @@
 "use client";
 
-import { ChevronDownIcon, ClockIcon, TerminalSquareIcon } from "lucide-react";
+import {
+    CheckIcon,
+    ChevronDownIcon,
+    ClockIcon,
+    TerminalIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 import type { ChatToolCallData } from "#/components/ai/types";
@@ -45,48 +50,52 @@ export function ToolCallCard({ toolCall }: { toolCall: ChatToolCallData }) {
     const duration = formatDuration(toolCall);
 
     return (
-        <div className="rounded-md border bg-muted/20">
+        <div className="border-border/70 border-l bg-muted/10 text-xs">
             <button
-                className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left"
+                className="flex w-full items-center justify-between gap-2 py-1.5 pr-2 pl-2.5 text-left"
                 onClick={() => setOpen((value) => !value)}
                 type="button"
             >
-                <span className="flex min-w-0 items-center gap-2">
-                    <TerminalSquareIcon
+                <span className="flex min-w-0 items-center gap-1.5">
+                    <TerminalIcon
                         aria-hidden="true"
-                        className="size-4 shrink-0"
+                        className="size-3.5 shrink-0 text-muted-foreground"
                     />
-                    <span className="truncate font-medium text-sm">
+                    <span className="truncate font-medium">
                         {toolCall.toolName}
                     </span>
                 </span>
-                <span className="flex shrink-0 items-center gap-2">
+                <span className="flex shrink-0 items-center gap-1.5">
                     {duration ? (
-                        <span className="hidden items-center gap-1 text-muted-foreground text-xs sm:flex">
+                        <span className="hidden items-center gap-1 text-muted-foreground sm:flex">
                             <ClockIcon aria-hidden="true" className="size-3" />
                             {duration}
                         </span>
                     ) : null}
                     <Badge
+                        className="h-5 rounded-sm px-1.5 font-medium text-[0.6875rem]"
                         variant={
                             toolCall.state === "error"
                                 ? "destructive"
                                 : "secondary"
                         }
                     >
+                        {toolCall.state === "success" ? (
+                            <CheckIcon aria-hidden="true" className="size-3" />
+                        ) : null}
                         {stateLabels[toolCall.state]}
                     </Badge>
                     <ChevronDownIcon
                         aria-hidden="true"
                         className={cn(
-                            "size-4 transition-transform",
+                            "size-3.5 text-muted-foreground transition-transform",
                             open && "rotate-180"
                         )}
                     />
                 </span>
             </button>
             {open ? (
-                <div className="grid gap-2 border-t p-3 text-xs">
+                <div className="grid gap-2 border-t px-2.5 py-2">
                     <JsonBlock label="Input" value={toolCall.input} />
                     <JsonBlock label="Output" value={toolCall.output} />
                     {toolCall.error ? (

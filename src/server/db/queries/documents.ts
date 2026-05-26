@@ -10,7 +10,7 @@ import {
     tableChunks,
     tariffRows,
 } from "#/server/db/schema";
-import type { DocumentStatus } from "#/server/db/schema";
+import type { DocumentStatus, IssueStatus } from "#/server/db/schema";
 
 export interface CreateDocumentInput {
     checksum?: string;
@@ -198,4 +198,17 @@ export async function updateDocumentMetadata(
         .returning();
 
     return document;
+}
+
+export async function updateExtractionIssueStatus(
+    issueId: string,
+    status: IssueStatus
+) {
+    const [issue] = await getDatabase()
+        .update(extractionIssues)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(extractionIssues.id, issueId))
+        .returning();
+
+    return issue;
 }

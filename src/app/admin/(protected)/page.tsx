@@ -2,14 +2,9 @@ import { count, eq, or } from "drizzle-orm";
 import {
     AlertTriangleIcon,
     ArrowRightIcon,
-    BoxesIcon,
     CheckCircle2Icon,
-    DatabaseIcon,
     FileTextIcon,
-    ListChecksIcon,
     SettingsIcon,
-    ShieldCheckIcon,
-    TagsIcon,
 } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -20,9 +15,8 @@ import { cn } from "#/lib/utils";
 import { getDatabase } from "#/server/db";
 import { activatePendingReviewRecords } from "#/server/db/queries/review";
 import {
-    aliases,
-    documentChunks,
     documents,
+    extractionIssues,
     extractedFacts,
     feeRules,
     tariffRows,
@@ -35,17 +29,15 @@ async function getAdminStats() {
 
     const [
         docsCount,
-        chunksCount,
         factsCount,
         pendingFactsCount,
         rowsCount,
         pendingRowsCount,
         rulesCount,
         pendingRulesCount,
-        aliasesCount,
+        openIssuesCount,
     ] = await Promise.all([
         db.select({ count: count() }).from(documents),
-        db.select({ count: count() }).from(documentChunks),
         db.select({ count: count() }).from(extractedFacts),
         db
             .select({ count: count() })
@@ -76,24 +68,25 @@ async function getAdminStats() {
                     eq(feeRules.status, "needs_review")
                 )
             ),
-        db.select({ count: count() }).from(aliases),
+        db
+            .select({ count: count() })
+            .from(extractionIssues)
+            .where(eq(extractionIssues.status, "open")),
     ]);
 
     const docs = docsCount[0]?.count ?? 0;
-    const chunks = chunksCount[0]?.count ?? 0;
     const facts = factsCount[0]?.count ?? 0;
     const pendingFacts = pendingFactsCount[0]?.count ?? 0;
     const rows = rowsCount[0]?.count ?? 0;
     const pendingRows = pendingRowsCount[0]?.count ?? 0;
     const rules = rulesCount[0]?.count ?? 0;
     const pendingRules = pendingRulesCount[0]?.count ?? 0;
-    const totalAliases = aliasesCount[0]?.count ?? 0;
+    const openIssues = openIssuesCount[0]?.count ?? 0;
 
     return {
-        aliases: totalAliases,
-        chunks,
         docs,
         facts,
+        openIssues,
         pendingFacts,
         pendingRows,
         pendingRules,
@@ -115,55 +108,16 @@ export default async function AdminDashboardPage() {
 
     const sections = [
         {
-            className: "md:col-span-7",
-            description: "Upload pricelist sheets and trace parser outputs.",
+            className: "md:col-span-8",
+            description:
+                "Upload pricelist sheets, open ingestion issues, and inspect extracted records by document.",
             href: "/admin/documents",
             icon: FileTextIcon,
-            intent: `${stats.docs} Ingested Documents`,
+            intent: `${stats.docs} documents • ${pendingTotal} review backlog`,
             title: "Documents",
         },
         {
-            className: "md:col-span-5",
-            description: "Inspect semantic vector chunks and table structures.",
-            href: "/admin/chunks",
-            icon: DatabaseIcon,
-            intent: `${stats.chunks} Vector Chunks Loaded`,
-            title: "Chunks",
-        },
-        {
             className: "md:col-span-4",
-            description: "Verify extracted structured entity definitions.",
-            href: "/admin/facts",
-            icon: ShieldCheckIcon,
-            intent: `${stats.pendingFacts} Pending • ${stats.facts - stats.pendingFacts} Active`,
-            title: "Facts",
-        },
-        {
-            className: "md:col-span-4",
-            description: "Review and toggle extracted tariff pricelist grids.",
-            href: "/admin/review",
-            icon: ListChecksIcon,
-            intent: `${stats.pendingRows} Pending • ${stats.rows - stats.pendingRows} Active`,
-            title: "Tariff review",
-        },
-        {
-            className: "md:col-span-4",
-            description: "Approve minimum limits, PPN rules, and surcharges.",
-            href: "/admin/fee-rules",
-            icon: BoxesIcon,
-            intent: `${stats.pendingRules} Pending • ${stats.rules - stats.pendingRules} Active`,
-            title: "Fee rules",
-        },
-        {
-            className: "md:col-span-6",
-            description: "Manage city, airport, route, and carrier code maps.",
-            href: "/admin/aliases",
-            icon: TagsIcon,
-            intent: `${stats.aliases} Alias Mappings`,
-            title: "Aliases",
-        },
-        {
-            className: "md:col-span-6",
             description: "Adjust parser models, retrieval weights, and modes.",
             href: "/admin/settings",
             icon: SettingsIcon,

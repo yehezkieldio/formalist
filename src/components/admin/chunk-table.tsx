@@ -31,6 +31,7 @@ export function ChunkTable({
 }) {
     const [query, setQuery] = useState("");
     const [kind, setKind] = useState<"all" | "semantic" | "table">("all");
+    const [page, setPage] = useState(1);
     const records = useMemo(
         () => [
             ...chunks.map((chunk) => ({
@@ -66,6 +67,13 @@ export function ChunkTable({
             }),
         [kind, query, records]
     );
+    const pageSize = 25;
+    const pageCount = Math.max(1, Math.ceil(filteredRecords.length / pageSize));
+    const currentPage = Math.min(page, pageCount);
+    const visibleRecords = filteredRecords.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
 
     if (records.length === 0) {
         return (
@@ -88,6 +96,7 @@ export function ChunkTable({
                         aria-label="Search chunks"
                         className="h-9 border bg-background px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                         onChange={(event) => setQuery(event.target.value)}
+                        onInput={() => setPage(1)}
                         placeholder="raw table text, city, airline, fee note"
                         value={query}
                     />
@@ -102,6 +111,7 @@ export function ChunkTable({
                         onChange={(event) =>
                             setKind(event.target.value as typeof kind)
                         }
+                        onInput={() => setPage(1)}
                         value={kind}
                     >
                         <option value="all">All chunks</option>
@@ -110,8 +120,39 @@ export function ChunkTable({
                     </select>
                 </label>
             </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border bg-muted/10 p-3">
+                <p className="font-mono text-muted-foreground text-xs">
+                    Showing {visibleRecords.length} of {filteredRecords.length}{" "}
+                    chunks
+                </p>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="h-8 border px-3 text-xs disabled:opacity-40"
+                        disabled={currentPage <= 1}
+                        onClick={() =>
+                            setPage((value) => Math.max(1, value - 1))
+                        }
+                        type="button"
+                    >
+                        Previous
+                    </button>
+                    <span className="font-mono text-muted-foreground text-xs">
+                        {currentPage} / {pageCount}
+                    </span>
+                    <button
+                        className="h-8 border px-3 text-xs disabled:opacity-40"
+                        disabled={currentPage >= pageCount}
+                        onClick={() =>
+                            setPage((value) => Math.min(pageCount, value + 1))
+                        }
+                        type="button"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
             <div className="grid gap-3">
-                {filteredRecords.map((record) => (
+                {visibleRecords.map((record) => (
                     <SourceSnippetPreview
                         documentId={record.documentId}
                         key={`${record.kind}:${record.id}`}

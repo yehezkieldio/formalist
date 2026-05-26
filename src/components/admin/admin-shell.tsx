@@ -1,18 +1,13 @@
 "use client";
 
 import {
-    BoxesIcon,
-    DatabaseIcon,
     FileTextIcon,
     HomeIcon,
-    ListChecksIcon,
     LogOutIcon,
     MessageSquareTextIcon,
     PanelLeftCloseIcon,
     PanelLeftOpenIcon,
     SettingsIcon,
-    ShieldCheckIcon,
-    TagsIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -27,11 +22,6 @@ import { cn } from "#/lib/utils";
 const primaryNavigation = [
     { href: "/admin", icon: HomeIcon, label: "Overview" },
     { href: "/admin/documents", icon: FileTextIcon, label: "Documents" },
-    { href: "/admin/chunks", icon: DatabaseIcon, label: "Chunks" },
-    { href: "/admin/facts", icon: ShieldCheckIcon, label: "Facts" },
-    { href: "/admin/review", icon: ListChecksIcon, label: "Tariff review" },
-    { href: "/admin/fee-rules", icon: BoxesIcon, label: "Fee rules" },
-    { href: "/admin/aliases", icon: TagsIcon, label: "Aliases" },
     { href: "/admin/settings", icon: SettingsIcon, label: "Settings" },
 ] as const;
 
