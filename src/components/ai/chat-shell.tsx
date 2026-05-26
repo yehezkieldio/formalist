@@ -8,6 +8,7 @@ import { ConversationSidebar } from "#/components/ai/conversation-sidebar";
 import { MessageList } from "#/components/ai/message-list";
 import { PromptComposer } from "#/components/ai/prompt-composer";
 import type {
+    ChatToolCallData,
     FormalistChatMessage,
     FormalistChatSession,
 } from "#/components/ai/types";
@@ -46,6 +47,38 @@ function mergeMessages(
     });
 }
 
+function mergeLiveToolCalls(
+    messages: FormalistChatMessage[],
+    liveToolCalls: ChatToolCallData[],
+    isStreaming: boolean
+) {
+    if (!(isStreaming && liveToolCalls.length > 0)) {
+        return messages;
+    }
+
+    const latestAssistantIndex = messages.findLastIndex(
+        (message) => message.role === "assistant"
+    );
+
+    if (latestAssistantIndex === -1) {
+        return [
+            ...messages,
+            {
+                content: "",
+                id: "live-assistant-tool-calls",
+                role: "assistant" as const,
+                toolCalls: liveToolCalls,
+            },
+        ];
+    }
+
+    return messages.map((message, index) =>
+        index === latestAssistantIndex
+            ? { ...message, toolCalls: liveToolCalls }
+            : message
+    );
+}
+
 export function ChatShell({
     activeSessionId,
     initialMessages,
@@ -73,11 +106,16 @@ export function ChatShell({
         onFinish: () => router.refresh(),
         sessionId: activeSessionId,
     });
-    const displayMessages = useMemo(
-        () => mergeMessages(initialMessages, messages),
-        [initialMessages, messages]
-    );
     const isStreaming = status === "streaming" || status === "submitted";
+    const displayMessages = useMemo(
+        () =>
+            mergeLiveToolCalls(
+                mergeMessages(initialMessages, messages),
+                liveToolCalls,
+                isStreaming
+            ),
+        [initialMessages, isStreaming, liveToolCalls, messages]
+    );
 
     useEffect(() => {
         const scrollArea = scrollAreaRef.current;
@@ -141,13 +179,11 @@ export function ChatShell({
                 >
                     <MessageList
                         isStreaming={isStreaming}
-                        liveToolCalls={liveToolCalls}
                         messages={displayMessages}
                         onRegenerate={() => {
                             void regenerate();
                         }}
                         onSelectExample={submitMessage}
-                        streamStatus={streamStatus}
                     />
                     {error ? (
                         <div className="mx-auto mb-4 max-w-4xl rounded-md border border-destructive/30 bg-destructive/10 p-3 text-destructive text-sm">

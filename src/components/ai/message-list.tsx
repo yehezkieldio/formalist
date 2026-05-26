@@ -10,11 +10,7 @@ import { MessageActions } from "#/components/ai/message-actions";
 import { Reasoning } from "#/components/ai/reasoning";
 import { SourceCards } from "#/components/ai/source-cards";
 import { ToolCallTimeline } from "#/components/ai/tool-call-timeline";
-import type {
-    ChatStreamStatus,
-    ChatToolCallData,
-    FormalistChatMessage,
-} from "#/components/ai/types";
+import type { FormalistChatMessage } from "#/components/ai/types";
 import { cn } from "#/lib/utils";
 
 function getMessageContentClassName(role: FormalistChatMessage["role"]) {
@@ -27,7 +23,7 @@ function getMessageContentClassName(role: FormalistChatMessage["role"]) {
 
 function MessageBody({ message }: { message: FormalistChatMessage }) {
     if (!message.content.trim()) {
-        if (message.role === "assistant") {
+        if (message.role === "assistant" && !message.toolCalls?.length) {
             return (
                 <div className="bg-muted/35 px-4 py-3 text-muted-foreground">
                     No answer text was returned for this response.
@@ -59,53 +55,16 @@ function hasVisibleContent(message: FormalistChatMessage) {
     );
 }
 
-function PendingAssistant({ status }: { status?: ChatStreamStatus }) {
-    return (
-        <article className="grid w-full gap-3">
-            <div className="grid max-w-4xl gap-3 text-sm">
-                <div className="flex items-center gap-3 bg-muted/35 px-4 py-3">
-                    <span className="size-2 animate-pulse bg-foreground" />
-                    <span className="text-muted-foreground">
-                        {status?.label ?? "Starting response"}
-                    </span>
-                </div>
-            </div>
-        </article>
-    );
-}
-
-function isAssistantWriting(message: FormalistChatMessage | undefined) {
-    return message?.role === "assistant" && message.content.trim().length > 0;
-}
-
-function LiveToolCalls({ toolCalls }: { toolCalls?: ChatToolCallData[] }) {
-    if (!toolCalls?.length) {
-        return null;
-    }
-
-    return (
-        <article className="grid w-full gap-3">
-            <div className="grid max-w-4xl gap-3 text-sm">
-                <ToolCallTimeline toolCalls={toolCalls} />
-            </div>
-        </article>
-    );
-}
-
 export function MessageList({
     isStreaming = false,
-    liveToolCalls,
     messages,
     onRegenerate,
     onSelectExample,
-    streamStatus,
 }: {
     isStreaming?: boolean;
-    liveToolCalls?: ChatToolCallData[];
     messages: FormalistChatMessage[];
     onRegenerate?: () => void;
     onSelectExample?: (example: string) => void;
-    streamStatus?: ChatStreamStatus;
 }) {
     const lastMessage = messages.at(-1);
     const hasEmptyStreamingAssistant =
@@ -115,25 +74,9 @@ export function MessageList({
     const visibleMessages = hasEmptyStreamingAssistant
         ? messages.slice(0, -1)
         : messages;
-    const visibleLastMessage = visibleMessages.at(-1);
-    const showPendingStatus =
-        isStreaming && !isAssistantWriting(visibleLastMessage);
-    const latestAssistantHasToolCalls = Boolean(
-        visibleMessages.findLast((message) => message.role === "assistant")
-            ?.toolCalls?.length
-    );
-    const showLiveToolCalls =
-        Boolean(liveToolCalls?.length) &&
-        (isStreaming || !latestAssistantHasToolCalls);
 
     if (visibleMessages.length === 0) {
-        return isStreaming ? (
-            <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6">
-                <PendingAssistant status={streamStatus} />
-            </div>
-        ) : (
-            <EmptyStateExamples onSelectExample={onSelectExample} />
-        );
+        return <EmptyStateExamples onSelectExample={onSelectExample} />;
     }
 
     return (
@@ -192,17 +135,6 @@ export function MessageList({
                     ) : null}
                 </motion.article>
             ))}
-            {showPendingStatus ? (
-                <>
-                    <PendingAssistant status={streamStatus} />
-                    {showLiveToolCalls ? (
-                        <LiveToolCalls toolCalls={liveToolCalls} />
-                    ) : null}
-                </>
-            ) : null}
-            {showLiveToolCalls && !showPendingStatus ? (
-                <LiveToolCalls toolCalls={liveToolCalls} />
-            ) : null}
         </div>
     );
 }

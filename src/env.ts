@@ -115,7 +115,7 @@ export const env = createEnv({
         OPENROUTER_PROVIDER_ORDER: z.string().optional(),
         OPENROUTER_PROVIDER_SORT: z
             .enum(["price", "throughput", "latency"])
-            .default("price"),
+            .default("latency"),
         OPENROUTER_REQUIRE_PARAMETERS: booleanString,
         OPENROUTER_SITE_URL: optionalUrl,
         QUEUE_PROVIDER: z
