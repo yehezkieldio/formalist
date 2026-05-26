@@ -12,7 +12,7 @@ export function SourceSnippetPreview({
     sourceType: string;
 }) {
     return (
-        <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+        <div className="grid gap-2 border bg-muted/20 p-3 text-sm">
             <div className="flex flex-wrap gap-2">
                 <Badge variant="outline">{sourceType}</Badge>
                 {pageNumber ? (
@@ -24,7 +24,7 @@ export function SourceSnippetPreview({
                     </span>
                 ) : null}
             </div>
-            <p className="line-clamp-3 text-muted-foreground">
+            <p className="line-clamp-4 text-muted-foreground text-xs leading-5">
                 {snippet || "No source snippet available."}
             </p>
         </div>

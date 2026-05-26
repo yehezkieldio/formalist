@@ -1,3 +1,9 @@
+import { DatabaseIcon } from "lucide-react";
+
+import {
+    AdminMetricStrip,
+    AdminPageHeader,
+} from "#/components/admin/admin-primitives";
 import { ChunkTable } from "#/components/admin/chunk-table";
 import { listChunksForAdmin } from "#/server/db/queries/chunks";
 
@@ -8,12 +14,30 @@ export default async function ChunksPage() {
 
     return (
         <div className="grid gap-6">
-            <section>
-                <h1 className="font-semibold text-2xl">Chunks</h1>
-                <p className="mt-2 text-muted-foreground text-sm">
-                    Inspect semantic chunks and table-aware chunks.
-                </p>
-            </section>
+            <AdminPageHeader
+                description="Inspect the semantic and table chunks the chat retriever can cite. Use this when answers cite weak evidence or rows look malformed."
+                eyebrow="Retrieval memory"
+                title="Chunks"
+            />
+            <AdminMetricStrip
+                metrics={[
+                    { label: "Semantic", value: documentChunks.length },
+                    { label: "Table rows", value: tableChunks.length },
+                    {
+                        label: "Total chunks",
+                        value: documentChunks.length + tableChunks.length,
+                    },
+                    {
+                        label: "Mode",
+                        value: (
+                            <DatabaseIcon
+                                aria-hidden="true"
+                                className="size-4"
+                            />
+                        ),
+                    },
+                ]}
+            />
             <ChunkTable chunks={documentChunks} tableChunks={tableChunks} />
         </div>
     );

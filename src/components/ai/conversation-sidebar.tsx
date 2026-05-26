@@ -287,14 +287,9 @@ export function ConversationSidebar({
                                 ) : null}
                             </div>
                         </nav>
-                        <footer className="border-t p-3">
-                            <Button
-                                asChild
-                                className="w-full"
-                                variant="outline"
-                            >
-                                <Link href="/admin">Admin dashboard</Link>
-                            </Button>
+                        <footer className="border-t p-3 text-center font-mono text-[10px] text-muted-foreground/60 select-none">
+                            Formalist v{process.env.NEXT_PUBLIC_APP_VERSION} (
+                            {process.env.NEXT_PUBLIC_GIT_COMMIT_HASH})
                         </footer>
                     </motion.div>
                 )}

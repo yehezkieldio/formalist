@@ -49,28 +49,28 @@ export function searchActiveFacts(factType?: FactType) {
         );
 }
 
-export function listFactsForReview() {
+export function listFactsForReview(limit = 200) {
     return getDatabase()
         .select()
         .from(extractedFacts)
-        .where(eq(extractedFacts.status, "active"))
-        .orderBy(desc(extractedFacts.updatedAt));
+        .orderBy(desc(extractedFacts.updatedAt))
+        .limit(limit);
 }
 
-export function listTariffRowsForReview() {
+export function listTariffRowsForReview(limit = 200) {
     return getDatabase()
         .select()
         .from(tariffRows)
-        .where(eq(tariffRows.status, "active"))
-        .orderBy(desc(tariffRows.updatedAt));
+        .orderBy(desc(tariffRows.updatedAt))
+        .limit(limit);
 }
 
-export function listFeeRulesForReview() {
+export function listFeeRulesForReview(limit = 200) {
     return getDatabase()
         .select()
         .from(feeRules)
-        .where(eq(feeRules.status, "active"))
-        .orderBy(desc(feeRules.updatedAt));
+        .orderBy(desc(feeRules.updatedAt))
+        .limit(limit);
 }
 
 export async function activatePendingReviewRecords() {

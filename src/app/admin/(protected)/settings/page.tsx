@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "#/components/admin/admin-primitives";
 import { DeploymentStatusPanel } from "#/components/admin/deployment-status-panel";
 import { ModelRetrievalSettingsForm } from "#/components/admin/model-retrieval-settings-form";
 import { StorageUiSettingsForm } from "#/components/admin/storage-ui-settings-form";
@@ -13,17 +14,15 @@ export default async function SettingsPage() {
     ]);
 
     return (
-        <>
-            <header>
-                <h1 className="font-semibold text-2xl">Settings</h1>
-                <p className="text-muted-foreground text-sm">
-                    Configure deployment, model, retrieval, storage, UI, and
-                    quote defaults.
-                </p>
-            </header>
+        <div className="grid gap-6">
+            <AdminPageHeader
+                description="Configure deployment health, model routing, retrieval defaults, storage behavior, and quote defaults."
+                eyebrow="System controls"
+                title="Settings"
+            />
             <DeploymentStatusPanel health={health} settings={settings} />
             <ModelRetrievalSettingsForm settings={settings} />
             <StorageUiSettingsForm settings={settings} />
-        </>
+        </div>
     );
 }

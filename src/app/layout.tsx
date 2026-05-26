@@ -47,14 +47,14 @@ export default function RootLayout({
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
             suppressHydrationWarning
         >
-            <head>
+            <body className="flex min-h-full flex-col">
+                {children}
                 <Script
                     id="formalist-theme-script"
                     strategy="beforeInteractive"
                     dangerouslySetInnerHTML={{ __html: themeScript }}
                 />
-            </head>
-            <body className="flex min-h-full flex-col">{children}</body>
+            </body>
         </html>
     );
 }

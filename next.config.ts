@@ -1,12 +1,13 @@
+import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import type { NextConfig } from "next";
-import { execSync } from "child_process";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 let version = "0.0.0";
 try {
     const pkgPath = join(process.cwd(), "package.json");
-    const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as {
         version?: string;
     };
     version = pkg.version || "0.0.0";
@@ -22,6 +23,7 @@ try {
 }
 
 const nextConfig: NextConfig = {
+    allowedDevOrigins: ["192.168.137.2"],
     env: {
         NEXT_PUBLIC_APP_VERSION: version,
         NEXT_PUBLIC_GIT_COMMIT_HASH: gitHash,

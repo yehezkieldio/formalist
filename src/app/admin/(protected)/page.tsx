@@ -1,6 +1,9 @@
+import { count, eq, or } from "drizzle-orm";
 import {
+    AlertTriangleIcon,
     ArrowRightIcon,
     BoxesIcon,
+    CheckCircle2Icon,
     DatabaseIcon,
     FileTextIcon,
     ListChecksIcon,
@@ -8,90 +11,232 @@ import {
     ShieldCheckIcon,
     TagsIcon,
 } from "lucide-react";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import { cn } from "#/lib/utils";
+import { getDatabase } from "#/server/db";
+import { activatePendingReviewRecords } from "#/server/db/queries/review";
+import {
+    aliases,
+    documentChunks,
+    documents,
+    extractedFacts,
+    feeRules,
+    tariffRows,
+} from "#/server/db/schema";
 
-const sections = [
-    {
-        className: "md:col-span-7",
-        description: "Upload source documents and monitor ingestion.",
-        href: "/admin/documents",
-        icon: FileTextIcon,
-        intent: "Source intake",
-        title: "Documents",
-    },
-    {
-        className: "md:col-span-5",
-        description: "Inspect semantic and table-aware chunks.",
-        href: "/admin/chunks",
-        icon: DatabaseIcon,
-        intent: "Retrieval memory",
-        title: "Chunks",
-    },
-    {
-        className: "md:col-span-4",
-        description: "Review extracted structured facts.",
-        href: "/admin/facts",
-        icon: ShieldCheckIcon,
-        intent: "Trust gate",
-        title: "Facts",
-    },
-    {
-        className: "md:col-span-4",
-        description: "Approve or reject extracted tariff rows.",
-        href: "/admin/review",
-        icon: ListChecksIcon,
-        intent: "Price review",
-        title: "Tariff review",
-    },
-    {
-        className: "md:col-span-4",
-        description: "Review fees, PPN, surcharges, and minimums.",
-        href: "/admin/fee-rules",
-        icon: BoxesIcon,
-        intent: "Quote rules",
-        title: "Fee rules",
-    },
-    {
-        className: "md:col-span-6",
-        description: "Manage route, city, airport, and airline aliases.",
-        href: "/admin/aliases",
-        icon: TagsIcon,
-        intent: "Disambiguation",
-        title: "Aliases",
-    },
-    {
-        className: "md:col-span-6",
-        description: "Configure deployment, retrieval, storage, and UI.",
-        href: "/admin/settings",
-        icon: SettingsIcon,
-        intent: "System controls",
-        title: "Settings",
-    },
-] as const;
+export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
+async function getAdminStats() {
+    const db = getDatabase();
+
+    const [
+        docsCount,
+        chunksCount,
+        factsCount,
+        pendingFactsCount,
+        rowsCount,
+        pendingRowsCount,
+        rulesCount,
+        pendingRulesCount,
+        aliasesCount,
+    ] = await Promise.all([
+        db.select({ count: count() }).from(documents),
+        db.select({ count: count() }).from(documentChunks),
+        db.select({ count: count() }).from(extractedFacts),
+        db
+            .select({ count: count() })
+            .from(extractedFacts)
+            .where(
+                or(
+                    eq(extractedFacts.status, "extracted"),
+                    eq(extractedFacts.status, "needs_review")
+                )
+            ),
+        db.select({ count: count() }).from(tariffRows),
+        db
+            .select({ count: count() })
+            .from(tariffRows)
+            .where(
+                or(
+                    eq(tariffRows.status, "extracted"),
+                    eq(tariffRows.status, "needs_review")
+                )
+            ),
+        db.select({ count: count() }).from(feeRules),
+        db
+            .select({ count: count() })
+            .from(feeRules)
+            .where(
+                or(
+                    eq(feeRules.status, "extracted"),
+                    eq(feeRules.status, "needs_review")
+                )
+            ),
+        db.select({ count: count() }).from(aliases),
+    ]);
+
+    const docs = docsCount[0]?.count ?? 0;
+    const chunks = chunksCount[0]?.count ?? 0;
+    const facts = factsCount[0]?.count ?? 0;
+    const pendingFacts = pendingFactsCount[0]?.count ?? 0;
+    const rows = rowsCount[0]?.count ?? 0;
+    const pendingRows = pendingRowsCount[0]?.count ?? 0;
+    const rules = rulesCount[0]?.count ?? 0;
+    const pendingRules = pendingRulesCount[0]?.count ?? 0;
+    const totalAliases = aliasesCount[0]?.count ?? 0;
+
+    return {
+        aliases: totalAliases,
+        chunks,
+        docs,
+        facts,
+        pendingFacts,
+        pendingRows,
+        pendingRules,
+        rows,
+        rules,
+    };
+}
+
+async function approveAllAction() {
+    "use server";
+    await activatePendingReviewRecords();
+    revalidatePath("/admin");
+}
+
+export default async function AdminDashboardPage() {
+    const stats = await getAdminStats();
+    const pendingTotal =
+        stats.pendingFacts + stats.pendingRows + stats.pendingRules;
+
+    const sections = [
+        {
+            className: "md:col-span-7",
+            description: "Upload pricelist sheets and trace parser outputs.",
+            href: "/admin/documents",
+            icon: FileTextIcon,
+            intent: `${stats.docs} Ingested Documents`,
+            title: "Documents",
+        },
+        {
+            className: "md:col-span-5",
+            description: "Inspect semantic vector chunks and table structures.",
+            href: "/admin/chunks",
+            icon: DatabaseIcon,
+            intent: `${stats.chunks} Vector Chunks Loaded`,
+            title: "Chunks",
+        },
+        {
+            className: "md:col-span-4",
+            description: "Verify extracted structured entity definitions.",
+            href: "/admin/facts",
+            icon: ShieldCheckIcon,
+            intent: `${stats.pendingFacts} Pending • ${stats.facts - stats.pendingFacts} Active`,
+            title: "Facts",
+        },
+        {
+            className: "md:col-span-4",
+            description: "Review and toggle extracted tariff pricelist grids.",
+            href: "/admin/review",
+            icon: ListChecksIcon,
+            intent: `${stats.pendingRows} Pending • ${stats.rows - stats.pendingRows} Active`,
+            title: "Tariff review",
+        },
+        {
+            className: "md:col-span-4",
+            description: "Approve minimum limits, PPN rules, and surcharges.",
+            href: "/admin/fee-rules",
+            icon: BoxesIcon,
+            intent: `${stats.pendingRules} Pending • ${stats.rules - stats.pendingRules} Active`,
+            title: "Fee rules",
+        },
+        {
+            className: "md:col-span-6",
+            description: "Manage city, airport, route, and carrier code maps.",
+            href: "/admin/aliases",
+            icon: TagsIcon,
+            intent: `${stats.aliases} Alias Mappings`,
+            title: "Aliases",
+        },
+        {
+            className: "md:col-span-6",
+            description: "Adjust parser models, retrieval weights, and modes.",
+            href: "/admin/settings",
+            icon: SettingsIcon,
+            intent: "System Controls & Credentials",
+            title: "Settings",
+        },
+    ] as const;
+
     return (
         <div className="grid gap-8">
+            {/* Header section */}
             <header className="grid gap-5 border-border/80 border-b pb-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                 <div className="grid gap-2">
                     <h1 className="font-semibold text-3xl tracking-tight">
                         Admin dashboard
                     </h1>
                     <p className="max-w-2xl text-muted-foreground text-sm leading-6">
-                        Review extracted cargo tariff memory before it becomes
-                        trusted. Documents, facts, tariff rows, fee rules, and
-                        aliases stay separated so review work stays auditable.
+                        Verify extracted cargo tariff pricing memory before it
+                        becomes trusted. Review backlog metrics are updated in
+                        real-time.
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 select-none font-mono">
                     <Badge variant="secondary">Protected</Badge>
-                    <Badge variant="outline">Local review</Badge>
+                    {pendingTotal > 0 ? (
+                        <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/10 border-amber-500/25">
+                            Action Required
+                        </Badge>
+                    ) : (
+                        <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/25">
+                            Queue Clear
+                        </Badge>
+                    )}
                 </div>
             </header>
 
+            {/* Quick Metrics Cards */}
+            <section className="grid grid-cols-2 md:grid-cols-4 border-t border-l border-border bg-muted/5 font-mono text-xs select-none">
+                <div className="border-r border-b border-border p-4">
+                    <p className="text-muted-foreground/60 text-[10px] uppercase font-semibold">
+                        Backlog Items
+                    </p>
+                    <p className="text-lg font-bold text-foreground mt-1">
+                        {pendingTotal}
+                    </p>
+                </div>
+                <div className="border-r border-b border-border p-4">
+                    <p className="text-muted-foreground/60 text-[10px] uppercase font-semibold">
+                        Active Facts
+                    </p>
+                    <p className="text-lg font-bold text-foreground mt-1">
+                        {stats.facts - stats.pendingFacts}
+                    </p>
+                </div>
+                <div className="border-r border-b border-border p-4">
+                    <p className="text-muted-foreground/60 text-[10px] uppercase font-semibold">
+                        Active Rows
+                    </p>
+                    <p className="text-lg font-bold text-foreground mt-1">
+                        {stats.rows - stats.pendingRows}
+                    </p>
+                </div>
+                <div className="border-r border-b border-border p-4">
+                    <p className="text-muted-foreground/60 text-[10px] uppercase font-semibold">
+                        Ingested Pages
+                    </p>
+                    <p className="text-lg font-bold text-foreground mt-1">
+                        {stats.docs}
+                    </p>
+                </div>
+            </section>
+
+            {/* Main Bento Navigation */}
             <section className="grid grid-flow-dense grid-cols-1 gap-3 md:grid-cols-12">
                 {sections.map((section) => {
                     const Icon = section.icon;
@@ -99,7 +244,7 @@ export default function AdminDashboardPage() {
                     return (
                         <Link
                             className={cn(
-                                "group grid min-h-36 bg-muted/25 p-5 text-card-foreground transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px",
+                                "group flex min-h-36 flex-col justify-between bg-muted/20 border border-border p-5 text-card-foreground transition-all duration-300 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-foreground/50 active:scale-[0.99]",
                                 section.className
                             )}
                             href={section.href}
@@ -107,27 +252,27 @@ export default function AdminDashboardPage() {
                         >
                             <div className="flex items-start justify-between gap-4">
                                 <div className="grid gap-3">
-                                    <span className="flex size-9 items-center justify-center bg-background">
+                                    <span className="flex size-9 items-center justify-center bg-background border border-border">
                                         <Icon
                                             aria-hidden="true"
-                                            className="size-4"
+                                            className="size-4 text-foreground/80"
                                         />
                                     </span>
                                     <div className="grid gap-1">
-                                        <p className="font-medium text-base">
+                                        <p className="font-semibold text-base tracking-tight text-foreground">
                                             {section.title}
                                         </p>
-                                        <p className="max-w-md text-muted-foreground text-sm leading-6">
+                                        <p className="max-w-md text-muted-foreground text-xs leading-5">
                                             {section.description}
                                         </p>
                                     </div>
                                 </div>
                                 <ArrowRightIcon
                                     aria-hidden="true"
-                                    className="mt-2 size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                                    className="mt-2 size-4 text-muted-foreground/55 transition-transform group-hover:translate-x-0.5"
                                 />
                             </div>
-                            <p className="mt-8 border-border/80 border-t pt-3 text-muted-foreground text-xs">
+                            <p className="mt-6 border-border/40 border-t pt-3 text-muted-foreground text-[10px] font-mono tracking-tight">
                                 {section.intent}
                             </p>
                         </Link>
@@ -135,23 +280,47 @@ export default function AdminDashboardPage() {
                 })}
             </section>
 
-            <section className="grid gap-3 border-border/80 border-t pt-6 md:grid-cols-[minmax(0,1fr)_18rem]">
+            {/* Action Bar / Review Posture */}
+            <section className="grid gap-6 border-border/80 border-t pt-6 md:grid-cols-[minmax(0,1fr)_20rem] items-center">
                 <div>
-                    <h2 className="font-medium text-lg">Review posture</h2>
-                    <p className="mt-2 max-w-2xl text-muted-foreground text-sm leading-6">
-                        Keep uploaded evidence, extracted facts, tariff rows,
-                        and quote rules reviewable before they affect answers.
-                        The chat assistant should cite sources; this surface is
-                        where trust is granted or withheld.
+                    <h2 className="font-semibold text-lg tracking-tight">
+                        Review posture
+                    </h2>
+                    <p className="mt-1 max-w-2xl text-muted-foreground text-xs leading-5">
+                        Keep extracted facts and pricing rules reviewable before
+                        they power search answers. Verified mode ensures no raw,
+                        unverified text is ever used for numeric calculations.
                     </p>
                 </div>
-                <Link
-                    className="inline-flex h-10 items-center justify-center gap-2 bg-muted px-3 text-sm transition-colors hover:bg-muted/70 active:translate-y-px"
-                    href="/chat"
-                >
-                    Return to chat
-                    <ArrowRightIcon aria-hidden="true" className="size-4" />
-                </Link>
+
+                <div className="flex flex-col gap-3">
+                    {pendingTotal > 0 ? (
+                        <form action={approveAllAction}>
+                            <Button className="w-full h-10 gap-2 border bg-amber-500 text-background hover:bg-amber-500/90 font-mono text-xs cursor-pointer select-none">
+                                <AlertTriangleIcon className="size-4" />
+                                Activate All Pending ({pendingTotal})
+                            </Button>
+                        </form>
+                    ) : (
+                        <div className="flex h-10 items-center justify-center gap-2 border border-emerald-500/25 bg-emerald-500/5 px-3 py-1 font-mono text-xs text-emerald-500 select-none">
+                            <CheckCircle2Icon className="size-4" />
+                            All Records Active & Verified
+                        </div>
+                    )}
+                    <Button
+                        asChild
+                        className="w-full h-10 font-mono text-xs"
+                        variant="outline"
+                    >
+                        <Link href="/chat">
+                            Return to chat
+                            <ArrowRightIcon
+                                aria-hidden="true"
+                                className="size-4"
+                            />
+                        </Link>
+                    </Button>
+                </div>
             </section>
         </div>
     );

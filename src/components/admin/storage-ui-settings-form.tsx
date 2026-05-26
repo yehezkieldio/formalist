@@ -16,10 +16,12 @@ function TextField({
 }) {
     return (
         <label className="grid gap-1 text-sm">
-            <span className="font-medium">{label}</span>
+            <span className="font-mono text-[10px] text-muted-foreground uppercase">
+                {label}
+            </span>
             <input
                 aria-label={label}
-                className="h-9 rounded-md border bg-background px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="h-9 border bg-background px-3 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                 onChange={(event) => onChange(event.target.value)}
                 value={value}
             />
@@ -37,7 +39,7 @@ function Toggle({
     onChange: (value: boolean) => void;
 }) {
     return (
-        <label className="flex items-center gap-2 rounded-md border p-3 text-sm">
+        <label className="flex items-center gap-2 border bg-muted/10 p-3 text-sm">
             <input
                 aria-label={label}
                 checked={checked}
@@ -51,6 +53,7 @@ function Toggle({
 
 export function StorageUiSettingsForm({ settings }: { settings: AppSettings }) {
     const [isPending, startTransition] = useTransition();
+    const [status, setStatus] = useState<string | null>(null);
     const [form, setForm] = useState({
         defaultOriginAirport: settings.quote.defaultOriginAirport ?? "",
         defaultOriginCity: settings.quote.defaultOriginCity ?? "",
@@ -61,8 +64,9 @@ export function StorageUiSettingsForm({ settings }: { settings: AppSettings }) {
     });
 
     const submit = () => {
+        setStatus(null);
         startTransition(async () => {
-            await fetch("/api/settings", {
+            const response = await fetch("/api/settings", {
                 body: JSON.stringify({
                     ...settings,
                     quote: {
@@ -83,12 +87,26 @@ export function StorageUiSettingsForm({ settings }: { settings: AppSettings }) {
                 headers: { "content-type": "application/json" },
                 method: "PATCH",
             });
+
+            setStatus(
+                response.ok
+                    ? "Storage, UI, and quote defaults saved."
+                    : "Could not save storage settings."
+            );
         });
     };
 
     return (
-        <section className="rounded-lg border p-4">
-            <h2 className="font-semibold">Storage, UI, And Quote Defaults</h2>
+        <section className="border bg-card p-4">
+            <div className="grid gap-1">
+                <h2 className="font-semibold">
+                    Storage, UI, and quote defaults
+                </h2>
+                <p className="text-muted-foreground text-xs leading-5">
+                    Keep these defaults aligned with the deployment storage and
+                    origin airport used by most quotes.
+                </p>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <TextField
                     label="Default origin city"
@@ -134,13 +152,18 @@ export function StorageUiSettingsForm({ settings }: { settings: AppSettings }) {
                 />
             </div>
             <Button
-                className="mt-4"
+                className="mt-4 font-mono text-xs"
                 disabled={isPending}
                 onClick={submit}
                 type="button"
             >
-                Save storage settings
+                {isPending ? "Saving..." : "Save storage settings"}
             </Button>
+            {status ? (
+                <p className="mt-3 border bg-muted/20 p-2 text-muted-foreground text-xs">
+                    {status}
+                </p>
+            ) : null}
         </section>
     );
 }
