@@ -3,6 +3,7 @@ import { z } from "zod";
 export const deploymentModeSchema = z.enum([
     "docker-local",
     "managed-fallback",
+    "self-hosted",
 ]);
 
 export const databaseProviderSchema = z.enum(["postgres", "supabase"]);

@@ -77,7 +77,7 @@ export const env = createEnv({
         DATABASE_PROVIDER: z.enum(["postgres", "supabase"]).default("postgres"),
         DATABASE_URL: optionalUrl,
         DEPLOYMENT_MODE: z
-            .enum(["docker-local", "managed-fallback"])
+            .enum(["docker-local", "managed-fallback", "self-hosted"])
             .default("docker-local"),
         EMBEDDING_MODEL: z.string().min(1).default("qwen/qwen3-embedding-8b"),
         ENABLE_LLM_FACT_EXTRACTION: booleanString,

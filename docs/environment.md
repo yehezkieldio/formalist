@@ -4,7 +4,7 @@ Copy `.env.example` to `.env` and set deployment-specific values.
 
 ## Deployment
 
-- `DEPLOYMENT_MODE`: `docker-local` or `managed-fallback`.
+- `DEPLOYMENT_MODE`: `self-hosted`, `docker-local`, or `managed-fallback`.
 - `DATABASE_PROVIDER`: `postgres` or `supabase`.
 - `DATABASE_URL`: Postgres connection URL.
 - `SUPABASE_DATABASE_URL`: optional Supabase Postgres URL; preferred for
@@ -13,6 +13,14 @@ Copy `.env.example` to `.env` and set deployment-specific values.
 - `REDIS_URL`: local Redis URL for BullMQ.
 - `UPSTASH_REDIS_REST_URL`: Upstash REST URL.
 - `UPSTASH_REDIS_REST_TOKEN`: Upstash REST token.
+- `HOST`: host passed to `next start` by the self-hosted app script. Use
+  `127.0.0.1` when running behind nginx or Caddy.
+- `PORT`: app port passed to `next start` by the self-hosted app script.
+
+Use `self-hosted` for a local non-Docker install or a single VPS with system
+Postgres and Redis. Use `docker-local` only when the app runs inside Docker or
+uses Docker-managed infrastructure. Use `managed-fallback` for hosted Postgres
+and a degraded database-backed queue path.
 
 ## Models
 

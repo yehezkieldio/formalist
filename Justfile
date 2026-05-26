@@ -7,7 +7,7 @@ local_upload_root_abs := invocation_directory() / local_upload_root
 local_database_url := "postgres://formalist:formalist@localhost:5432/formalist"
 local_redis_url := "redis://localhost:6379"
 
-export DEPLOYMENT_MODE := "docker-local"
+export DEPLOYMENT_MODE := "self-hosted"
 export DATABASE_PROVIDER := "postgres"
 export QUEUE_PROVIDER := "local-redis"
 export STORE_ORIGINAL_FILES := "true"
@@ -76,6 +76,50 @@ local-all: infra-up local-artifacts
 [windows]
 local-all: infra-up local-artifacts
     $env:DATABASE_URL = "{{ local_database_url }}"; $env:REDIS_URL = "{{ local_redis_url }}"; $env:UPLOAD_ROOT = {{ quote(local_upload_root_abs) }}; $worker = Start-Process -FilePath "bun" -ArgumentList @("run", "worker") -NoNewWindow -PassThru; try { bun run dev } finally { Stop-Process -Id $worker.Id -ErrorAction SilentlyContinue }
+
+[group("host")]
+[unix]
+host-dev: local-artifacts
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run dev
+
+[group("host")]
+[unix]
+host-worker: local-artifacts
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run worker
+
+[group("host")]
+[unix]
+host-all: local-artifacts
+    set -euo pipefail; \
+    trap 'kill 0' INT TERM EXIT; \
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run worker & \
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run dev
+
+[group("host")]
+[unix]
+host-db-migrate: local-artifacts
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run db:migrate
+
+[group("host")]
+[unix]
+self-hosted-build:
+    bun install --frozen-lockfile
+    NODE_ENV=production bun run build
+
+[group("host")]
+[unix]
+self-hosted-migrate:
+    NODE_ENV=production bun run db:migrate
+
+[group("host")]
+[unix]
+self-hosted-app:
+    NODE_ENV=production bun run self-hosted:app
+
+[group("host")]
+[unix]
+self-hosted-worker:
+    NODE_ENV=production bun run self-hosted:worker
 
 [group("db")]
 [unix]

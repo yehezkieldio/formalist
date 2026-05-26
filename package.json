@@ -10,6 +10,8 @@
         "worker": "tsx src/worker.ts",
         "managed:app": "bash scripts/start-managed-app.sh",
         "managed:worker": "bash scripts/start-managed-worker.sh",
+        "self-hosted:app": "bash scripts/start-self-hosted-app.sh",
+        "self-hosted:worker": "bash scripts/start-self-hosted-worker.sh",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
         "db:studio": "drizzle-kit studio",

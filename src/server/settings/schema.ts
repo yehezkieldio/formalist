@@ -3,7 +3,11 @@ import * as z from "zod";
 export const appSettingsSchema = z.object({
     deployment: z.object({
         databaseProvider: z.enum(["postgres", "supabase"]),
-        deploymentMode: z.enum(["docker-local", "managed-fallback"]),
+        deploymentMode: z.enum([
+            "docker-local",
+            "managed-fallback",
+            "self-hosted",
+        ]),
         queueProvider: z.enum(["db-fallback", "local-redis", "upstash-redis"]),
     }),
     models: z.object({

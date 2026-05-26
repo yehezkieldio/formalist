@@ -54,7 +54,8 @@ The platform uses two separate data retrieval paths:
 ### Prerequisites
 
 - Bun (v1.x or higher)
-- Docker and Docker Compose
+- PostgreSQL with the `pgvector` extension
+- Redis
 
 ### Setup and Running
 
@@ -64,13 +65,16 @@ The platform uses two separate data retrieval paths:
     ```
 2. Start the database and run migrations:
     ```bash
-    just db-migrate
+    just host-db-migrate
     ```
 3. Start the application and worker:
     ```bash
-    just local-all
+    just host-all
     ```
     The application is available at `http://localhost:3000`. You can log in at `/admin/login` and upload files at `/admin/documents`.
+
+Docker remains available for development with `just local-all` or
+`just docker-prod`, but the default path is now host-native for a VPS.
 
 ## Testing and Verification
 
@@ -97,6 +101,7 @@ RUN_BROWSER_E2E=1 bun run test:e2e
 Detailed guides are available in the docs folder:
 
 - [Environment Configuration](docs/environment.md)
+- [Self-Hosted VPS](docs/self-hosted-vps.md)
 - [Ingestion and Review Flow](docs/ingestion-review-flow.md)
 - [Chat Usage](docs/chat-usage.md)
 - [Architecture Details](docs/architecture.md)

@@ -24,6 +24,10 @@ describe("deployment mode parsing", () => {
         );
     });
 
+    it("accepts self-hosted mode", () => {
+        expect(parseDeploymentMode("self-hosted")).toBe("self-hosted");
+    });
+
     it("rejects invalid deployment modes", () => {
         expect(() => parseDeploymentMode("serverless-only")).toThrow();
     });
