@@ -1,0 +1,132 @@
+x-formalist-env: &formalist-env
+    DATABASE_PROVIDER: postgres
+    DATABASE_URL: postgres://formalist:formalist@postgres:5432/formalist
+    DEPLOYMENT_MODE: docker-local
+    OPENROUTER_APP_NAME: ${OPENROUTER_APP_NAME:-Formalist}
+    OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    OPENROUTER_SITE_URL: ${OPENROUTER_SITE_URL:-http://localhost:3000}
+    QUEUE_PROVIDER: local-redis
+    REDIS_URL: redis://redis:6379
+    STORE_DEBUG_ARTIFACTS: "true"
+    STORE_ORIGINAL_FILES: "true"
+    STORE_PAGE_IMAGES: "true"
+    UPLOAD_ROOT: /data/uploads
+
+x-formalist-build: &formalist-build
+    context: .
+    args:
+        BUN_VERSION: ${BUN_VERSION:-1.3.14}
+    target: production
+
+x-formalist-depends: &formalist-depends
+    postgres:
+        condition: service_healthy
+    redis:
+        condition: service_healthy
+
+services:
+    app:
+        build:
+            <<: *formalist-build
+            dockerfile: docker/app.Dockerfile
+        depends_on: *formalist-depends
+        env_file:
+            - path: .env
+              required: false
+        environment:
+            <<: *formalist-env
+            ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+            NODE_ENV: production
+            PORT: 3000
+            SESSION_SECRET: ${SESSION_SECRET:-replace-with-at-least-32-random-characters}
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    'bun -e "const r=await fetch(''http://127.0.0.1:3000''); process.exit(r.ok ? 0 : 1)"',
+                ]
+            interval: 15s
+            retries: 12
+            start_period: 30s
+            timeout: 5s
+        ports:
+            - "${APP_PORT:-3000}:3000"
+        restart: unless-stopped
+        volumes:
+            - formalist_uploads:/data/uploads
+
+    worker:
+        build:
+            <<: *formalist-build
+            dockerfile: docker/worker.Dockerfile
+        depends_on: *formalist-depends
+        env_file:
+            - path: .env
+              required: false
+        environment:
+            <<: *formalist-env
+            ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+            NODE_ENV: production
+            SESSION_SECRET: ${SESSION_SECRET:-replace-with-at-least-32-random-characters}
+        restart: unless-stopped
+        stop_grace_period: 30s
+        volumes:
+            - formalist_uploads:/data/uploads
+
+    migrate:
+        build:
+            <<: *formalist-build
+            dockerfile: docker/worker.Dockerfile
+            target: tool
+        depends_on:
+            postgres:
+                condition: service_healthy
+        env_file:
+            - path: .env
+              required: false
+        environment:
+            <<: *formalist-env
+            NODE_ENV: production
+        profiles:
+            - tools
+
+    postgres:
+        image: pgvector/pgvector:pg18
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB:-formalist}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-formalist}
+            POSTGRES_USER: ${POSTGRES_USER:-formalist}
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+                ]
+            interval: 5s
+            retries: 12
+            timeout: 5s
+        ports:
+            - "${POSTGRES_PORT:-5432}:5432"
+        restart: unless-stopped
+        shm_size: 256mb
+        volumes:
+            - formalist_postgres:/var/lib/postgresql
+
+    redis:
+        image: redis:8-alpine
+        command: redis-server --appendonly yes --save 60 1000
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            retries: 12
+            timeout: 3s
+        ports:
+            - "${REDIS_PORT:-6379}:6379"
+        restart: unless-stopped
+        volumes:
+            - formalist_redis:/data
+
+volumes:
+    formalist_postgres:
+    formalist_redis:
+    formalist_uploads:

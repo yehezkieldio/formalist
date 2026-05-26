@@ -136,7 +136,8 @@ Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run
 <!-- SPECKIT START -->
 
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan.
+shell commands, and other important information, read the current plan:
+`specs/001-agentic-rag-assistant/plan.md`.
 
 Formalist is governed by `.specify/memory/constitution.md`. Before creating or
 reviewing specs, plans, or tasks, apply the Formalist constitution gates:
