@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import { Streamdown } from "streamdown";
 
 import { ChainOfThought } from "#/components/ai/chain-of-thought";
@@ -68,11 +69,6 @@ function PendingAssistant({ status }: { status?: ChatStreamStatus }) {
                         {status?.label ?? "Starting response"}
                     </span>
                 </div>
-                <div className="grid gap-2">
-                    <div className="h-2 w-3/4 animate-pulse bg-muted" />
-                    <div className="h-2 w-11/12 animate-pulse bg-muted" />
-                    <div className="h-2 w-2/5 animate-pulse bg-muted" />
-                </div>
             </div>
         </article>
     );
@@ -95,12 +91,14 @@ export function MessageList({
     liveToolCalls,
     messages,
     onRegenerate,
+    onSelectExample,
     streamStatus,
 }: {
     isStreaming?: boolean;
     liveToolCalls?: ChatToolCallData[];
     messages: FormalistChatMessage[];
     onRegenerate?: () => void;
+    onSelectExample?: (example: string) => void;
     streamStatus?: ChatStreamStatus;
 }) {
     const lastMessage = messages.at(-1);
@@ -114,6 +112,13 @@ export function MessageList({
     const visibleLastMessage = visibleMessages.at(-1);
     const showPendingStatus =
         isStreaming && !isAssistantWriting(visibleLastMessage);
+    const latestAssistantHasToolCalls = Boolean(
+        visibleMessages.findLast((message) => message.role === "assistant")
+            ?.toolCalls?.length
+    );
+    const showLiveToolCalls =
+        Boolean(liveToolCalls?.length) &&
+        (isStreaming || !latestAssistantHasToolCalls);
 
     if (visibleMessages.length === 0) {
         return isStreaming ? (
@@ -121,14 +126,17 @@ export function MessageList({
                 <PendingAssistant status={streamStatus} />
             </div>
         ) : (
-            <EmptyStateExamples />
+            <EmptyStateExamples onSelectExample={onSelectExample} />
         );
     }
 
     return (
         <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6">
             {visibleMessages.map((message, index) => (
-                <article
+                <motion.article
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                     className={cn(
                         "flex w-full flex-col gap-3",
                         message.role === "user" && "items-end"
@@ -174,15 +182,17 @@ export function MessageList({
                             ) : null}
                         </div>
                     ) : null}
-                </article>
+                </motion.article>
             ))}
             {showPendingStatus ? (
                 <>
                     <PendingAssistant status={streamStatus} />
-                    <LiveToolCalls toolCalls={liveToolCalls} />
+                    {showLiveToolCalls ? (
+                        <LiveToolCalls toolCalls={liveToolCalls} />
+                    ) : null}
                 </>
             ) : null}
-            {isStreaming && !showPendingStatus ? (
+            {showLiveToolCalls && !showPendingStatus ? (
                 <LiveToolCalls toolCalls={liveToolCalls} />
             ) : null}
         </div>

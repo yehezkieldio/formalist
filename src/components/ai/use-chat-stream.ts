@@ -57,7 +57,9 @@ function parseStreamStatus(dataPart: unknown): ChatStreamStatus | undefined {
 
     return {
         error: typeof status.error === "string" ? status.error : undefined,
+        input: status.input,
         label: status.label,
+        output: status.output,
         state:
             status.state === "error" ||
             status.state === "running" ||
@@ -104,6 +106,13 @@ export function useChatStream({
             if (status) {
                 setStreamStatus(status);
 
+                if (
+                    status.label === "Preparing request" ||
+                    status.label === "Listing documents"
+                ) {
+                    setLiveToolCalls([]);
+                }
+
                 const { toolName } = status;
                 const { state } = status;
 
@@ -122,6 +131,8 @@ export function useChatStream({
                                           ...toolCall,
                                           completedAt: new Date().toISOString(),
                                           error: status.error,
+                                          input: status.input,
+                                          output: status.output,
                                           state,
                                       }
                                     : toolCall
@@ -137,6 +148,8 @@ export function useChatStream({
                                         : new Date().toISOString(),
                                 error: status.error,
                                 id: `${Date.now()}-${current.length}-${toolName}`,
+                                input: status.input,
+                                output: status.output,
                                 startedAt: new Date().toISOString(),
                                 state,
                                 toolName,
@@ -151,7 +164,6 @@ export function useChatStream({
         },
         onFinish: () => {
             setStreamStatus(undefined);
-            setLiveToolCalls([]);
             onFinish();
         },
         transport,

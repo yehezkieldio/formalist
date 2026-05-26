@@ -9,6 +9,7 @@ import {
     SearchIcon,
     Trash2Icon,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -172,103 +173,132 @@ export function ConversationSidebar({
         });
     };
 
-    if (collapsed) {
-        return (
-            <aside className="hidden min-h-0 w-14 flex-col items-center gap-2 border-r bg-sidebar px-2 py-3 text-sidebar-foreground md:flex">
-                <Button
-                    aria-label="Expand sidebar"
-                    onClick={() => onCollapsedChange(false)}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                >
-                    <PanelLeftOpenIcon aria-hidden="true" />
-                </Button>
-                <Button
-                    aria-label="New chat"
-                    disabled={isPending}
-                    onClick={createSession}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                >
-                    <MessageSquarePlusIcon aria-hidden="true" />
-                </Button>
-            </aside>
-        );
-    }
-
     return (
-        <aside className="flex min-h-0 w-full flex-col border-r bg-sidebar text-sidebar-foreground md:w-72">
-            <header className="flex items-center justify-between gap-2 border-b p-3">
-                <Link className="font-semibold" href="/chat">
-                    Formalist
-                </Link>
-                <div className="flex items-center gap-1">
-                    <Button
-                        aria-label="New chat"
-                        disabled={isPending}
-                        onClick={createSession}
-                        size="icon"
-                        type="button"
-                        variant="ghost"
+        <aside
+            className={cn(
+                "min-h-0 flex-col border-r bg-sidebar text-sidebar-foreground overflow-hidden shrink-0 transition-[width] duration-300 ease-in-out",
+                collapsed
+                    ? "hidden md:flex md:w-14 items-center px-2 py-3 gap-3"
+                    : "flex w-full md:w-72"
+            )}
+        >
+            <AnimatePresence mode="wait" initial={false}>
+                {collapsed ? (
+                    <motion.div
+                        key="collapsed"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex flex-col items-center gap-3 w-full"
                     >
-                        <MessageSquarePlusIcon aria-hidden="true" />
-                    </Button>
-                    <Button
-                        aria-label="Collapse sidebar"
-                        className="hidden md:inline-flex"
-                        onClick={() => onCollapsedChange(true)}
-                        size="icon"
-                        type="button"
-                        variant="ghost"
+                        <Button
+                            aria-label="Expand sidebar"
+                            onClick={() => onCollapsedChange(false)}
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                        >
+                            <PanelLeftOpenIcon aria-hidden="true" />
+                        </Button>
+                        <Button
+                            aria-label="New chat"
+                            disabled={isPending}
+                            onClick={createSession}
+                            size="icon"
+                            type="button"
+                            variant="ghost"
+                        >
+                            <MessageSquarePlusIcon aria-hidden="true" />
+                        </Button>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="expanded"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex flex-col h-full w-full md:w-72 shrink-0"
                     >
-                        <PanelLeftCloseIcon aria-hidden="true" />
-                    </Button>
-                </div>
-            </header>
-            <div className="border-b p-3">
-                <label className="relative block">
-                    <span className="sr-only">Search chats</span>
-                    <SearchIcon
-                        aria-hidden="true"
-                        className="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <input
-                        aria-label="Search chats"
-                        className="h-9 w-full rounded-md border bg-background pr-3 pl-8 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Search chats"
-                        value={query}
-                    />
-                </label>
-            </div>
-            <nav
-                className="min-h-0 flex-1 overflow-auto p-2"
-                aria-label="Conversations"
-            >
-                <div className="flex flex-col gap-1">
-                    {filteredSessions.map((session) => (
-                        <ConversationRow
-                            active={session.id === activeSessionId}
-                            key={session.id}
-                            onDeleted={onSessionDeleted}
-                            onRenamed={onSessionRenamed}
-                            session={session}
-                        />
-                    ))}
-                    {filteredSessions.length === 0 ? (
-                        <p className="px-3 py-4 text-muted-foreground text-sm">
-                            No conversations found.
-                        </p>
-                    ) : null}
-                </div>
-            </nav>
-            <footer className="border-t p-3">
-                <Button asChild className="w-full" variant="outline">
-                    <Link href="/admin">Admin dashboard</Link>
-                </Button>
-            </footer>
+                        <header className="flex items-center justify-between gap-2 border-b p-3">
+                            <Link className="font-semibold" href="/chat">
+                                Formalist
+                            </Link>
+                            <div className="flex items-center gap-1">
+                                <Button
+                                    aria-label="New chat"
+                                    disabled={isPending}
+                                    onClick={createSession}
+                                    size="icon"
+                                    type="button"
+                                    variant="ghost"
+                                >
+                                    <MessageSquarePlusIcon aria-hidden="true" />
+                                </Button>
+                                <Button
+                                    aria-label="Collapse sidebar"
+                                    className="hidden md:inline-flex"
+                                    onClick={() => onCollapsedChange(true)}
+                                    size="icon"
+                                    type="button"
+                                    variant="ghost"
+                                >
+                                    <PanelLeftCloseIcon aria-hidden="true" />
+                                </Button>
+                            </div>
+                        </header>
+                        <div className="border-b p-3">
+                            <label className="relative block">
+                                <span className="sr-only">Search chats</span>
+                                <SearchIcon
+                                    aria-hidden="true"
+                                    className="absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground"
+                                />
+                                <input
+                                    aria-label="Search chats"
+                                    className="h-9 w-full rounded-md border bg-background pr-3 pl-8 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    onChange={(event) =>
+                                        setQuery(event.target.value)
+                                    }
+                                    placeholder="Search chats"
+                                    value={query}
+                                />
+                            </label>
+                        </div>
+                        <nav
+                            className="min-h-0 flex-1 overflow-auto p-2"
+                            aria-label="Conversations"
+                        >
+                            <div className="flex flex-col gap-1">
+                                {filteredSessions.map((session) => (
+                                    <ConversationRow
+                                        active={session.id === activeSessionId}
+                                        key={session.id}
+                                        onDeleted={onSessionDeleted}
+                                        onRenamed={onSessionRenamed}
+                                        session={session}
+                                    />
+                                ))}
+                                {filteredSessions.length === 0 ? (
+                                    <p className="px-3 py-4 text-muted-foreground text-sm">
+                                        No conversations found.
+                                    </p>
+                                ) : null}
+                            </div>
+                        </nav>
+                        <footer className="border-t p-3">
+                            <Button
+                                asChild
+                                className="w-full"
+                                variant="outline"
+                            >
+                                <Link href="/admin">Admin dashboard</Link>
+                            </Button>
+                        </footer>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </aside>
     );
 }

@@ -42,11 +42,14 @@ const listDestinationsInputSchema = z.object({
 
 export type AssistantToolEvent =
     | {
+          input: unknown;
           state: "running";
           toolName: string;
       }
     | {
           error?: string;
+          input: unknown;
+          output?: unknown;
           state: "error" | "success";
           toolName: string;
       };
@@ -62,12 +65,17 @@ function createTrackedExecute<Input, Output>(
     options: AssistantToolOptions
 ) {
     return async (input: Input) => {
-        options.onToolEvent?.({ state: "running", toolName });
+        options.onToolEvent?.({ input, state: "running", toolName });
 
         if (!options.sessionId) {
             try {
                 const output = await execute(input);
-                options.onToolEvent?.({ state: "success", toolName });
+                options.onToolEvent?.({
+                    input,
+                    output,
+                    state: "success",
+                    toolName,
+                });
                 return output;
             } catch (error) {
                 const message =
@@ -76,6 +84,7 @@ function createTrackedExecute<Input, Output>(
                         : "Tool call failed.";
                 options.onToolEvent?.({
                     error: message,
+                    input,
                     state: "error",
                     toolName,
                 });
@@ -97,7 +106,12 @@ function createTrackedExecute<Input, Output>(
                 "success",
                 output
             );
-            options.onToolEvent?.({ state: "success", toolName });
+            options.onToolEvent?.({
+                input,
+                output,
+                state: "success",
+                toolName,
+            });
             return output;
         } catch (error) {
             const message =
@@ -108,7 +122,12 @@ function createTrackedExecute<Input, Output>(
                 undefined,
                 message
             );
-            options.onToolEvent?.({ error: message, state: "error", toolName });
+            options.onToolEvent?.({
+                error: message,
+                input,
+                state: "error",
+                toolName,
+            });
             throw error;
         }
     };

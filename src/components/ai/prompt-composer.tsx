@@ -35,6 +35,21 @@ export function PromptComposer({
         textareaRef.current?.focus();
     };
 
+    const updateValue = (nextValue: string) => {
+        setValue(nextValue);
+
+        requestAnimationFrame(() => {
+            const textarea = textareaRef.current;
+
+            if (!textarea) {
+                return;
+            }
+
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.min(textarea.scrollHeight, 176)}px`;
+        });
+    };
+
     return (
         <form className="border-t bg-background px-3 py-3" onSubmit={submit}>
             <div className="mx-auto flex w-full max-w-4xl items-center gap-2 bg-muted/35 p-2">
@@ -42,7 +57,7 @@ export function PromptComposer({
                     aria-label="Message"
                     className="max-h-44 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground"
                     disabled={disabled}
-                    onChange={(event) => setValue(event.target.value)}
+                    onChange={(event) => updateValue(event.target.value)}
                     onKeyDown={(event) => {
                         if (event.key === "Enter" && !event.shiftKey) {
                             event.preventDefault();

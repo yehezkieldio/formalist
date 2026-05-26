@@ -30,7 +30,9 @@ export interface ChatVerificationData {
 
 export interface ChatStreamStatus {
     error?: string;
+    input?: unknown;
     label: string;
+    output?: unknown;
     state?: "error" | "running" | "success";
     toolName?: string;
 }

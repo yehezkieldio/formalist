@@ -30,7 +30,7 @@ describe("extraction persistence and policy", () => {
         statusMock.setIngestionDocumentStatus.mockClear();
     });
 
-    it("persists extracted records as review-gated statuses and never active", async () => {
+    it("auto-activates extracted records so chat can use them immediately", async () => {
         const { persistStructuredExtraction } =
             await import("#/server/ingestion/persist-extracted");
 
@@ -130,7 +130,7 @@ describe("extraction persistence and policy", () => {
             expect.objectContaining({
                 confidence: "0.6",
                 documentId: "doc-1",
-                status: "needs_review",
+                status: "active",
                 valueNumber: "18000",
             }),
         ]);
@@ -138,7 +138,7 @@ describe("extraction persistence and policy", () => {
             expect.objectContaining({
                 confidence: "0.95",
                 documentId: "doc-1",
-                status: "extracted",
+                status: "active",
             }),
         ]);
         expect(extractedRecordQueryMock.insertFeeRules).toHaveBeenCalledWith([
@@ -146,7 +146,7 @@ describe("extraction persistence and policy", () => {
                 documentId: "doc-1",
                 minWeightKg: "10",
                 ppnPercent: "11",
-                status: "extracted",
+                status: "active",
             }),
         ]);
     });

@@ -152,7 +152,7 @@ export async function dispatchIngestionJob(job: QueueJob) {
 
     if (job.type === "validate-extraction") {
         await validateExtraction(job.documentId);
-        await setIngestionDocumentStatus({ job, status: "needs_review" });
+        await setIngestionDocumentStatus({ job, status: "active" });
         return;
     }
 

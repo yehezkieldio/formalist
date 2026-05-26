@@ -12,11 +12,6 @@ import { getModelConfiguration } from "#/server/ai/models";
 import { getOpenRouterChatSettings } from "#/server/ai/openrouter-routing";
 import { getOpenRouterProvider } from "#/server/ai/provider";
 import type { AiProviderState } from "#/server/ai/provider";
-import {
-    createResponseCacheKey,
-    getCachedChatResponse,
-    setCachedChatResponse,
-} from "#/server/ai/response-cache";
 import { formalistSystemPrompt } from "#/server/ai/system-prompt";
 import { createAssistantTools } from "#/server/ai/tools";
 import { classifyIntentFallback } from "#/server/ai/tools/classify-intent";
@@ -25,6 +20,25 @@ import { verifyAnswer } from "#/server/ai/tools/verify-answer";
 import { chatMessageService } from "#/server/chat/messages";
 import { chatToolCallService } from "#/server/chat/tool-calls";
 import { answerVerificationService } from "#/server/chat/verifications";
+import { listDocumentInventory } from "#/server/retrieval/document-list";
+import { searchTariffs } from "#/server/retrieval/structured-search";
+
+const directAirlineAliases = [
+    ["pelita", "Pelita Air"],
+    ["lion", "Lion Air"],
+    ["air asia", "Air Asia"],
+    ["airasia", "Air Asia"],
+] as const;
+
+const directDestinationAliases = [
+    ["surabaya", { city: "SURABAYA", code: "SUB" }],
+    ["sub", { city: "SURABAYA", code: "SUB" }],
+    ["makassar", { city: "UJUNG PANDANG", code: "UPG" }],
+    ["upg", { city: "UJUNG PANDANG", code: "UPG" }],
+    ["yogyakarta", { city: "YOGYAKARTA", code: "YIA" }],
+    ["jogja", { city: "YOGYAKARTA", code: "YIA" }],
+    ["yia", { city: "YOGYAKARTA", code: "YIA" }],
+] as const;
 
 const chatRequestSchema = z.object({
     messages: z.array(z.custom<UIMessage>()),
@@ -68,6 +82,110 @@ function modeFromIntent(intent: ClassifiedIntent) {
     return intent === "quote" || intent === "verified_numeric"
         ? "verified_numeric"
         : "general_rag";
+}
+
+function isDocumentInventoryQuery(query: string) {
+    return /\b(list|show|lihat|tampil|daftar|documents?|dokumen|files?|uploads?|sources?|memories)\b/iu.test(
+        query
+    );
+}
+
+function isTariffPriceQuery(query: string) {
+    return /\b(harga|price|tariff|tarif|smu|ongkir|rate|berapa)\b/iu.test(
+        query
+    );
+}
+
+function findDirectAirline(query: string) {
+    const normalizedQuery = query.toLowerCase();
+    return directAirlineAliases.find(([alias]) =>
+        normalizedQuery.includes(alias)
+    )?.[1];
+}
+
+function findDirectDestination(query: string) {
+    const normalizedQuery = query.toLowerCase();
+    return directDestinationAliases.find(([alias]) =>
+        normalizedQuery.includes(alias)
+    )?.[1];
+}
+
+function isNonEmptyString(value: unknown): value is string {
+    return typeof value === "string" && value.trim().length > 0;
+}
+
+function formatDocumentInventory(
+    rows: Awaited<ReturnType<typeof listDocumentInventory>>
+) {
+    if (rows.length === 0) {
+        return "Belum ada dokumen yang tersimpan.";
+    }
+
+    const lines = rows.map((document, index) => {
+        const label = document.sourceName ?? document.filename;
+        return `${index + 1}. ${label} - ${document.status}, ${document.reviewCount} reviewed records, ${document.issueCount} issues`;
+    });
+
+    return [`Ada ${rows.length} dokumen:`, ...lines].join("\n");
+}
+
+async function getDirectTariffAnswer(query: string) {
+    if (!isTariffPriceQuery(query)) {
+        return;
+    }
+
+    const destination = findDirectDestination(query);
+
+    if (!destination) {
+        return;
+    }
+
+    const airline = findDirectAirline(query);
+    const rows = await searchTariffs({
+        airline,
+        destinationCode: destination.code,
+    });
+    const pricedRows = rows
+        .filter((row) => row.smuPricePerKg !== null)
+        .toSorted((left, right) => {
+            const priceDelta =
+                (left.smuPricePerKg ?? Number.MAX_SAFE_INTEGER) -
+                (right.smuPricePerKg ?? Number.MAX_SAFE_INTEGER);
+
+            if (priceDelta !== 0) {
+                return priceDelta;
+            }
+
+            return Number(right.isPromo) - Number(left.isPromo);
+        })
+        .slice(0, 8);
+
+    if (pricedRows.length === 0) {
+        return {
+            answer: `Belum ada tarif aktif untuk ${airline ? `${airline} ke ` : ""}${destination.city}.`,
+            evidenceSnippets: [],
+        };
+    }
+
+    const lines = pricedRows.map((row, index) => {
+        const promoLabel = row.isPromo ? "promo" : "regular";
+        const routeLabel =
+            row.routeType === "TRANSIT" && row.transitRoute
+                ? `${row.routeType} via ${row.transitRoute}`
+                : row.routeType;
+
+        return `${index + 1}. ${row.airline ?? "Unknown airline"} ${row.originCity ?? "Unknown origin"} -> ${row.destinationCity ?? destination.city}: Rp ${row.smuPricePerKg?.toLocaleString("id-ID")}/kg (${promoLabel}, ${routeLabel}, doc ${row.documentId}${row.pageNumber ? ` page ${row.pageNumber}` : ""})`;
+    });
+
+    return {
+        answer: [
+            `Tarif aktif ke ${destination.city}${airline ? ` untuk ${airline}` : ""}:`,
+            ...lines,
+        ].join("\n"),
+        evidenceSnippets: pricedRows.flatMap((row) =>
+            [row.rawRowText, row.sourceText].filter(isNonEmptyString)
+        ),
+    };
 }
 
 function getDirectEvidenceSnippet(record: Record<string, unknown>) {
@@ -214,9 +332,11 @@ async function persistAssistantMessage(input: {
     });
 }
 
-function createCachedChatStreamResponse(input: {
+function createPersistedTextStreamResponse(input: {
     content: string;
+    evidenceSnippets?: string[];
     intent: ClassifiedIntent;
+    logger?: ReturnType<typeof createChatLogger>;
     messages: UIMessage[];
     mode: "general_rag" | "verified_numeric";
     sessionId?: string;
@@ -232,11 +352,16 @@ function createCachedChatStreamResponse(input: {
                     type: "data-status",
                 });
             }
-            await persistLatestUserMessage(input.sessionId, input.messages);
+            await persistLatestUserMessage(
+                input.sessionId,
+                input.messages,
+                input.logger
+            );
             await persistAssistantContent({
                 content: input.content,
-                evidenceSnippets: [],
-                metadata: { cached: true, intent: input.intent },
+                evidenceSnippets: input.evidenceSnippets ?? [input.content],
+                logger: input.logger,
+                metadata: { intent: input.intent },
                 mode: input.mode,
                 parts: [{ text: input.content, type: "text" }],
                 sessionId: input.sessionId,
@@ -248,6 +373,7 @@ function createCachedChatStreamResponse(input: {
                 type: "text-delta",
             });
             writer.write({ id: textId, type: "text-end" });
+            input.logger?.info("request:finish");
         },
     });
 
@@ -273,22 +399,37 @@ async function streamChatResponse(input: {
     });
     const mode = modeFromIntent(intent);
     logger.info("intent:classified", { intent, mode });
-    const cacheKey = await createResponseCacheKey({
-        intent,
-        query: lastUserText,
-    });
-    logger.info("cache:lookup:start");
-    const cachedResponse = await getCachedChatResponse(cacheKey);
-    logger.info("cache:lookup:finish", { hit: Boolean(cachedResponse) });
+    logger.info("cache:disabled");
 
-    if (cachedResponse) {
-        return createCachedChatStreamResponse({
-            content: cachedResponse.content,
-            intent: cachedResponse.intent,
+    if (isDocumentInventoryQuery(lastUserText)) {
+        const documents = await listDocumentInventory({ limit: 50 });
+        logger.info("direct:document-inventory", { count: documents.length });
+
+        return createPersistedTextStreamResponse({
+            content: formatDocumentInventory(documents),
+            intent,
+            logger,
             messages: input.messages,
-            mode: cachedResponse.mode,
+            mode,
             sessionId: input.sessionId,
-            status: "Found a saved answer",
+            status: "Listing documents",
+        });
+    }
+
+    const directTariffAnswer = await getDirectTariffAnswer(lastUserText);
+
+    if (directTariffAnswer) {
+        logger.info("direct:tariff-answer");
+
+        return createPersistedTextStreamResponse({
+            content: directTariffAnswer.answer,
+            evidenceSnippets: directTariffAnswer.evidenceSnippets,
+            intent,
+            logger,
+            messages: input.messages,
+            mode: "verified_numeric",
+            sessionId: input.sessionId,
+            status: "Checking active tariffs",
         });
     }
 
@@ -359,10 +500,15 @@ async function streamChatResponse(input: {
                             data: {
                                 error:
                                     "error" in event ? event.error : undefined,
+                                input: event.input,
                                 label:
                                     event.state === "running"
                                         ? `Using ${event.toolName}`
                                         : `${event.toolName} ${event.state}`,
+                                output:
+                                    "output" in event
+                                        ? event.output
+                                        : undefined,
                                 state: event.state,
                                 toolName: event.toolName,
                             },
@@ -390,12 +536,6 @@ async function streamChatResponse(input: {
                             message: responseMessage,
                             mode,
                             sessionId: input.sessionId,
-                        });
-                        await setCachedChatResponse(cacheKey, {
-                            content: getMessageText(responseMessage),
-                            intent,
-                            mode,
-                            warnings: [],
                         });
                         logger.info("request:finish");
                     },

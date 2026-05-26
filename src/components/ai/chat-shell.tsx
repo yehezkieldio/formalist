@@ -1,7 +1,8 @@
 "use client";
 
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ConversationSidebar } from "#/components/ai/conversation-sidebar";
 import { MessageList } from "#/components/ai/message-list";
@@ -12,7 +13,6 @@ import type {
 } from "#/components/ai/types";
 import { useChatStream } from "#/components/ai/use-chat-stream";
 import { ThemeToggle } from "#/components/theme-toggle";
-import { cn } from "#/lib/utils";
 
 function mergeMessages(
     persistedMessages: FormalistChatMessage[],
@@ -56,6 +56,7 @@ export function ChatShell({
     sessions: FormalistChatSession[];
 }) {
     const router = useRouter();
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [visibleSessions, setVisibleSessions] = useState(sessions);
     const {
@@ -78,19 +79,25 @@ export function ChatShell({
     );
     const isStreaming = status === "streaming" || status === "submitted";
 
+    useEffect(() => {
+        const scrollArea = scrollAreaRef.current;
+
+        if (!scrollArea) {
+            return;
+        }
+
+        scrollArea.scrollTo({
+            behavior: isStreaming ? "smooth" : "auto",
+            top: scrollArea.scrollHeight,
+        });
+    }, [displayMessages, isStreaming, liveToolCalls, streamStatus]);
+
     const submitMessage = (content: string) => {
         void sendMessage({ text: content });
     };
 
     return (
-        <main
-            className={cn(
-                "grid h-dvh bg-background text-foreground",
-                sidebarCollapsed
-                    ? "md:grid-cols-[3.5rem_minmax(0,1fr)]"
-                    : "md:grid-cols-[18rem_minmax(0,1fr)]"
-            )}
-        >
+        <main className="flex h-dvh overflow-hidden bg-background text-foreground">
             <ConversationSidebar
                 activeSessionId={activeSessionId}
                 collapsed={sidebarCollapsed}
@@ -111,21 +118,27 @@ export function ChatShell({
                 }}
                 sessions={visibleSessions}
             />
-            <section className="flex min-h-0 flex-col">
+            <motion.section
+                key={activeSessionId}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="flex min-h-0 flex-1 flex-col overflow-hidden"
+            >
                 <header className="flex h-14 items-center justify-between border-b px-4">
                     <div className="min-w-0">
-                        <p className="truncate font-semibold">
+                        <p className="truncate text-base font-semibold tracking-tight text-foreground/90">
                             {visibleSessions.find(
                                 (session) => session.id === activeSessionId
                             )?.title ?? "New chat"}
                         </p>
-                        <p className="text-muted-foreground text-xs">
-                            Evidence-backed tariff workspace
-                        </p>
                     </div>
                     <ThemeToggle />
                 </header>
-                <div className="min-h-0 flex-1 overflow-auto">
+                <div
+                    ref={scrollAreaRef}
+                    className="min-h-0 flex-1 overflow-auto"
+                >
                     <MessageList
                         isStreaming={isStreaming}
                         liveToolCalls={liveToolCalls}
@@ -133,6 +146,7 @@ export function ChatShell({
                         onRegenerate={() => {
                             void regenerate();
                         }}
+                        onSelectExample={submitMessage}
                         streamStatus={streamStatus}
                     />
                     {error ? (
@@ -149,7 +163,7 @@ export function ChatShell({
                     }}
                     onSubmit={submitMessage}
                 />
-            </section>
+            </motion.section>
         </main>
     );
 }

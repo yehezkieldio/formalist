@@ -1,8 +1,10 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { extractedFacts, feeRules, tariffRows } from "#/server/db/schema";
 import type { FactType, ReviewStatus } from "#/server/db/schema";
+
+const reviewQueueStatuses = ["extracted", "needs_review"] as const;
 
 export interface ActiveTariffLookup {
     airline?: string;
@@ -51,6 +53,7 @@ export function listFactsForReview() {
     return getDatabase()
         .select()
         .from(extractedFacts)
+        .where(eq(extractedFacts.status, "active"))
         .orderBy(desc(extractedFacts.updatedAt));
 }
 
@@ -58,6 +61,7 @@ export function listTariffRowsForReview() {
     return getDatabase()
         .select()
         .from(tariffRows)
+        .where(eq(tariffRows.status, "active"))
         .orderBy(desc(tariffRows.updatedAt));
 }
 
@@ -65,7 +69,50 @@ export function listFeeRulesForReview() {
     return getDatabase()
         .select()
         .from(feeRules)
+        .where(eq(feeRules.status, "active"))
         .orderBy(desc(feeRules.updatedAt));
+}
+
+export async function activatePendingReviewRecords() {
+    const now = new Date();
+    const [facts, rows, rules] = await Promise.all([
+        getDatabase()
+            .update(extractedFacts)
+            .set({ status: "active", updatedAt: now })
+            .where(
+                sql`${extractedFacts.status} in (${sql.join(
+                    reviewQueueStatuses.map((status) => sql`${status}`),
+                    sql`, `
+                )})`
+            )
+            .returning(),
+        getDatabase()
+            .update(tariffRows)
+            .set({ status: "active", updatedAt: now })
+            .where(
+                sql`${tariffRows.status} in (${sql.join(
+                    reviewQueueStatuses.map((status) => sql`${status}`),
+                    sql`, `
+                )})`
+            )
+            .returning(),
+        getDatabase()
+            .update(feeRules)
+            .set({ status: "active", updatedAt: now })
+            .where(
+                sql`${feeRules.status} in (${sql.join(
+                    reviewQueueStatuses.map((status) => sql`${status}`),
+                    sql`, `
+                )})`
+            )
+            .returning(),
+    ]);
+
+    return {
+        facts: facts.length,
+        feeRules: rules.length,
+        tariffRows: rows.length,
+    };
 }
 
 export async function updateTariffRow(
