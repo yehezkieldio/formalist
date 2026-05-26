@@ -21,9 +21,24 @@ function getMessageContentClassName(role: FormalistChatMessage["role"]) {
     return "w-full max-w-none";
 }
 
-function MessageBody({ message }: { message: FormalistChatMessage }) {
+function MessageBody({
+    isStreaming,
+    message,
+}: {
+    isStreaming: boolean;
+    message: FormalistChatMessage;
+}) {
     if (!message.content.trim()) {
         if (message.role === "assistant" && !message.toolCalls?.length) {
+            if (isStreaming) {
+                return (
+                    <div className="flex items-center gap-2 py-1 text-muted-foreground">
+                        <span className="size-1.5 animate-pulse bg-current" />
+                        <span>Working...</span>
+                    </div>
+                );
+            }
+
             return (
                 <div className="bg-muted/35 px-4 py-3 text-muted-foreground">
                     No answer text was returned for this response.
@@ -108,7 +123,10 @@ export function MessageList({
                         {message.role === "assistant" ? (
                             <ToolCallTimeline toolCalls={message.toolCalls} />
                         ) : null}
-                        <MessageBody message={message} />
+                        <MessageBody
+                            isStreaming={isStreaming}
+                            message={message}
+                        />
                         {message.role === "assistant" &&
                         message.verification ? (
                             <div className="mt-3">

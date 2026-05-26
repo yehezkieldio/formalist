@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import {
@@ -60,7 +60,12 @@ export async function listDocumentsWithReviewSummary(limit = 50) {
                 getDatabase()
                     .select({ id: extractionIssues.id })
                     .from(extractionIssues)
-                    .where(eq(extractionIssues.documentId, document.id)),
+                    .where(
+                        and(
+                            eq(extractionIssues.documentId, document.id),
+                            eq(extractionIssues.status, "open")
+                        )
+                    ),
                 getDatabase()
                     .select({ id: extractedFacts.id })
                     .from(extractedFacts)

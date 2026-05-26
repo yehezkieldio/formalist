@@ -15,6 +15,12 @@ import type {
 import { useChatStream } from "#/components/ai/use-chat-stream";
 import { ThemeToggle } from "#/components/theme-toggle";
 
+interface OptimisticTurn {
+    assistantId: string;
+    content: string;
+    userId: string;
+}
+
 function mergeMessages(
     persistedMessages: FormalistChatMessage[],
     uiMessages: ReturnType<typeof useChatStream>["messages"]
@@ -45,6 +51,54 @@ function mergeMessages(
             role: message.role,
         };
     });
+}
+
+function appendOptimisticTurn(
+    messages: FormalistChatMessage[],
+    optimisticTurn: OptimisticTurn | undefined
+) {
+    if (!optimisticTurn) {
+        return messages;
+    }
+
+    const userIndex = messages.findIndex(
+        (message) =>
+            message.role === "user" &&
+            message.content.trim() === optimisticTurn.content
+    );
+
+    if (userIndex !== -1) {
+        const assistantAfterUser = messages
+            .slice(userIndex + 1)
+            .some((message) => message.role === "assistant");
+
+        if (assistantAfterUser) {
+            return messages;
+        }
+
+        return [
+            ...messages,
+            {
+                content: "",
+                id: optimisticTurn.assistantId,
+                role: "assistant" as const,
+            },
+        ];
+    }
+
+    return [
+        ...messages,
+        {
+            content: optimisticTurn.content,
+            id: optimisticTurn.userId,
+            role: "user" as const,
+        },
+        {
+            content: "",
+            id: optimisticTurn.assistantId,
+            role: "assistant" as const,
+        },
+    ];
 }
 
 function mergeLiveToolCalls(
@@ -95,6 +149,7 @@ export function ChatShell({
     const router = useRouter();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [optimisticTurn, setOptimisticTurn] = useState<OptimisticTurn>();
     const [visibleSessions, setVisibleSessions] = useState(sessions);
     const {
         error,
@@ -104,7 +159,6 @@ export function ChatShell({
         sendMessage,
         status,
         stop,
-        streamStatus,
     } = useChatStream({
         initialMessages,
         onFinish: () => router.refresh(),
@@ -114,10 +168,13 @@ export function ChatShell({
     const displayMessages = useMemo(
         () =>
             mergeLiveToolCalls(
-                mergeMessages(initialMessages, messages),
+                appendOptimisticTurn(
+                    mergeMessages(initialMessages, messages),
+                    optimisticTurn
+                ),
                 liveToolCalls
             ),
-        [initialMessages, liveToolCalls, messages]
+        [initialMessages, liveToolCalls, messages, optimisticTurn]
     );
 
     useEffect(() => {
@@ -127,13 +184,47 @@ export function ChatShell({
             return;
         }
 
-        scrollArea.scrollTo({
-            behavior: isStreaming ? "smooth" : "auto",
-            top: scrollArea.scrollHeight,
+        const animationFrame = requestAnimationFrame(() => {
+            scrollArea.scrollTo({
+                behavior: "auto",
+                top: scrollArea.scrollHeight,
+            });
         });
-    }, [displayMessages, isStreaming, liveToolCalls, streamStatus]);
+
+        return () => {
+            cancelAnimationFrame(animationFrame);
+        };
+    }, [displayMessages]);
+
+    useEffect(() => {
+        if (!(optimisticTurn && isStreaming)) {
+            return;
+        }
+
+        const realUserIndex = messages.findIndex((message) =>
+            message.parts.some(
+                (part) =>
+                    part.type === "text" &&
+                    part.text.trim() === optimisticTurn.content
+            )
+        );
+        const hasRealAssistantAfterUser =
+            realUserIndex !== -1 &&
+            messages
+                .slice(realUserIndex + 1)
+                .some((message) => message.role === "assistant");
+
+        if (hasRealAssistantAfterUser) {
+            setOptimisticTurn(undefined);
+        }
+    }, [isStreaming, messages, optimisticTurn]);
 
     const submitMessage = (content: string) => {
+        setOptimisticTurn({
+            assistantId: `optimistic-assistant-${crypto.randomUUID()}`,
+            content,
+            userId: `optimistic-user-${crypto.randomUUID()}`,
+        });
         void sendMessage({ text: content });
     };
 

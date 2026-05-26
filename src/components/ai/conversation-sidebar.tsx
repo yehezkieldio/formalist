@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    LayoutDashboardIcon,
     MessageSquarePlusIcon,
     MoreHorizontalIcon,
     PencilIcon,
@@ -202,6 +203,16 @@ export function ConversationSidebar({
                             <PanelLeftOpenIcon aria-hidden="true" />
                         </Button>
                         <Button
+                            asChild
+                            aria-label="Admin dashboard"
+                            size="icon"
+                            variant="ghost"
+                        >
+                            <Link href="/admin">
+                                <LayoutDashboardIcon aria-hidden="true" />
+                            </Link>
+                        </Button>
+                        <Button
                             aria-label="New chat"
                             disabled={isPending}
                             onClick={createSession}
@@ -287,9 +298,24 @@ export function ConversationSidebar({
                                 ) : null}
                             </div>
                         </nav>
-                        <footer className="border-t p-3 text-center font-mono text-[10px] text-muted-foreground/60 select-none">
-                            Formalist v{process.env.NEXT_PUBLIC_APP_VERSION} (
-                            {process.env.NEXT_PUBLIC_GIT_COMMIT_HASH})
+                        <footer className="grid gap-2 border-t p-3">
+                            <Button
+                                asChild
+                                className="justify-start font-mono text-xs"
+                                variant="outline"
+                            >
+                                <Link href="/admin">
+                                    <LayoutDashboardIcon
+                                        aria-hidden="true"
+                                        className="size-4"
+                                    />
+                                    Admin dashboard
+                                </Link>
+                            </Button>
+                            <p className="text-center font-mono text-[10px] text-muted-foreground/60 select-none">
+                                Formalist v{process.env.NEXT_PUBLIC_APP_VERSION}{" "}
+                                ({process.env.NEXT_PUBLIC_GIT_COMMIT_HASH})
+                            </p>
                         </footer>
                     </motion.div>
                 )}

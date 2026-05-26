@@ -1,7 +1,13 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
-import { extractedFacts, feeRules, tariffRows } from "#/server/db/schema";
+import {
+    documents,
+    extractedFacts,
+    extractionIssues,
+    feeRules,
+    tariffRows,
+} from "#/server/db/schema";
 import type { FactType, ReviewStatus } from "#/server/db/schema";
 
 const reviewQueueStatuses = ["extracted", "needs_review"] as const;
@@ -111,6 +117,41 @@ export async function activatePendingReviewRecords() {
     return {
         facts: facts.length,
         feeRules: rules.length,
+        tariffRows: rows.length,
+    };
+}
+
+export async function forceCompleteAllDocumentReviews() {
+    const now = new Date();
+    const [facts, rows, rules, resolvedIssues, updatedDocuments] =
+        await Promise.all([
+            getDatabase()
+                .update(extractedFacts)
+                .set({ status: "active", updatedAt: now })
+                .returning(),
+            getDatabase()
+                .update(tariffRows)
+                .set({ status: "active", updatedAt: now })
+                .returning(),
+            getDatabase()
+                .update(feeRules)
+                .set({ status: "active", updatedAt: now })
+                .returning(),
+            getDatabase()
+                .update(extractionIssues)
+                .set({ status: "resolved", updatedAt: now })
+                .returning(),
+            getDatabase()
+                .update(documents)
+                .set({ status: "active", updatedAt: now })
+                .returning(),
+        ]);
+
+    return {
+        documents: updatedDocuments.length,
+        facts: facts.length,
+        feeRules: rules.length,
+        resolvedIssues: resolvedIssues.length,
         tariffRows: rows.length,
     };
 }

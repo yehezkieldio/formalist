@@ -7,8 +7,11 @@ import {
 import { DocumentTable } from "#/components/admin/document-table";
 import { DocumentUploadForm } from "#/components/admin/document-upload-form";
 import { DocumentUploadStatus } from "#/components/admin/document-upload-status";
+import { ForceCompleteAllDocumentsButton } from "#/components/admin/force-complete-all-documents-button";
 import { Badge } from "#/components/ui/badge";
 import { listDocumentsWithReviewSummary } from "#/server/db/queries/documents";
+
+import { forceCompleteAllDocumentsAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +44,12 @@ export default async function DocumentsPage() {
                         <Badge variant={failed > 0 ? "destructive" : "outline"}>
                             {failed} failed
                         </Badge>
+                        <ForceCompleteAllDocumentsButton
+                            action={forceCompleteAllDocumentsAction}
+                            disabled={documents.length === 0}
+                            issueCount={issues}
+                            recordCount={reviewRecords}
+                        />
                     </>
                 }
                 description="Upload source pricelists, watch ingestion status, and jump into the extracted records behind each document."

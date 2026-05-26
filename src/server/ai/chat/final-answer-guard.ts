@@ -62,6 +62,93 @@ function summarizeToolOutput(value: unknown): string[] {
     return [String(value)];
 }
 
+function getRecordValue(record: Record<string, unknown>, key: string) {
+    const value = record[key];
+    return value === null || value === undefined ? undefined : value;
+}
+
+function getTariffRowsFromOutput(output: unknown): Record<string, unknown>[] {
+    if (Array.isArray(output)) {
+        return output.filter(
+            (item): item is Record<string, unknown> =>
+                Boolean(item) &&
+                typeof item === "object" &&
+                "smuPricePerKg" in item
+        );
+    }
+
+    if (!output || typeof output !== "object") {
+        return [];
+    }
+
+    const record = output as Record<string, unknown>;
+
+    if (Array.isArray(record.rows)) {
+        return getTariffRowsFromOutput(record.rows);
+    }
+
+    if (Array.isArray(record.results)) {
+        return getTariffRowsFromOutput(record.results);
+    }
+
+    return [];
+}
+
+function formatPrice(value: unknown) {
+    if (typeof value === "number") {
+        return value.toLocaleString("id-ID");
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed.toLocaleString("id-ID") : null;
+}
+
+function buildTariffFallback(toolEvents: SuccessfulToolEvent[]) {
+    const rows = toolEvents
+        .filter((event) => event.toolName === "searchTariffs")
+        .flatMap((event) => getTariffRowsFromOutput(event.output))
+        .filter((row) => getRecordValue(row, "smuPricePerKg") !== undefined)
+        .toSorted((left, right) => {
+            const leftPrice = Number(getRecordValue(left, "smuPricePerKg"));
+            const rightPrice = Number(getRecordValue(right, "smuPricePerKg"));
+            return leftPrice - rightPrice;
+        })
+        .slice(0, 8);
+
+    if (rows.length === 0) {
+        return;
+    }
+
+    const destination =
+        getRecordValue(rows[0], "destinationCity") ??
+        getRecordValue(rows[0], "destinationCode") ??
+        "tujuan tersebut";
+    const airline = getRecordValue(rows[0], "airline");
+    const heading = airline
+        ? `Tarif aktif ke ${String(destination)} untuk ${String(airline)}:`
+        : `Tarif aktif ke ${String(destination)}:`;
+    const lines = rows.map((row, index) => {
+        const price = formatPrice(getRecordValue(row, "smuPricePerKg"));
+        const origin = getRecordValue(row, "originCity") ?? "origin unknown";
+        const rowDestination =
+            getRecordValue(row, "destinationCity") ?? destination;
+        const routeType = getRecordValue(row, "routeType");
+        const transitRoute = getRecordValue(row, "transitRoute");
+        const promoLabel = getRecordValue(row, "isPromo") ? "promo" : "regular";
+        let routeLabel = "route unknown";
+
+        if (routeType === "TRANSIT" && transitRoute) {
+            routeLabel = `${String(routeType)} via ${String(transitRoute)}`;
+        } else if (routeType) {
+            routeLabel = String(routeType);
+        }
+
+        return `${index + 1}. ${String(origin)} -> ${String(rowDestination)}: Rp ${price ?? "-"} /kg (${promoLabel}, ${routeLabel})`;
+    });
+
+    return [heading, ...lines].join("\n");
+}
+
 export function needsFinalAnswerRepair(input: {
     text: string;
     toolEvents: AssistantToolEvent[];
@@ -85,7 +172,20 @@ export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
         return "I ran the retrieval tools, but they did not return a usable result. Please try a narrower question.";
     }
 
+    const tariffFallback = buildTariffFallback(successfulEvents);
+
+    if (tariffFallback) {
+        return tariffFallback;
+    }
+
     const lines = successfulEvents.flatMap((event) => {
+        if (
+            event.toolName === "classifyIntent" ||
+            event.toolName === "resolveAliases"
+        ) {
+            return [];
+        }
+
         const summary = summarizeToolOutput(event.output);
 
         if (summary.length === 0) {

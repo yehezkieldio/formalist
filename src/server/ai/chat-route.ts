@@ -124,6 +124,23 @@ function writeToolStatus(
     });
 }
 
+function writeTextToStream(
+    writer: Parameters<
+        Parameters<typeof createUIMessageStream>[0]["execute"]
+    >[0]["writer"],
+    text: string
+) {
+    const textId = crypto.randomUUID();
+
+    writer.write({ id: textId, type: "text-start" });
+    writer.write({
+        delta: text,
+        id: textId,
+        type: "text-delta",
+    });
+    writer.write({ id: textId, type: "text-end" });
+}
+
 function streamModelResponse(input: {
     logger: ReturnType<typeof createChatLogger>;
     messages: UIMessage[];
@@ -216,6 +233,7 @@ function streamModelResponse(input: {
                             input.logger.info("stream:repair-final-answer", {
                                 fallbackLength: fallback.length,
                             });
+                            writeTextToStream(writer, fallback);
                             await persistAssistantContent({
                                 content: fallback,
                                 evidenceSnippets: [fallback],
