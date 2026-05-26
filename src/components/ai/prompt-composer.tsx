@@ -36,11 +36,11 @@ export function PromptComposer({
     };
 
     return (
-        <form className="border-t bg-background p-3" onSubmit={submit}>
-            <div className="mx-auto flex w-full max-w-4xl items-end gap-2 rounded-lg border bg-card p-2 shadow-sm">
+        <form className="border-t bg-background px-3 py-3" onSubmit={submit}>
+            <div className="mx-auto flex w-full max-w-4xl items-center gap-2 bg-muted/35 p-2">
                 <textarea
                     aria-label="Message"
-                    className="max-h-44 min-h-12 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-muted-foreground"
+                    className="max-h-44 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground"
                     disabled={disabled}
                     onChange={(event) => setValue(event.target.value)}
                     onKeyDown={(event) => {
@@ -57,6 +57,7 @@ export function PromptComposer({
                 {isStreaming ? (
                     <Button
                         aria-label="Stop generation"
+                        className="size-10 self-center"
                         onClick={onStop}
                         size="icon"
                         type="button"
@@ -67,6 +68,7 @@ export function PromptComposer({
                 ) : (
                     <Button
                         aria-label="Send message"
+                        className="size-10 self-center"
                         disabled={disabled || !value.trim()}
                         size="icon"
                         type="submit"

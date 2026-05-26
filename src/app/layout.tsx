@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 
 import "./globals.css";
 
@@ -19,6 +20,22 @@ export const metadata: Metadata = {
     title: "Formalist",
 };
 
+const themeScript = `
+(() => {
+  try {
+    const storageKey = "formalist-theme";
+    const storedTheme = window.localStorage.getItem(storageKey);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = storedTheme ? storedTheme === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", dark);
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  } catch {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
+  }
+})();
+`;
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -28,7 +45,15 @@ export default function RootLayout({
         <html
             lang="en"
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+            suppressHydrationWarning
         >
+            <head>
+                <Script
+                    id="formalist-theme-script"
+                    strategy="beforeInteractive"
+                    dangerouslySetInnerHTML={{ __html: themeScript }}
+                />
+            </head>
             <body className="flex min-h-full flex-col">{children}</body>
         </html>
     );

@@ -26,10 +26,7 @@ export function EmptyStateExamples() {
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
                 {examples.map((example) => (
-                    <div
-                        className="rounded-md border bg-background p-3 text-sm"
-                        key={example}
-                    >
+                    <div className="bg-muted/35 p-3 text-sm" key={example}>
                         {example}
                     </div>
                 ))}

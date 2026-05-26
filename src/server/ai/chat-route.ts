@@ -2,6 +2,7 @@ import {
     convertToModelMessages,
     createUIMessageStream,
     createUIMessageStreamResponse,
+    stepCountIs,
     streamText,
 } from "ai";
 import type { UIMessage } from "ai";
@@ -18,16 +19,37 @@ import {
 } from "#/server/ai/response-cache";
 import { formalistSystemPrompt } from "#/server/ai/system-prompt";
 import { createAssistantTools } from "#/server/ai/tools";
+import { classifyIntentFallback } from "#/server/ai/tools/classify-intent";
 import type { ClassifiedIntent } from "#/server/ai/tools/classify-intent";
-import { classifyIntent } from "#/server/ai/tools/classify-intent";
 import { verifyAnswer } from "#/server/ai/tools/verify-answer";
 import { chatMessageService } from "#/server/chat/messages";
+import { chatToolCallService } from "#/server/chat/tool-calls";
 import { answerVerificationService } from "#/server/chat/verifications";
 
 const chatRequestSchema = z.object({
     messages: z.array(z.custom<UIMessage>()),
     sessionId: z.uuid().optional(),
 });
+
+function createChatLogger(input: { query: string; sessionId?: string }) {
+    const requestId = crypto.randomUUID().slice(0, 8);
+    const startedAt = Date.now();
+
+    return {
+        info(stage: string, details: Record<string, unknown> = {}) {
+            console.info(
+                `[chat] ${JSON.stringify({
+                    elapsedMs: Date.now() - startedAt,
+                    query: input.query,
+                    requestId,
+                    sessionId: input.sessionId,
+                    stage,
+                    ...details,
+                })}`
+            );
+        },
+    };
+}
 
 function getMessageText(message: UIMessage) {
     return message.parts
@@ -98,7 +120,8 @@ function extractMessageEvidenceSnippets(message: UIMessage) {
 
 async function persistLatestUserMessage(
     sessionId: string | undefined,
-    messages: UIMessage[]
+    messages: UIMessage[],
+    logger?: ReturnType<typeof createChatLogger>
 ) {
     if (!sessionId) {
         return;
@@ -112,12 +135,14 @@ async function persistLatestUserMessage(
         return;
     }
 
+    logger?.info("persist-user-message:start");
     await chatMessageService.create({
         content: getMessageText(latestUserMessage),
         parts: latestUserMessage.parts,
         role: "user",
         sessionId,
     });
+    logger?.info("persist-user-message:finish");
 }
 
 async function persistAssistantContent(input: {
@@ -127,11 +152,15 @@ async function persistAssistantContent(input: {
     mode: "general_rag" | "verified_numeric";
     parts?: unknown;
     sessionId?: string;
+    logger?: ReturnType<typeof createChatLogger>;
 }) {
     if (!input.sessionId) {
         return;
     }
 
+    input.logger?.info("persist-assistant-message:start", {
+        contentLength: input.content.length,
+    });
     const message = await chatMessageService.create({
         content: input.content,
         metadata: input.metadata,
@@ -139,6 +168,12 @@ async function persistAssistantContent(input: {
         role: "assistant",
         sessionId: input.sessionId,
     });
+
+    await chatToolCallService.attachUnlinkedToMessage(
+        input.sessionId,
+        message.id
+    );
+
     const verification = verifyAnswer({
         draftText: input.content,
         evidenceSnippets: input.evidenceSnippets,
@@ -156,9 +191,14 @@ async function persistAssistantContent(input: {
         sessionId: input.sessionId,
         warnings: verification.warnings,
     });
+    input.logger?.info("persist-assistant-message:finish", {
+        confidenceState: verification.confidenceState,
+        messageId: message.id,
+    });
 }
 
 async function persistAssistantMessage(input: {
+    logger?: ReturnType<typeof createChatLogger>;
     message: UIMessage;
     mode: "general_rag" | "verified_numeric";
     sessionId?: string;
@@ -166,6 +206,7 @@ async function persistAssistantMessage(input: {
     await persistAssistantContent({
         content: getMessageText(input.message),
         evidenceSnippets: extractMessageEvidenceSnippets(input.message),
+        logger: input.logger,
         metadata: input.message.metadata,
         mode: input.mode,
         parts: input.message.parts,
@@ -173,12 +214,39 @@ async function persistAssistantMessage(input: {
     });
 }
 
-function createCachedChatStreamResponse(content: string) {
+function createCachedChatStreamResponse(input: {
+    content: string;
+    intent: ClassifiedIntent;
+    messages: UIMessage[];
+    mode: "general_rag" | "verified_numeric";
+    sessionId?: string;
+    status?: string;
+}) {
     const textId = crypto.randomUUID();
     const stream = createUIMessageStream({
-        execute: ({ writer }) => {
+        execute: async ({ writer }) => {
+            if (input.status) {
+                writer.write({
+                    data: { label: input.status },
+                    transient: true,
+                    type: "data-status",
+                });
+            }
+            await persistLatestUserMessage(input.sessionId, input.messages);
+            await persistAssistantContent({
+                content: input.content,
+                evidenceSnippets: [],
+                metadata: { cached: true, intent: input.intent },
+                mode: input.mode,
+                parts: [{ text: input.content, type: "text" }],
+                sessionId: input.sessionId,
+            });
             writer.write({ id: textId, type: "text-start" });
-            writer.write({ delta: content, id: textId, type: "text-delta" });
+            writer.write({
+                delta: input.content,
+                id: textId,
+                type: "text-delta",
+            });
             writer.write({ id: textId, type: "text-end" });
         },
     });
@@ -193,56 +261,148 @@ async function streamChatResponse(input: {
 }) {
     const { chatModel } = getModelConfiguration();
     const lastUserText = getLastUserText(input.messages);
-    const intent = await classifyIntent({
+    const logger = createChatLogger({
+        query: lastUserText,
+        sessionId: input.sessionId,
+    });
+    logger.info("request:start", {
+        messageCount: input.messages.length,
+    });
+    const intent = classifyIntentFallback({
         query: lastUserText || "general question",
     });
     const mode = modeFromIntent(intent);
+    logger.info("intent:classified", { intent, mode });
     const cacheKey = await createResponseCacheKey({
         intent,
         query: lastUserText,
     });
+    logger.info("cache:lookup:start");
     const cachedResponse = await getCachedChatResponse(cacheKey);
+    logger.info("cache:lookup:finish", { hit: Boolean(cachedResponse) });
 
     if (cachedResponse) {
-        await persistAssistantContent({
+        return createCachedChatStreamResponse({
             content: cachedResponse.content,
-            evidenceSnippets: [],
-            metadata: { cached: true, intent: cachedResponse.intent },
+            intent: cachedResponse.intent,
+            messages: input.messages,
             mode: cachedResponse.mode,
-            parts: [{ text: cachedResponse.content, type: "text" }],
             sessionId: input.sessionId,
+            status: "Found a saved answer",
         });
-
-        return createCachedChatStreamResponse(cachedResponse.content);
     }
 
-    const result = streamText({
-        maxOutputTokens: 1200,
-        messages: await convertToModelMessages(input.messages),
-        model: input.provider.openrouter.chat(
-            chatModel,
-            getOpenRouterChatSettings()
-        ),
-        system: `${formalistSystemPrompt}\n\nClassified intent: ${intent}.`,
-        tools: createAssistantTools(),
+    const stream = createUIMessageStream({
+        execute: async ({ writer }) => {
+            writer.write({
+                data: { label: "Preparing request" },
+                transient: true,
+                type: "data-status",
+            });
+
+            await persistLatestUserMessage(
+                input.sessionId,
+                input.messages,
+                logger
+            );
+
+            writer.write({
+                data: { label: "Starting model stream" },
+                transient: true,
+                type: "data-status",
+            });
+
+            let firstChunkSeen = false;
+            const result = streamText({
+                maxOutputTokens: 1200,
+                messages: await convertToModelMessages(input.messages),
+                model: input.provider.openrouter.chat(
+                    chatModel,
+                    getOpenRouterChatSettings()
+                ),
+                onChunk: ({ chunk }) => {
+                    if (!firstChunkSeen) {
+                        firstChunkSeen = true;
+                        logger.info("model:first-chunk", {
+                            chunkType: chunk.type,
+                        });
+                    }
+
+                    if (chunk.type === "text-delta") {
+                        writer.write({
+                            data: { label: "Writing answer" },
+                            transient: true,
+                            type: "data-status",
+                        });
+                    }
+                },
+                onError: ({ error }) => {
+                    logger.info("model:error", {
+                        error:
+                            error instanceof Error
+                                ? error.message
+                                : String(error),
+                    });
+                },
+                onStepFinish: ({ finishReason, usage }) => {
+                    logger.info("model:step-finish", {
+                        finishReason,
+                        usage,
+                    });
+                },
+                stopWhen: stepCountIs(5),
+                system: `${formalistSystemPrompt}\n\nIntent: ${intent}.`,
+                tools: createAssistantTools({
+                    onToolEvent: (event) => {
+                        logger.info("tool:event", event);
+                        writer.write({
+                            data: {
+                                label:
+                                    event.state === "running"
+                                        ? `Using ${event.toolName}`
+                                        : `${event.toolName} ${event.state}`,
+                                state: event.state,
+                                toolName: event.toolName,
+                            },
+                            transient: true,
+                            type: "data-status",
+                        });
+                    },
+                    sessionId: input.sessionId,
+                }),
+            });
+
+            writer.merge(
+                result.toUIMessageStream({
+                    onError: (error) =>
+                        error instanceof Error
+                            ? error.message
+                            : "The model returned an error before writing a response.",
+                    onFinish: async ({ responseMessage }) => {
+                        logger.info("stream:finish", {
+                            responseLength:
+                                getMessageText(responseMessage).length,
+                        });
+                        await persistAssistantMessage({
+                            logger,
+                            message: responseMessage,
+                            mode,
+                            sessionId: input.sessionId,
+                        });
+                        await setCachedChatResponse(cacheKey, {
+                            content: getMessageText(responseMessage),
+                            intent,
+                            mode,
+                            warnings: [],
+                        });
+                        logger.info("request:finish");
+                    },
+                })
+            );
+        },
     });
 
-    return result.toUIMessageStreamResponse({
-        onFinish: async ({ responseMessage }) => {
-            await persistAssistantMessage({
-                message: responseMessage,
-                mode,
-                sessionId: input.sessionId,
-            });
-            await setCachedChatResponse(cacheKey, {
-                content: getMessageText(responseMessage),
-                intent,
-                mode,
-                warnings: [],
-            });
-        },
-        originalMessages: input.messages,
-    });
+    return createUIMessageStreamResponse({ stream });
 }
 
 export function createSetupRequiredStreamResponse(reason: string) {
@@ -269,8 +429,6 @@ export async function handleChatRequest(request: Request) {
     if (provider.status === "setup-required") {
         return createSetupRequiredStreamResponse(provider.reason);
     }
-
-    await persistLatestUserMessage(input.sessionId, input.messages);
 
     return streamChatResponse({
         messages: input.messages,

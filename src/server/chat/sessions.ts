@@ -1,6 +1,8 @@
 import {
     createChatSession,
     getChatSession,
+    getMostRecentChatSession,
+    getMostRecentEmptyChatSession,
     listChatSessions,
     renameChatSession,
     searchChatSessions,
@@ -10,6 +12,8 @@ import {
 export const chatSessionService = {
     create: createChatSession,
     get: getChatSession,
+    getMostRecent: getMostRecentChatSession,
+    getMostRecentEmpty: getMostRecentEmptyChatSession,
     list: listChatSessions,
     rename: renameChatSession,
     search: searchChatSessions,

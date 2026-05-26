@@ -5,6 +5,7 @@ import {
     MoreHorizontalIcon,
     PencilIcon,
     PanelLeftCloseIcon,
+    PanelLeftOpenIcon,
     SearchIcon,
     Trash2Icon,
 } from "lucide-react";
@@ -19,9 +20,13 @@ import { cn } from "#/lib/utils";
 
 function ConversationRow({
     active,
+    onDeleted,
+    onRenamed,
     session,
 }: {
     active: boolean;
+    onDeleted: (sessionId: string) => void;
+    onRenamed: (sessionId: string, title: string) => void;
     session: FormalistChatSession;
 }) {
     const router = useRouter();
@@ -45,8 +50,8 @@ function ConversationRow({
                 headers: { "content-type": "application/json" },
                 method: "PATCH",
             });
+            onRenamed(session.id, nextTitle);
             setEditing(false);
-            router.refresh();
         });
     };
 
@@ -55,9 +60,9 @@ function ConversationRow({
             await fetch(`/api/chat/sessions/${session.id}`, {
                 method: "DELETE",
             });
-            router.refresh();
+            onDeleted(session.id);
             if (active) {
-                router.push("/chat");
+                router.replace("/chat");
             }
         });
     };
@@ -120,9 +125,17 @@ function ConversationRow({
 
 export function ConversationSidebar({
     activeSessionId,
+    collapsed,
+    onCollapsedChange,
+    onSessionDeleted,
+    onSessionRenamed,
     sessions,
 }: {
     activeSessionId?: string;
+    collapsed: boolean;
+    onCollapsedChange: (collapsed: boolean) => void;
+    onSessionDeleted: (sessionId: string) => void;
+    onSessionRenamed: (sessionId: string, title: string) => void;
     sessions: FormalistChatSession[];
 }) {
     const router = useRouter();
@@ -155,10 +168,35 @@ export function ConversationSidebar({
 
             if (payload.session) {
                 router.push(`/chat/${payload.session.id}`);
-                router.refresh();
             }
         });
     };
+
+    if (collapsed) {
+        return (
+            <aside className="hidden min-h-0 w-14 flex-col items-center gap-2 border-r bg-sidebar px-2 py-3 text-sidebar-foreground md:flex">
+                <Button
+                    aria-label="Expand sidebar"
+                    onClick={() => onCollapsedChange(false)}
+                    size="icon"
+                    type="button"
+                    variant="ghost"
+                >
+                    <PanelLeftOpenIcon aria-hidden="true" />
+                </Button>
+                <Button
+                    aria-label="New chat"
+                    disabled={isPending}
+                    onClick={createSession}
+                    size="icon"
+                    type="button"
+                    variant="ghost"
+                >
+                    <MessageSquarePlusIcon aria-hidden="true" />
+                </Button>
+            </aside>
+        );
+    }
 
     return (
         <aside className="flex min-h-0 w-full flex-col border-r bg-sidebar text-sidebar-foreground md:w-72">
@@ -180,6 +218,7 @@ export function ConversationSidebar({
                     <Button
                         aria-label="Collapse sidebar"
                         className="hidden md:inline-flex"
+                        onClick={() => onCollapsedChange(true)}
                         size="icon"
                         type="button"
                         variant="ghost"
@@ -213,6 +252,8 @@ export function ConversationSidebar({
                         <ConversationRow
                             active={session.id === activeSessionId}
                             key={session.id}
+                            onDeleted={onSessionDeleted}
+                            onRenamed={onSessionRenamed}
                             session={session}
                         />
                     ))}

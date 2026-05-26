@@ -3,9 +3,12 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
-import type { FormalistChatMessage } from "#/components/ai/types";
+import type {
+    ChatStreamStatus,
+    FormalistChatMessage,
+} from "#/components/ai/types";
 
 type UiMessageRole = UIMessage["role"];
 
@@ -28,6 +31,42 @@ function toUiMessages(messages: FormalistChatMessage[]): UIMessage[] {
         }));
 }
 
+function parseStreamStatus(dataPart: unknown): ChatStreamStatus | undefined {
+    if (!dataPart || typeof dataPart !== "object") {
+        return;
+    }
+
+    const record = dataPart as Record<string, unknown>;
+
+    if (record.type !== "data-status") {
+        return;
+    }
+
+    const { data } = record;
+
+    if (!data || typeof data !== "object") {
+        return;
+    }
+
+    const status = data as Record<string, unknown>;
+
+    if (typeof status.label !== "string") {
+        return;
+    }
+
+    return {
+        label: status.label,
+        state:
+            status.state === "error" ||
+            status.state === "running" ||
+            status.state === "success"
+                ? status.state
+                : undefined,
+        toolName:
+            typeof status.toolName === "string" ? status.toolName : undefined,
+    };
+}
+
 export function useChatStream({
     initialMessages,
     onFinish,
@@ -37,6 +76,9 @@ export function useChatStream({
     onFinish: () => void;
     sessionId?: string;
 }) {
+    const [streamStatus, setStreamStatus] = useState<
+        ChatStreamStatus | undefined
+    >();
     const transport = useMemo(
         () =>
             new DefaultChatTransport({
@@ -50,10 +92,25 @@ export function useChatStream({
         [initialMessages]
     );
 
-    return useChat({
+    const chat = useChat({
         id: sessionId,
         messages,
-        onFinish,
+        onData: (dataPart) => {
+            const status = parseStreamStatus(dataPart);
+
+            if (status) {
+                setStreamStatus(status);
+            }
+        },
+        onError: (error) => {
+            setStreamStatus({ label: error.message, state: "error" });
+        },
+        onFinish: () => {
+            setStreamStatus(undefined);
+            onFinish();
+        },
         transport,
     });
+
+    return { ...chat, streamStatus };
 }

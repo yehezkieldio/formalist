@@ -28,6 +28,12 @@ export interface ChatVerificationData {
     warnings?: unknown;
 }
 
+export interface ChatStreamStatus {
+    label: string;
+    state?: "error" | "running" | "success";
+    toolName?: string;
+}
+
 export interface FormalistChatMessage {
     content: string;
     createdAt?: Date | string;

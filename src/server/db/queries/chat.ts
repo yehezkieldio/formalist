@@ -1,4 +1,4 @@
-import { asc, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import {
@@ -30,6 +30,37 @@ export function listChatSessions(limit = 50) {
         .where(isNull(chatSessions.deletedAt))
         .orderBy(desc(chatSessions.updatedAt))
         .limit(limit);
+}
+
+export async function getMostRecentChatSession() {
+    const [session] = await getDatabase()
+        .select()
+        .from(chatSessions)
+        .where(isNull(chatSessions.deletedAt))
+        .orderBy(desc(chatSessions.updatedAt))
+        .limit(1);
+
+    return session;
+}
+
+export async function getMostRecentEmptyChatSession() {
+    const [session] = await getDatabase()
+        .select()
+        .from(chatSessions)
+        .where(
+            and(
+                isNull(chatSessions.deletedAt),
+                sql`not exists (
+                    select 1
+                    from ${chatMessages}
+                    where ${chatMessages.sessionId} = ${chatSessions.id}
+                )`
+            )
+        )
+        .orderBy(desc(chatSessions.updatedAt))
+        .limit(1);
+
+    return session;
 }
 
 export function searchChatSessions(query: string, limit = 20) {
@@ -158,6 +189,22 @@ export async function updateChatToolCallState(
         .returning();
 
     return toolCall;
+}
+
+export function attachUnlinkedChatToolCallsToMessage(
+    sessionId: string,
+    messageId: string
+) {
+    return getDatabase()
+        .update(chatToolCalls)
+        .set({ messageId })
+        .where(
+            and(
+                eq(chatToolCalls.sessionId, sessionId),
+                isNull(chatToolCalls.messageId)
+            )
+        )
+        .returning();
 }
 
 export async function attachChatSource(input: typeof chatSources.$inferInsert) {

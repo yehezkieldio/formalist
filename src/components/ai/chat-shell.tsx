@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { ConversationSidebar } from "#/components/ai/conversation-sidebar";
 import { MessageList } from "#/components/ai/message-list";
@@ -12,6 +12,7 @@ import type {
 } from "#/components/ai/types";
 import { useChatStream } from "#/components/ai/use-chat-stream";
 import { ThemeToggle } from "#/components/theme-toggle";
+import { cn } from "#/lib/utils";
 
 function mergeMessages(
     persistedMessages: FormalistChatMessage[],
@@ -55,12 +56,21 @@ export function ChatShell({
     sessions: FormalistChatSession[];
 }) {
     const router = useRouter();
-    const { error, messages, regenerate, sendMessage, status, stop } =
-        useChatStream({
-            initialMessages,
-            onFinish: () => router.refresh(),
-            sessionId: activeSessionId,
-        });
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [visibleSessions, setVisibleSessions] = useState(sessions);
+    const {
+        error,
+        messages,
+        regenerate,
+        sendMessage,
+        status,
+        stop,
+        streamStatus,
+    } = useChatStream({
+        initialMessages,
+        onFinish: () => router.refresh(),
+        sessionId: activeSessionId,
+    });
     const displayMessages = useMemo(
         () => mergeMessages(initialMessages, messages),
         [initialMessages, messages]
@@ -72,21 +82,44 @@ export function ChatShell({
     };
 
     return (
-        <main className="grid h-dvh bg-background text-foreground md:grid-cols-[18rem_minmax(0,1fr)]">
+        <main
+            className={cn(
+                "grid h-dvh bg-background text-foreground",
+                sidebarCollapsed
+                    ? "md:grid-cols-[3.5rem_minmax(0,1fr)]"
+                    : "md:grid-cols-[18rem_minmax(0,1fr)]"
+            )}
+        >
             <ConversationSidebar
                 activeSessionId={activeSessionId}
-                sessions={sessions}
+                collapsed={sidebarCollapsed}
+                onCollapsedChange={setSidebarCollapsed}
+                onSessionDeleted={(sessionId) => {
+                    setVisibleSessions((current) =>
+                        current.filter((session) => session.id !== sessionId)
+                    );
+                }}
+                onSessionRenamed={(sessionId, title) => {
+                    setVisibleSessions((current) =>
+                        current.map((session) =>
+                            session.id === sessionId
+                                ? { ...session, title }
+                                : session
+                        )
+                    );
+                }}
+                sessions={visibleSessions}
             />
             <section className="flex min-h-0 flex-col">
                 <header className="flex h-14 items-center justify-between border-b px-4">
                     <div className="min-w-0">
                         <p className="truncate font-semibold">
-                            {sessions.find(
+                            {visibleSessions.find(
                                 (session) => session.id === activeSessionId
                             )?.title ?? "New chat"}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                            Agentic RAG with verified numeric mode
+                            Evidence-backed tariff workspace
                         </p>
                     </div>
                     <ThemeToggle />
@@ -98,6 +131,7 @@ export function ChatShell({
                         onRegenerate={() => {
                             void regenerate();
                         }}
+                        streamStatus={streamStatus}
                     />
                     {error ? (
                         <div className="mx-auto mb-4 max-w-4xl rounded-md border border-destructive/30 bg-destructive/10 p-3 text-destructive text-sm">

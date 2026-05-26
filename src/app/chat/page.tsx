@@ -1,20 +1,14 @@
-import { ChatShell } from "#/components/ai/chat-shell";
+import { redirect } from "next/navigation";
+
 import { chatSessionService } from "#/server/chat/sessions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChatPage() {
-    const sessions = await chatSessionService.list();
+    const session =
+        (await chatSessionService.getMostRecentEmpty()) ??
+        (await chatSessionService.getMostRecent()) ??
+        (await chatSessionService.create("New conversation"));
 
-    return (
-        <ChatShell
-            initialMessages={[]}
-            sessions={sessions.map((session) => ({
-                createdAt: session.createdAt,
-                id: session.id,
-                title: session.title,
-                updatedAt: session.updatedAt,
-            }))}
-        />
-    );
+    redirect(`/chat/${session.id}`);
 }

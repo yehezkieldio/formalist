@@ -11,20 +11,16 @@ export function ThemeToggle() {
     const [dark, setDark] = useState(false);
 
     useEffect(() => {
-        const storedTheme = window.localStorage.getItem(storageKey);
-        const nextDark =
-            storedTheme === "dark" ||
-            (!storedTheme &&
-                window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-        document.documentElement.classList.toggle("dark", nextDark);
-        setDark(nextDark);
+        setDark(document.documentElement.classList.contains("dark"));
     }, []);
 
     const toggleTheme = () => {
         const nextDark = !dark;
         setDark(nextDark);
         document.documentElement.classList.toggle("dark", nextDark);
+        document.documentElement.style.colorScheme = nextDark
+            ? "dark"
+            : "light";
         window.localStorage.setItem(storageKey, nextDark ? "dark" : "light");
     };
 
