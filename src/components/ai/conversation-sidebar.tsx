@@ -312,10 +312,10 @@ export function ConversationSidebar({
                                     Admin dashboard
                                 </Link>
                             </Button>
-                            <p className="text-center font-mono text-[10px] text-muted-foreground/60 select-none">
+                            {/*<p className="text-center font-mono text-[10px] text-muted-foreground/60 select-none">
                                 Formalist v{process.env.NEXT_PUBLIC_APP_VERSION}{" "}
                                 ({process.env.NEXT_PUBLIC_GIT_COMMIT_HASH})
-                            </p>
+                            </p>*/}
                         </footer>
                     </motion.div>
                 )}
