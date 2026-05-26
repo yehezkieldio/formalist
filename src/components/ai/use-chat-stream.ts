@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
     ChatStreamStatus,
@@ -31,6 +31,12 @@ function toUiMessages(messages: FormalistChatMessage[]): UIMessage[] {
                 : [{ text: message.content, type: "text" }],
             role: toUiRole(message.role),
         }));
+}
+
+function getMessagesKey(messages: FormalistChatMessage[]) {
+    return messages
+        .map((message) => `${message.id}:${message.role}:${message.content}`)
+        .join("|");
 }
 
 function parseStreamStatus(dataPart: unknown): ChatStreamStatus | undefined {
@@ -96,6 +102,11 @@ export function useChatStream({
         () => toUiMessages(initialMessages),
         [initialMessages]
     );
+    const messagesKey = useMemo(
+        () => getMessagesKey(initialMessages),
+        [initialMessages]
+    );
+    const lastSyncedMessagesKeyRef = useRef(messagesKey);
 
     const chat = useChat({
         id: sessionId,
@@ -119,12 +130,16 @@ export function useChatStream({
     const { setMessages, status } = chat;
 
     useEffect(() => {
-        if (status !== "ready") {
+        if (
+            status !== "ready" ||
+            lastSyncedMessagesKeyRef.current === messagesKey
+        ) {
             return;
         }
 
+        lastSyncedMessagesKeyRef.current = messagesKey;
         setMessages(messages);
-    }, [messages, setMessages, status]);
+    }, [messages, messagesKey, setMessages, status]);
 
     return { ...chat, streamStatus };
 }

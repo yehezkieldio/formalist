@@ -237,8 +237,9 @@ export function ChatShell({
 
     const submitMessage = (content: string) => {
         void sendMessage({
-            messageId: crypto.randomUUID(),
-            text: content,
+            id: crypto.randomUUID(),
+            parts: [{ text: content, type: "text" }],
+            role: "user",
         });
     };
 
