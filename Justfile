@@ -67,10 +67,7 @@ local-worker: local-artifacts
 [group("local")]
 [unix]
 local-all: infra-up local-artifacts
-    set -euo pipefail; \
-    trap 'kill 0' INT TERM EXIT; \
-    DATABASE_URL={{ local_database_url }} REDIS_URL={{ local_redis_url }} UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run worker & \
-    DATABASE_URL={{ local_database_url }} REDIS_URL={{ local_redis_url }} UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run dev
+    DATABASE_URL={{ local_database_url }} REDIS_URL={{ local_redis_url }} UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bash scripts/run-app-and-worker.sh
 
 [group("local")]
 [windows]
@@ -90,10 +87,7 @@ host-worker: local-artifacts
 [group("host")]
 [unix]
 host-all: local-artifacts
-    set -euo pipefail; \
-    trap 'kill 0' INT TERM EXIT; \
-    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run worker & \
-    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bun run dev
+    UPLOAD_ROOT={{ quote(local_upload_root_abs) }} bash scripts/run-app-and-worker.sh
 
 [group("host")]
 [unix]
