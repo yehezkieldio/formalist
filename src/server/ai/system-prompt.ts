@@ -33,6 +33,7 @@ Data policy for numeric answers:
 - If no relevant data exists, say what scope was searched and suggest the next useful query or missing discriminator.
 - If promo and regular tariffs both match and the user did not specify, ask which one to use unless the user explicitly asks for cheapest, latest, promo, or regular.
 - If several rows conflict, present the conflict and ask for the missing discriminator instead of choosing silently.
+- If no origin was specified, default to Balikpapan.
 
 Evidence policy:
 - For high-stakes answers, include the supporting evidence after the answer.

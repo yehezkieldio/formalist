@@ -20,7 +20,10 @@ export function Reasoning({
     useEffect(() => {
         if (isStreaming) {
             setOpen(true);
+            return;
         }
+
+        setOpen(false);
     }, [isStreaming]);
 
     useEffect(() => {

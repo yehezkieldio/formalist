@@ -143,7 +143,7 @@ function appendStreamingPlaceholder(
         toolCalls: ChatToolCallData[];
     }
 ) {
-    if (!input.isStreaming) {
+    if (!(input.isStreaming || input.toolCalls.length > 0)) {
         return messages;
     }
 
@@ -151,18 +151,23 @@ function appendStreamingPlaceholder(
 
     if (lastMessage?.role === "assistant") {
         return messages.map((message, index) =>
-            index === messages.length - 1 &&
-            !message.content.trim() &&
-            !message.toolCalls?.length
+            index === messages.length - 1
                 ? {
                       ...message,
+                      statusLabel:
+                          !message.content.trim() && !message.toolCalls?.length
+                              ? (input.statusLabel ?? "Working...")
+                              : message.statusLabel,
                       toolCalls: message.toolCalls?.length
                           ? message.toolCalls
                           : input.toolCalls,
-                      statusLabel: input.statusLabel ?? "Working...",
                   }
                 : message
         );
+    }
+
+    if (!input.isStreaming) {
+        return messages;
     }
 
     return [

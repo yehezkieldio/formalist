@@ -112,12 +112,13 @@ function updateToolCalls(
         id,
         input: status.input,
         output: status.output,
-        startedAt: existingIndex >= 0 ? toolCalls[existingIndex].startedAt : now,
+        startedAt:
+            existingIndex === -1 ? now : toolCalls[existingIndex].startedAt,
         state: status.state,
         toolName: status.toolName,
     };
 
-    if (existingIndex < 0) {
+    if (existingIndex === -1) {
         return [...toolCalls, nextToolCall];
     }
 
