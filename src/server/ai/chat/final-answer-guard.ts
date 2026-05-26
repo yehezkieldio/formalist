@@ -1,3 +1,4 @@
+import type { TariffAnswerData } from "#/components/ai/types";
 import type { AssistantToolEvent } from "#/server/ai/tools";
 
 interface SuccessfulToolEvent {
@@ -150,7 +151,9 @@ function formatPrice(value: unknown) {
     return Number.isFinite(parsed) ? parsed.toLocaleString("id-ID") : null;
 }
 
-function buildTariffFallback(toolEvents: SuccessfulToolEvent[]) {
+function buildTariffAnswerData(
+    toolEvents: SuccessfulToolEvent[]
+): TariffAnswerData | undefined {
     const rows = toolEvents
         .filter((event) => event.toolName === "searchTariffs")
         .flatMap((event) => getTariffRowsFromOutput(event.output))
@@ -171,18 +174,10 @@ function buildTariffFallback(toolEvents: SuccessfulToolEvent[]) {
         getRecordValue(rows[0], "destinationCode") ??
         "tujuan tersebut";
     const airline = getRecordValue(rows[0], "airline");
-    const heading = airline
-        ? `Tarif aktif ke ${String(destination)} untuk ${String(airline)}:`
-        : `Tarif aktif ke ${String(destination)}:`;
-    const lines = rows.map((row, index) => {
-        const price = formatPrice(getRecordValue(row, "smuPricePerKg"));
-        const origin = getRecordValue(row, "originCity") ?? "origin unknown";
-        const rowDestination =
-            getRecordValue(row, "destinationCity") ?? destination;
+    const answerRows = rows.map((row) => {
         const routeType = getRecordValue(row, "routeType");
         const transitRoute = getRecordValue(row, "transitRoute");
-        const promoLabel = getRecordValue(row, "isPromo") ? "promo" : "regular";
-        let routeLabel = "route unknown";
+        let routeLabel = "route tidak tercatat";
 
         if (routeType === "TRANSIT" && transitRoute) {
             routeLabel = `${String(routeType)} via ${String(transitRoute)}`;
@@ -190,10 +185,54 @@ function buildTariffFallback(toolEvents: SuccessfulToolEvent[]) {
             routeLabel = String(routeType);
         }
 
-        return `${index + 1}. ${String(origin)} -> ${String(rowDestination)}: Rp ${price ?? "-"} /kg (${promoLabel}, ${routeLabel})`;
+        return {
+            airline: formatScalar(getRecordValue(row, "airline")),
+            destinationCity: formatScalar(
+                getRecordValue(row, "destinationCity")
+            ),
+            destinationCode: formatScalar(
+                getRecordValue(row, "destinationCode")
+            ),
+            documentId: String(getRecordValue(row, "documentId") ?? "unknown"),
+            isPromo: Boolean(getRecordValue(row, "isPromo")),
+            originCity:
+                formatScalar(getRecordValue(row, "originCity")) ??
+                "origin tidak tercatat",
+            pageNumber:
+                typeof getRecordValue(row, "pageNumber") === "number"
+                    ? (getRecordValue(row, "pageNumber") as number)
+                    : null,
+            routeType: routeLabel,
+            smuPricePerKg: Number(getRecordValue(row, "smuPricePerKg")),
+            transitRoute: formatScalar(getRecordValue(row, "transitRoute")),
+        };
     });
 
-    return [heading, ...lines].join("\n");
+    return {
+        airline: formatScalar(airline),
+        destination: String(destination),
+        rows: answerRows,
+    };
+}
+
+function formatTariffAnswer(data: TariffAnswerData) {
+    const prices = data.rows
+        .map((row) => row.smuPricePerKg)
+        .filter((price) => Number.isFinite(price))
+        .toSorted((left, right) => left - right);
+    const [lowest] = prices;
+    const highest = prices.at(-1);
+
+    if (lowest === undefined || highest === undefined) {
+        return `Saya menemukan baris tarif aktif untuk ${data.airline ? `${data.airline} ke ` : ""}${data.destination}, tetapi harga belum terbaca dengan aman.`;
+    }
+
+    const range =
+        lowest === highest
+            ? `Rp ${formatPrice(lowest)}/kg`
+            : `Rp ${formatPrice(lowest)}/kg sampai Rp ${formatPrice(highest)}/kg`;
+
+    return `Tarif aktif${data.airline ? ` ${data.airline}` : ""} ke ${data.destination} tersedia ${range}. Saya menemukan ${data.rows.length} baris aktif yang sudah direview; detailnya saya tampilkan di bawah.`;
 }
 
 export function needsFinalAnswerRepair(input: {
@@ -219,10 +258,10 @@ export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
         return "Saya menjalankan pencarian, tetapi belum ada hasil yang cukup untuk membuat jawaban tepercaya. Coba persempit pertanyaan atau pastikan data sudah direview.";
     }
 
-    const tariffFallback = buildTariffFallback(successfulEvents);
+    const tariffAnswerData = buildTariffAnswerData(successfulEvents);
 
-    if (tariffFallback) {
-        return tariffFallback;
+    if (tariffAnswerData) {
+        return formatTariffAnswer(tariffAnswerData);
     }
 
     const lines = successfulEvents.flatMap((event) => {
@@ -247,4 +286,14 @@ export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
     }
 
     return "Saya menemukan hasil retrieval, tetapi belum ada jawaban akhir yang aman dari data aktif yang sudah direview. Saya tidak akan menampilkan payload tool mentah sebagai jawaban.";
+}
+
+export function buildToolResultFallbackMetadata(
+    toolEvents: AssistantToolEvent[]
+) {
+    const tariffAnswer = buildTariffAnswerData(
+        toolEvents.filter(isSuccessfulToolEvent)
+    );
+
+    return tariffAnswer ? { tariffAnswer } : undefined;
 }

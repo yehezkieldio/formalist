@@ -51,13 +51,15 @@ describe("direct chat answers", () => {
         });
 
         expect(structuredSearchMock.searchTariffs).toHaveBeenCalledWith({
-            airline: "Garuda",
+            airline: "Garuda / Citilink",
             destinationCode: "CGK",
         });
         expect(answer?.content).toContain(
-            "Tarif aktif ke JAKARTA untuk Garuda:"
+            "Tarif aktif Garuda / Citilink ke JAKARTA tersedia"
         );
         expect(answer?.content).toContain("Rp 18.250/kg");
+        expect(answer?.content).not.toContain("doc doc-1");
+        expect(answer?.metadata?.tariffAnswer?.rows).toHaveLength(1);
         expect(answer?.content).not.toContain("Tool results:");
     });
 
@@ -73,8 +75,79 @@ describe("direct chat answers", () => {
         });
 
         expect(answer?.content).toBe(
-            "Belum ada tarif aktif yang sudah direview untuk Garuda ke JAKARTA."
+            "Belum ada tarif aktif yang sudah direview untuk Garuda / Citilink ke JAKARTA."
         );
+        expect(answer?.content).not.toContain("Tool results:");
+    });
+
+    it("answers destination follow-ups using previous tariff context", async () => {
+        structuredSearchMock.searchTariffs.mockResolvedValueOnce([
+            {
+                airline: "Garuda / Citilink",
+                destinationCity: "DENPASAR",
+                destinationCode: "DPS",
+                documentId: "doc-2",
+                isPromo: false,
+                originCity: null,
+                pageNumber: 1,
+                rawRowText: "Garuda Denpasar 23700",
+                routeType: "TRANSIT",
+                smuPricePerKg: 23_700,
+                sourceText: "Garuda Denpasar 23700",
+                transitRoute: null,
+            },
+        ]);
+        const { getDirectChatAnswer } =
+            await import("#/server/ai/chat/direct-answers");
+
+        const answer = await getDirectChatAnswer({
+            intent: "general_rag",
+            messages: [
+                {
+                    id: "user-1",
+                    parts: [
+                        {
+                            text: "harga tujuan jakarta dengan maskapai garuda",
+                            type: "text",
+                        },
+                    ],
+                    role: "user",
+                },
+                {
+                    id: "assistant-1",
+                    metadata: {
+                        tariffAnswer: {
+                            airline: "Garuda / Citilink",
+                            destination: "JAKARTA",
+                            rows: [],
+                        },
+                    },
+                    parts: [
+                        {
+                            text: "Tarif aktif Garuda / Citilink ke JAKARTA tersedia.",
+                            type: "text",
+                        },
+                    ],
+                    role: "assistant",
+                },
+                {
+                    id: "user-2",
+                    parts: [{ text: "kalau tujuan denpasar?", type: "text" }],
+                    role: "user",
+                },
+            ],
+            mode: "general_rag",
+            query: "kalau tujuan denpasar?",
+        });
+
+        expect(structuredSearchMock.searchTariffs).toHaveBeenCalledWith({
+            airline: "Garuda / Citilink",
+            destinationCode: "DPS",
+        });
+        expect(answer?.content).toContain(
+            "Tarif aktif Garuda / Citilink ke DENPASAR tersedia"
+        );
+        expect(answer?.content).not.toContain("Let me");
         expect(answer?.content).not.toContain("Tool results:");
     });
 });

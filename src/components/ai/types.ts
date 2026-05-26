@@ -37,6 +37,25 @@ export interface ChatStreamStatus {
     toolName?: string;
 }
 
+export interface TariffAnswerRowData {
+    airline?: string | null;
+    destinationCity?: string | null;
+    destinationCode?: string | null;
+    documentId: string;
+    isPromo: boolean;
+    originCity?: string | null;
+    pageNumber?: number | null;
+    routeType: string;
+    smuPricePerKg: number;
+    transitRoute?: string | null;
+}
+
+export interface TariffAnswerData {
+    airline?: string;
+    destination: string;
+    rows: TariffAnswerRowData[];
+}
+
 export interface FormalistChatMessage {
     content: string;
     createdAt?: Date | string;
@@ -48,6 +67,7 @@ export interface FormalistChatMessage {
             label: string;
             status?: "active" | "complete" | "pending";
         }[];
+        tariffAnswer?: TariffAnswerData;
     } | null;
     parts?: unknown;
     role: ChatRole;

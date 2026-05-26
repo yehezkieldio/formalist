@@ -48,12 +48,14 @@ describe("final answer repair fallback", () => {
             },
         ] satisfies AssistantToolEvent[]);
 
-        expect(fallback).toContain("Tarif aktif ke JAKARTA untuk Garuda:");
-        expect(fallback).toContain("Rp 17.300 /kg");
-        expect(fallback).toContain("Rp 18.250 /kg");
+        expect(fallback).toContain("Tarif aktif Garuda ke JAKARTA tersedia");
+        expect(fallback).toContain("Rp 17.300/kg");
+        expect(fallback).toContain("Rp 18.250/kg");
+        expect(fallback).toContain("detailnya saya tampilkan di bawah");
         expect(fallback).not.toContain("Tool results:");
         expect(fallback).not.toContain("resolveAliases");
         expect(fallback).not.toContain("result");
+        expect(fallback).not.toContain("SURABAYA -> JAKARTA");
     });
 
     it("does not promote generic tool output into answer text", () => {

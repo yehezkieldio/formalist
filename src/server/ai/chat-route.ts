@@ -11,6 +11,7 @@ import * as z from "zod";
 import { getDirectChatAnswer } from "#/server/ai/chat/direct-answers";
 import {
     buildToolResultFallback,
+    buildToolResultFallbackMetadata,
     needsFinalAnswerRepair,
 } from "#/server/ai/chat/final-answer-guard";
 import { createChatLogger } from "#/server/ai/chat/logger";
@@ -62,15 +63,24 @@ function createPersistedTextStreamResponse(input: {
     intent: ClassifiedIntent;
     logger?: ReturnType<typeof createChatLogger>;
     messages: UIMessage[];
+    metadata?: unknown;
     mode: "general_rag" | "verified_numeric";
     sessionId?: string;
     status?: string;
 }) {
     const messageId = crypto.randomUUID();
     const textId = crypto.randomUUID();
+    const metadata =
+        input.metadata && typeof input.metadata === "object"
+            ? { ...input.metadata, intent: input.intent }
+            : { intent: input.intent };
     const stream = createUIMessageStream({
         execute: async ({ writer }) => {
-            writer.write({ messageId, type: "start" });
+            writer.write({
+                messageId,
+                messageMetadata: metadata,
+                type: "start",
+            });
 
             if (input.status) {
                 writeStatus(writer, { label: input.status });
@@ -86,7 +96,7 @@ function createPersistedTextStreamResponse(input: {
                 evidenceSnippets: input.evidenceSnippets ?? [input.content],
                 id: messageId,
                 logger: input.logger,
-                metadata: { intent: input.intent },
+                metadata,
                 mode: input.mode,
                 parts: [{ text: input.content, type: "text" }],
                 sessionId: input.sessionId,
@@ -270,19 +280,36 @@ function streamModelResponse(input: {
                         ) {
                             const fallback =
                                 buildToolResultFallback(toolEvents);
+                            const fallbackMetadata =
+                                buildToolResultFallbackMetadata(toolEvents);
                             input.logger.info("stream:repair-final-answer", {
                                 fallbackLength: fallback.length,
                             });
+                            if (fallbackMetadata) {
+                                writer.write({
+                                    messageMetadata: {
+                                        ...fallbackMetadata,
+                                        repaired: true,
+                                    },
+                                    type: "message-metadata",
+                                });
+                            }
                             writeTextToStream(writer, fallback);
                             await persistAssistantContent({
                                 content: fallback,
                                 evidenceSnippets: [fallback],
                                 id: assistantMessageId,
                                 logger: input.logger,
-                                metadata:
-                                    buildRepairedMessageMetadata(
-                                        responseMessage
-                                    ),
+                                metadata: fallbackMetadata
+                                    ? {
+                                          ...buildRepairedMessageMetadata(
+                                              responseMessage
+                                          ),
+                                          ...fallbackMetadata,
+                                      }
+                                    : buildRepairedMessageMetadata(
+                                          responseMessage
+                                      ),
                                 mode: input.mode,
                                 parts: buildRepairedMessageParts(
                                     responseMessage,
@@ -352,6 +379,7 @@ async function streamChatResponse(input: {
             intent: directAnswer.intent,
             logger,
             messages: input.messages,
+            metadata: directAnswer.metadata,
             mode: directAnswer.mode,
             sessionId: input.sessionId,
             status: directAnswer.status,

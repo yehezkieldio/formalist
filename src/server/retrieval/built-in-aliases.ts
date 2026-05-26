@@ -45,6 +45,24 @@ export const builtInAliases = [
         type: "city",
     },
     {
+        alias: "denpasar",
+        canonicalValue: "DENPASAR",
+        metadata: { airportCodes: ["DPS"] },
+        type: "city",
+    },
+    {
+        alias: "bali",
+        canonicalValue: "DENPASAR",
+        metadata: { airportCodes: ["DPS"] },
+        type: "city",
+    },
+    {
+        alias: "dps",
+        canonicalValue: "DPS",
+        metadata: { city: "DENPASAR" },
+        type: "airport",
+    },
+    {
         alias: "jakarta",
         canonicalValue: "JAKARTA",
         metadata: { airportCodes: ["CGK", "HLP"] },
@@ -79,12 +97,17 @@ export const builtInAliases = [
     },
     {
         alias: "garuda",
-        canonicalValue: "Garuda",
+        canonicalValue: "Garuda / Citilink",
         type: "airline",
     },
     {
         alias: "garuda indonesia",
-        canonicalValue: "Garuda",
+        canonicalValue: "Garuda / Citilink",
+        type: "airline",
+    },
+    {
+        alias: "citilink",
+        canonicalValue: "Garuda / Citilink",
         type: "airline",
     },
 ] satisfies AliasInput[];

@@ -6,7 +6,7 @@ import { PromptComposer } from "#/components/ai/prompt-composer";
 import { ThemeToggle } from "#/components/theme-toggle";
 
 describe("chat UI browser-facing coverage", () => {
-    it("renders responsive chat chrome, examples, confidence, and dark-mode controls", () => {
+    it("renders responsive chat chrome, examples, messages, and dark-mode controls", () => {
         const markup = renderToStaticMarkup(
             <>
                 <MessageList
@@ -27,7 +27,7 @@ describe("chat UI browser-facing coverage", () => {
             </>
         );
 
-        expect(markup).toContain("Confident");
+        expect(markup).not.toContain("Confident");
         expect(markup).toContain("Harga");
         expect(markup).toContain("Send message");
         expect(markup).toContain("Toggle theme");

@@ -9,7 +9,7 @@ const unexpectedSubmit = () => {
 };
 
 describe("chat UI components", () => {
-    it("renders assistant confidence, tool calls, and source evidence", () => {
+    it("renders assistant tool calls and source evidence without confidence badges", () => {
         const markup = renderToStaticMarkup(
             <MessageList
                 messages={[
@@ -45,9 +45,51 @@ describe("chat UI components", () => {
             />
         );
 
-        expect(markup).toContain("Confident");
+        expect(markup).not.toContain("Confident");
         expect(markup).toContain("searchTariffs");
         expect(markup).toContain("Pelita pricelist page 2");
+    });
+
+    it("renders tariff answer metadata as a structured result panel", () => {
+        const markup = renderToStaticMarkup(
+            <MessageList
+                messages={[
+                    {
+                        content:
+                            "Tarif aktif Garuda / Citilink ke JAKARTA tersedia dari Rp 17.300/kg.",
+                        id: "assistant-1",
+                        metadata: {
+                            tariffAnswer: {
+                                airline: "Garuda / Citilink",
+                                destination: "JAKARTA",
+                                rows: [
+                                    {
+                                        airline: "Garuda / Citilink",
+                                        destinationCity: "JAKARTA",
+                                        destinationCode: "CGK",
+                                        documentId:
+                                            "46c10b9f-ca6a-4246-a22c-970d510e5069",
+                                        isPromo: false,
+                                        originCity: "origin tidak tercatat",
+                                        pageNumber: 1,
+                                        routeType: "DIRECT",
+                                        smuPricePerKg: 17_300,
+                                        transitRoute: null,
+                                    },
+                                ],
+                            },
+                        },
+                        role: "assistant",
+                    },
+                ]}
+            />
+        );
+
+        expect(markup).toContain("Tarif aktif");
+        expect(markup).toContain("Garuda / Citilink");
+        expect(markup).toContain("Rp 17.300/kg");
+        expect(markup).toContain("origin tidak tercatat");
+        expect(markup).toContain("tersedia dari Rp");
     });
 
     it("shows streaming status for an empty assistant message", () => {

@@ -4,11 +4,11 @@ import { motion } from "motion/react";
 import { Streamdown } from "streamdown";
 
 import { ChainOfThought } from "#/components/ai/chain-of-thought";
-import { ConfidenceBadge } from "#/components/ai/confidence-badge";
 import { EmptyStateExamples } from "#/components/ai/empty-state-examples";
 import { MessageActions } from "#/components/ai/message-actions";
 import { Reasoning } from "#/components/ai/reasoning";
 import { SourceCards } from "#/components/ai/source-cards";
+import { TariffAnswerCard } from "#/components/ai/tariff-answer-card";
 import { ToolCallTimeline } from "#/components/ai/tool-call-timeline";
 import type { FormalistChatMessage } from "#/components/ai/types";
 import { cn } from "#/lib/utils";
@@ -50,6 +50,17 @@ function MessageBody({
     }
 
     if (message.role === "assistant") {
+        if (message.metadata?.tariffAnswer) {
+            return (
+                <div className="space-y-3">
+                    <Streamdown className="prose prose-neutral dark:prose-invert max-w-none">
+                        {message.content}
+                    </Streamdown>
+                    <TariffAnswerCard data={message.metadata.tariffAnswer} />
+                </div>
+            );
+        }
+
         return (
             <Streamdown className="prose prose-neutral dark:prose-invert max-w-none">
                 {message.content}
@@ -63,6 +74,7 @@ function MessageBody({
 function hasVisibleContent(message: FormalistChatMessage) {
     return (
         message.content.trim().length > 0 ||
+        Boolean(message.metadata?.tariffAnswer) ||
         Boolean(message.metadata?.reasoning?.trim()) ||
         Boolean(message.metadata?.steps?.length) ||
         Boolean(message.sources?.length) ||
@@ -128,14 +140,6 @@ export function MessageList({
                             isStreaming={isStreaming}
                             message={message}
                         />
-                        {message.role === "assistant" &&
-                        message.verification ? (
-                            <div className="mt-3">
-                                <ConfidenceBadge
-                                    state={message.verification.confidenceState}
-                                />
-                            </div>
-                        ) : null}
                     </div>
                     {message.role === "assistant" ? (
                         <div className="w-full max-w-4xl space-y-3">

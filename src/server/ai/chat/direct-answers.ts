@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 
+import type { TariffAnswerData } from "#/components/ai/types";
 import type { ClassifiedIntent } from "#/server/ai/tools/classify-intent";
 import { findAliasesByType } from "#/server/db/queries/aliases";
 import type { AliasType } from "#/server/db/schema";
@@ -12,6 +13,9 @@ export interface DirectChatAnswer {
     content: string;
     evidenceSnippets: string[];
     intent: ClassifiedIntent;
+    metadata?: {
+        tariffAnswer?: TariffAnswerData;
+    };
     mode: "general_rag" | "verified_numeric";
     stage: string;
     status: string;
@@ -25,6 +29,12 @@ function isDocumentInventoryQuery(query: string) {
 
 function isTariffPriceQuery(query: string) {
     return /\b(harga|price|tariff|tarif|smu|ongkir|rate|berapa)\b/iu.test(
+        query
+    );
+}
+
+function isTariffFollowUpQuery(query: string) {
+    return /\b(kalau|kalo|untuk|tujuan|ke|destination|destinasi)\b/iu.test(
         query
     );
 }
@@ -131,6 +141,33 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === "object";
+}
+
+function getPreviousTariffAirline(messages: UIMessage[]) {
+    const previousAssistant = messages
+        .slice(0, -1)
+        .findLast((message) => message.role === "assistant");
+    const metadata = previousAssistant?.metadata;
+
+    if (
+        isRecord(metadata) &&
+        isRecord(metadata.tariffAnswer) &&
+        typeof metadata.tariffAnswer.airline === "string"
+    ) {
+        return metadata.tariffAnswer.airline;
+    }
+
+    const previousText = previousAssistant?.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join("");
+    const match = previousText?.match(/untuk\s+([^:\n]+)/iu);
+
+    return match?.[1]?.trim();
+}
+
 function formatDocumentInventory(
     rows: Awaited<ReturnType<typeof listDocumentInventory>>
 ) {
@@ -144,6 +181,43 @@ function formatDocumentInventory(
     });
 
     return [`Ada ${rows.length} dokumen:`, ...lines].join("\n");
+}
+
+function formatPriceRange(rows: Awaited<ReturnType<typeof searchTariffs>>) {
+    const [lowestRow] = rows;
+    const highestRow = rows.at(-1);
+
+    if (!(lowestRow && highestRow)) {
+        return "";
+    }
+
+    if (lowestRow.smuPricePerKg !== highestRow.smuPricePerKg) {
+        return ` dari Rp ${lowestRow.smuPricePerKg?.toLocaleString("id-ID")}/kg sampai Rp ${highestRow.smuPricePerKg?.toLocaleString("id-ID")}/kg`;
+    }
+
+    return ` Rp ${lowestRow.smuPricePerKg?.toLocaleString("id-ID")}/kg`;
+}
+
+function toTariffAnswerRows(rows: Awaited<ReturnType<typeof searchTariffs>>) {
+    return rows.map((row) => {
+        const routeLabel =
+            row.routeType === "TRANSIT" && row.transitRoute
+                ? `${row.routeType} via ${row.transitRoute}`
+                : row.routeType;
+
+        return {
+            airline: row.airline,
+            destinationCity: row.destinationCity,
+            destinationCode: row.destinationCode,
+            documentId: row.documentId,
+            isPromo: row.isPromo,
+            originCity: row.originCity ?? "origin tidak tercatat",
+            pageNumber: row.pageNumber,
+            routeType: routeLabel,
+            smuPricePerKg: row.smuPricePerKg ?? 0,
+            transitRoute: row.transitRoute,
+        };
+    });
 }
 
 async function getDocumentInventoryAnswer(input: {
@@ -169,33 +243,41 @@ async function getDocumentInventoryAnswer(input: {
 
 async function getTariffPriceAnswer(input: {
     intent: ClassifiedIntent;
+    messages: UIMessage[];
     query: string;
 }): Promise<DirectChatAnswer | undefined> {
-    if (!isTariffPriceQuery(input.query)) {
-        return;
-    }
-
     const destination = await findDirectDestination(input.query);
 
     if (!destination) {
         return;
     }
 
-    const airline = await findDirectAirline(input.query);
+    const previousAirline = getPreviousTariffAirline(input.messages);
+    const airline = (await findDirectAirline(input.query)) ?? previousAirline;
+
+    if (
+        !(
+            isTariffPriceQuery(input.query) ||
+            (airline && isTariffFollowUpQuery(input.query))
+        )
+    ) {
+        return;
+    }
+
     const rowsByCode = destination.code
         ? await searchTariffs({
               airline,
               destinationCode: destination.code,
           })
         : [];
-    const rows =
+    const tariffRows =
         rowsByCode.length > 0 || !destination.city
             ? rowsByCode
             : await searchTariffs({
                   airline,
                   destinationCity: destination.city,
               });
-    const pricedRows = rows
+    const pricedRows = tariffRows
         .filter((row) => row.smuPricePerKg !== null)
         .toSorted((left, right) => {
             const priceDelta =
@@ -221,25 +303,24 @@ async function getTariffPriceAnswer(input: {
         };
     }
 
-    const lines = pricedRows.map((row, index) => {
-        const promoLabel = row.isPromo ? "promo" : "regular";
-        const routeLabel =
-            row.routeType === "TRANSIT" && row.transitRoute
-                ? `${row.routeType} via ${row.transitRoute}`
-                : row.routeType;
-
-        return `${index + 1}. ${row.airline ?? "Unknown airline"} ${row.originCity ?? "Unknown origin"} -> ${row.destinationCity ?? destination.city}: Rp ${row.smuPricePerKg?.toLocaleString("id-ID")}/kg (${promoLabel}, ${routeLabel}, doc ${row.documentId}${row.pageNumber ? ` page ${row.pageNumber}` : ""})`;
-    });
+    const range = formatPriceRange(pricedRows);
+    const tariffAnswerRows = toTariffAnswerRows(pricedRows);
+    const destinationLabel =
+        destination.city ?? destination.code ?? "tujuan ini";
 
     return {
-        content: [
-            `Tarif aktif ke ${destination.city ?? destination.code}${airline ? ` untuk ${airline}` : ""}:`,
-            ...lines,
-        ].join("\n"),
+        content: `Tarif aktif${airline ? ` ${airline}` : ""} ke ${destinationLabel} tersedia${range}. Saya menemukan ${pricedRows.length} baris aktif yang sudah direview; detailnya saya tampilkan di bawah.`,
         evidenceSnippets: pricedRows.flatMap((row) =>
             [row.rawRowText, row.sourceText].filter(isNonEmptyString)
         ),
         intent: input.intent,
+        metadata: {
+            tariffAnswer: {
+                airline,
+                destination: destinationLabel,
+                rows: tariffAnswerRows,
+            },
+        },
         mode: "verified_numeric",
         stage: "direct:tariff-answer",
         status: "Checking active tariffs",
@@ -256,6 +337,7 @@ export async function getDirectChatAnswer(input: {
         (await getDocumentInventoryAnswer(input)) ??
         (await getTariffPriceAnswer({
             intent: input.intent,
+            messages: input.messages,
             query: input.query,
         }))
     );
