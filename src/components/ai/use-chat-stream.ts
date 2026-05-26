@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
     ChatStreamStatus,
+    ChatToolCallData,
     FormalistChatMessage,
 } from "#/components/ai/types";
 
@@ -87,6 +88,50 @@ function parseStreamStatus(dataPart: unknown): ChatStreamStatus | undefined {
     };
 }
 
+function getToolCallId(status: ChatStreamStatus) {
+    return `stream-${status.toolName ?? "tool"}-${JSON.stringify(status.input ?? null)}`;
+}
+
+function updateToolCalls(
+    toolCalls: ChatToolCallData[],
+    status: ChatStreamStatus
+) {
+    if (!status.toolName || !status.state) {
+        return toolCalls;
+    }
+
+    const id = getToolCallId(status);
+    const existingIndex = toolCalls.findIndex((toolCall) => toolCall.id === id);
+    const now = new Date().toISOString();
+    const nextToolCall: ChatToolCallData = {
+        completedAt:
+            status.state === "success" || status.state === "error"
+                ? now
+                : undefined,
+        error: status.error,
+        id,
+        input: status.input,
+        output: status.output,
+        startedAt: existingIndex >= 0 ? toolCalls[existingIndex].startedAt : now,
+        state: status.state,
+        toolName: status.toolName,
+    };
+
+    if (existingIndex < 0) {
+        return [...toolCalls, nextToolCall];
+    }
+
+    return toolCalls.map((toolCall, index) =>
+        index === existingIndex
+            ? {
+                  ...toolCall,
+                  ...nextToolCall,
+                  startedAt: toolCall.startedAt,
+              }
+            : toolCall
+    );
+}
+
 export function useChatStream({
     initialMessages,
     onFinish,
@@ -99,6 +144,9 @@ export function useChatStream({
     const [streamStatus, setStreamStatus] = useState<
         ChatStreamStatus | undefined
     >();
+    const [streamToolCalls, setStreamToolCalls] = useState<ChatToolCallData[]>(
+        []
+    );
     const transport = useMemo(
         () =>
             new DefaultChatTransport({
@@ -125,6 +173,9 @@ export function useChatStream({
 
             if (status) {
                 setStreamStatus(status);
+                setStreamToolCalls((current) =>
+                    updateToolCalls(current, status)
+                );
             }
         },
         onError: (error) => {
@@ -139,6 +190,17 @@ export function useChatStream({
     const { setMessages, status } = chat;
 
     useEffect(() => {
+        if (status === "submitted") {
+            setStreamToolCalls([]);
+        }
+    }, [status]);
+
+    useEffect(() => {
+        setStreamStatus(undefined);
+        setStreamToolCalls([]);
+    }, [sessionId]);
+
+    useEffect(() => {
         if (
             status !== "ready" ||
             lastSyncedMessagesKeyRef.current === messagesKey
@@ -150,5 +212,5 @@ export function useChatStream({
         setMessages(messages);
     }, [messages, messagesKey, setMessages, status]);
 
-    return { ...chat, streamStatus };
+    return { ...chat, streamStatus, streamToolCalls };
 }

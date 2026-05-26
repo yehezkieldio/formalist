@@ -140,6 +140,7 @@ function appendStreamingPlaceholder(
     input: {
         isStreaming: boolean;
         statusLabel?: string;
+        toolCalls: ChatToolCallData[];
     }
 ) {
     if (!input.isStreaming) {
@@ -155,6 +156,9 @@ function appendStreamingPlaceholder(
             !message.toolCalls?.length
                 ? {
                       ...message,
+                      toolCalls: message.toolCalls?.length
+                          ? message.toolCalls
+                          : input.toolCalls,
                       statusLabel: input.statusLabel ?? "Working...",
                   }
                 : message
@@ -168,6 +172,7 @@ function appendStreamingPlaceholder(
             id: "streaming-assistant-placeholder",
             role: "assistant" as const,
             statusLabel: input.statusLabel ?? "Working...",
+            toolCalls: input.toolCalls,
         },
     ];
 }
@@ -193,6 +198,7 @@ export function ChatShell({
         sendMessage,
         status,
         streamStatus,
+        streamToolCalls,
         stop,
     } = useChatStream({
         initialMessages,
@@ -207,9 +213,16 @@ export function ChatShell({
                 {
                     isStreaming,
                     statusLabel: streamStatus?.label,
+                    toolCalls: streamToolCalls,
                 }
             ),
-        [initialMessages, isStreaming, messages, streamStatus?.label]
+        [
+            initialMessages,
+            isStreaming,
+            messages,
+            streamStatus?.label,
+            streamToolCalls,
+        ]
     );
 
     useEffect(() => {
