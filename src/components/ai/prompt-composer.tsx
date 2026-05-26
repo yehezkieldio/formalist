@@ -50,11 +50,14 @@ export function PromptComposer({
     const isSendDisabled = disabled || !value.trim();
 
     return (
-        <form className="border-t bg-background px-4 py-4" onSubmit={submit}>
-            <div className="mx-auto flex w-full max-w-3xl items-center gap-2 border border-border bg-card p-2 transition-colors duration-300 focus-within:border-foreground/45 bg-muted/10">
+        <form
+            className="border-t border-border/40 bg-background/80 px-6 py-5 backdrop-blur-md"
+            onSubmit={submit}
+        >
+            <div className="mx-auto flex w-full max-w-3xl items-center gap-2 border border-border/60 bg-muted/5 p-2 px-3 transition-all duration-300 focus-within:border-foreground/45 focus-within:bg-background shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] rounded-none">
                 <textarea
                     aria-label="Message"
-                    className="max-h-44 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground/50"
+                    className="max-h-44 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-xs leading-relaxed outline-none placeholder:text-muted-foreground/45 font-sans"
                     disabled={disabled}
                     onChange={(event) => updateValue(event.target.value)}
                     onKeyDown={(event) => {
@@ -73,7 +76,7 @@ export function PromptComposer({
                     {isStreaming ? (
                         <button
                             aria-label="Stop generation"
-                            className="flex size-8 cursor-pointer items-center justify-center border border-border bg-card text-foreground transition-all hover:bg-muted active:scale-95"
+                            className="flex size-8 cursor-pointer items-center justify-center border border-border/60 bg-card text-foreground transition-all hover:bg-muted active:scale-95 rounded-none shadow-sm select-none"
                             onClick={onStop}
                             type="button"
                         >
@@ -90,7 +93,7 @@ export function PromptComposer({
                     ) : (
                         <button
                             aria-label="Send message"
-                            className="flex size-8 cursor-pointer items-center justify-center bg-foreground text-background transition-all hover:bg-foreground/85 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground/45 active:scale-95"
+                            className="flex size-8 cursor-pointer items-center justify-center bg-foreground text-background transition-all hover:bg-foreground/85 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground/40 active:scale-95 rounded-none shadow-sm select-none"
                             disabled={isSendDisabled}
                             type="submit"
                         >
@@ -112,8 +115,8 @@ export function PromptComposer({
                     )}
                 </div>
             </div>
-            <p className="pt-4 text-center font-mono text-[10px] text-muted-foreground/60 select-none">
-                Formalist v{process.env.NEXT_PUBLIC_APP_VERSION} (
+            <p className="pt-4 text-center font-mono text-[9px] tracking-widest text-muted-foreground/40 uppercase select-none">
+                Formalist v{process.env.NEXT_PUBLIC_APP_VERSION} // (
                 {process.env.NEXT_PUBLIC_GIT_COMMIT_HASH})
             </p>
         </form>

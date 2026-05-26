@@ -9,7 +9,7 @@ const unexpectedSubmit = () => {
 };
 
 describe("chat UI components", () => {
-    it("renders assistant tool calls and source evidence without confidence badges", () => {
+    it("renders assistant tool calls and source evidence with confidence badges", () => {
         const markup = renderToStaticMarkup(
             <MessageList
                 messages={[
@@ -45,7 +45,7 @@ describe("chat UI components", () => {
             />
         );
 
-        expect(markup).not.toContain("Confident");
+        expect(markup).toContain("Confident");
         expect(markup).toContain("searchTariffs");
         expect(markup).toContain("Pelita pricelist page 2");
     });

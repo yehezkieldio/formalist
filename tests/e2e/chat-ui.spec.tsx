@@ -27,7 +27,7 @@ describe("chat UI browser-facing coverage", () => {
             </>
         );
 
-        expect(markup).not.toContain("Confident");
+        expect(markup).toContain("Confident");
         expect(markup).toContain("Harga");
         expect(markup).toContain("Send message");
         expect(markup).toContain("Toggle theme");

@@ -104,30 +104,37 @@ export function SourcePreview({
         <SourcePreviewModal onClose={onClose} title={source.title}>
             <div className="space-y-4">
                 <div>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60 select-none">
                         {detail?.document?.sourceName ??
                             detail?.document?.filename ??
                             source.sourceType}
                         {detail?.evidence.pageNumber
-                            ? `, page ${detail.evidence.pageNumber}`
+                            ? `, PG ${detail.evidence.pageNumber}`
                             : ""}
                     </p>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-7">
+                    <div className="mt-3 bg-muted/20 p-3.5 border-l-2 border-foreground text-[11px] leading-relaxed text-foreground select-text font-mono">
+                        "
                         {detail?.evidence.snippet ??
                             source.snippet ??
                             "No source snippet stored for this citation."}
-                    </p>
+                        "
+                    </div>
                 </div>
                 {error ? (
-                    <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-destructive text-sm">
+                    <p className="border border-destructive/25 bg-destructive/10 p-3 text-destructive font-mono text-[10px] uppercase tracking-wider">
                         {error}
                     </p>
                 ) : null}
                 {detail ? <SourceDetail detail={detail} /> : null}
                 {source.metadata ? (
-                    <pre className="overflow-auto rounded-md border bg-muted/30 p-3 text-xs">
-                        {JSON.stringify(source.metadata, null, 2)}
-                    </pre>
+                    <div className="space-y-1">
+                        <p className="font-mono font-semibold text-muted-foreground/60 text-[9px] uppercase tracking-wider select-none">
+                            Metadata Properties
+                        </p>
+                        <pre className="overflow-auto border border-border/40 bg-background/50 p-2.5 font-mono text-[9px] leading-relaxed text-muted-foreground select-text shadow-[inset_0_1px_3px_rgba(0,0,0,0.03)]">
+                            {JSON.stringify(source.metadata, null, 2)}
+                        </pre>
+                    </div>
                 ) : null}
             </div>
         </SourcePreviewModal>

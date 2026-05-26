@@ -1,6 +1,5 @@
 import { AlertTriangleIcon, CheckCircle2Icon } from "lucide-react";
 
-import { Badge } from "#/components/ui/badge";
 import type { ConfidenceState } from "#/server/db/schema";
 
 const confidenceLabels = {
@@ -23,12 +22,20 @@ export function ConfidenceBadge({ state }: { state: ConfidenceState }) {
     }
 
     const Icon = getConfidenceIcon(state);
-    const variant = state === "CONFIDENT" ? "secondary" : "outline";
+
+    if (state === "CONFIDENT") {
+        return (
+            <span className="inline-flex items-center gap-1 border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wider uppercase text-emerald-500">
+                <Icon aria-hidden="true" className="size-2.5" />
+                {confidenceLabels[state]}
+            </span>
+        );
+    }
 
     return (
-        <Badge className="gap-1" variant={variant}>
-            <Icon aria-hidden="true" className="size-3" />
+        <span className="inline-flex items-center gap-1 border border-amber-500/25 bg-amber-500/10 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wider uppercase text-amber-500">
+            <Icon aria-hidden="true" className="size-2.5" />
             {confidenceLabels[state]}
-        </Badge>
+        </span>
     );
 }

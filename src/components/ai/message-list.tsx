@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Streamdown } from "streamdown";
 
 import { ChainOfThought } from "#/components/ai/chain-of-thought";
+import { ConfidenceBadge } from "#/components/ai/confidence-badge";
 import { EmptyStateExamples } from "#/components/ai/empty-state-examples";
 import { MessageActions } from "#/components/ai/message-actions";
 import { Reasoning } from "#/components/ai/reasoning";
@@ -15,7 +16,7 @@ import { cn } from "#/lib/utils";
 
 function getMessageContentClassName(role: FormalistChatMessage["role"]) {
     if (role === "user") {
-        return "bg-primary px-4 py-3 text-primary-foreground";
+        return "border border-border/60 bg-muted/10 px-5 py-3 text-foreground rounded-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]";
     }
 
     return "w-full max-w-none";
@@ -126,6 +127,29 @@ export function MessageList({
                             getMessageContentClassName(message.role)
                         )}
                     >
+                        {message.role === "assistant" &&
+                        message.verification ? (
+                            <div className="flex flex-wrap items-center gap-2 mb-3.5 font-mono text-[9px] select-none border-b border-border/40 pb-2">
+                                {message.verification.mode ===
+                                "verified_numeric" ? (
+                                    <span className="inline-flex items-center gap-1.5 border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500 font-medium tracking-wider uppercase">
+                                        <span className="relative flex h-1.5 w-1.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full bg-emerald-400 rounded-full opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                        </span>
+                                        VERIFIED NUMERIC MODE
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1 border border-border/60 bg-muted/20 px-1.5 py-0.5 text-muted-foreground font-medium tracking-wider uppercase">
+                                        <span className="inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/45"></span>
+                                        RAG RETRIEVAL MODE
+                                    </span>
+                                )}
+                                <ConfidenceBadge
+                                    state={message.verification.confidenceState}
+                                />
+                            </div>
+                        ) : null}
                         {message.role === "assistant" &&
                         message.metadata?.steps?.length ? (
                             <ChainOfThought steps={message.metadata.steps} />

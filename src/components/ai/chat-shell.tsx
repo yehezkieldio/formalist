@@ -270,15 +270,18 @@ export function ChatShell({
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="flex min-h-0 flex-1 flex-col overflow-hidden"
+                className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background"
             >
-                <header className="flex h-14 items-center justify-between border-b px-4">
-                    <div className="min-w-0">
-                        <p className="truncate text-base font-semibold tracking-tight text-foreground/90">
+                <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border/40 bg-background/80 px-6 backdrop-blur-md">
+                    <div className="flex min-w-0 items-center gap-2">
+                        <span className="font-mono text-[10px] tracking-widest text-muted-foreground/60 uppercase select-none">
+                            SESSION //
+                        </span>
+                        <h1 className="truncate font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
                             {visibleSessions.find(
                                 (session) => session.id === activeSessionId
                             )?.title ?? "New chat"}
-                        </p>
+                        </h1>
                     </div>
                     <ThemeToggle />
                 </header>

@@ -31,11 +31,12 @@ export function ThemeToggle() {
             size="icon"
             type="button"
             variant="ghost"
+            className="h-8 w-8 active:scale-95 transition-transform text-muted-foreground/80 hover:text-foreground"
         >
             {dark ? (
-                <SunIcon aria-hidden="true" />
+                <SunIcon className="size-4" aria-hidden="true" />
             ) : (
-                <MoonIcon aria-hidden="true" />
+                <MoonIcon className="size-4" aria-hidden="true" />
             )}
         </Button>
     );
