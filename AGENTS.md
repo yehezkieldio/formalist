@@ -132,20 +132,3 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 6. **Documentation** - Add comments for complex logic, but prefer self-documenting code
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `bun x ultracite fix` before committing to ensure compliance.
-
-<!-- SPECKIT START -->
-
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan:
-`specs/001-agentic-rag-assistant/plan.md`.
-
-Formalist is governed by `.specify/memory/constitution.md`. Before creating or
-reviewing specs, plans, or tasks, apply the Formalist constitution gates:
-agentic RAG as the primary product, multiple document memories, verified
-numeric mode, human review before trust, deterministic TypeScript quote
-calculation, source traceability, ChatGPT-like UI quality, flexible
-Docker/managed deployment, self-hosted local artifact storage, protected admin
-routes, separated module boundaries, graceful behavior without
-`OPENROUTER_API_KEY`, and no seed tariff data or eval/test-question dashboard.
-
-<!-- SPECKIT END -->
