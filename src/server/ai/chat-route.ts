@@ -106,16 +106,11 @@ function writeTextToStream(
     writer.write({ id: textId, type: "text-end" });
 }
 
-function isBufferedModelTextChunk(chunk: UIMessageChunk) {
+function isForwardedLiveModelChunk(chunk: UIMessageChunk) {
     return (
         chunk.type === "text-start" ||
         chunk.type === "text-delta" ||
-        chunk.type === "text-end"
-    );
-}
-
-function isForwardedLiveModelChunk(chunk: UIMessageChunk) {
-    return (
+        chunk.type === "text-end" ||
         chunk.type === "reasoning-start" ||
         chunk.type === "reasoning-delta" ||
         chunk.type === "reasoning-end" ||
@@ -256,8 +251,7 @@ function streamModelResponse(input: {
                 }),
             });
 
-            const bufferedTextChunks: UIMessageChunk[] = [];
-            let shouldEmitBufferedText = true;
+            let hasStreamedText = false;
 
             const modelStream = result.toUIMessageStream({
                 generateMessageId: () => assistantMessageId,
@@ -273,12 +267,12 @@ function streamModelResponse(input: {
                     });
 
                     if (
+                        !hasStreamedText &&
                         needsFinalAnswerRepair({
                             text: responseText,
                             toolEvents,
                         })
                     ) {
-                        shouldEmitBufferedText = false;
                         const repairedAnswer = await repairFinalAnswer({
                             originalAnswer: responseText,
                             provider: input.provider,
@@ -344,18 +338,11 @@ function streamModelResponse(input: {
             });
 
             for await (const chunk of modelStream) {
-                if (isBufferedModelTextChunk(chunk)) {
-                    bufferedTextChunks.push(chunk);
-                    continue;
+                if (chunk.type === "text-delta" && chunk.delta.length > 0) {
+                    hasStreamedText = true;
                 }
 
                 if (isForwardedLiveModelChunk(chunk)) {
-                    writer.write(chunk);
-                }
-            }
-
-            if (shouldEmitBufferedText) {
-                for (const chunk of bufferedTextChunks) {
                     writer.write(chunk);
                 }
             }
