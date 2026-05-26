@@ -1,4 +1,4 @@
-import { ArrowRightIcon, FileTextIcon } from "lucide-react";
+import { ArrowRightIcon, FileTextIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "#/components/ui/badge";
@@ -7,8 +7,10 @@ import { Button } from "#/components/ui/button";
 import { AdminEmptyState, ReviewStatusBadge } from "./admin-primitives";
 
 export function DocumentTable({
+    deleteAction,
     documents,
 }: {
+    deleteAction: (formData: FormData) => Promise<void>;
     documents: {
         filename: string;
         id: string;
@@ -32,17 +34,17 @@ export function DocumentTable({
 
     return (
         <section className="overflow-hidden border">
-            <div className="grid grid-cols-[minmax(18rem,1fr)_8rem_6.5rem_6.5rem_9rem] gap-3 border-b bg-muted/30 px-3 py-2 font-mono text-[10px] text-muted-foreground uppercase max-xl:hidden">
+            <div className="grid grid-cols-[minmax(18rem,1fr)_8rem_6.5rem_6.5rem_13rem] gap-3 border-b bg-muted/30 px-3 py-2 font-mono text-[10px] text-muted-foreground uppercase max-xl:hidden">
                 <span>Document</span>
                 <span>Status</span>
                 <span>Records</span>
                 <span>Issues</span>
-                <span>Open</span>
+                <span>Actions</span>
             </div>
             <div className="divide-y">
                 {documents.map((document) => (
                     <article
-                        className="grid min-w-0 gap-3 p-3 transition-colors hover:bg-muted/20 xl:grid-cols-[minmax(18rem,1fr)_8rem_6.5rem_6.5rem_9rem] xl:items-center"
+                        className="grid min-w-0 gap-3 p-3 transition-colors hover:bg-muted/20 xl:grid-cols-[minmax(18rem,1fr)_8rem_6.5rem_6.5rem_13rem] xl:items-center"
                         key={document.id}
                     >
                         <div className="min-w-0">
@@ -86,19 +88,40 @@ export function DocumentTable({
                         >
                             {document.issueCount} issues
                         </Badge>
-                        <Button
-                            asChild
-                            className="w-full justify-between xl:w-auto"
-                            size="sm"
-                            variant={
-                                document.issueCount > 0 ? "default" : "outline"
-                            }
-                        >
-                            <Link href={`/admin/documents/${document.id}`}>
-                                Open document
-                                <ArrowRightIcon aria-hidden="true" />
-                            </Link>
-                        </Button>
+                        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[1fr_auto]">
+                            <Button
+                                asChild
+                                className="w-full justify-between"
+                                size="sm"
+                                variant={
+                                    document.issueCount > 0
+                                        ? "default"
+                                        : "outline"
+                                }
+                            >
+                                <Link href={`/admin/documents/${document.id}`}>
+                                    Open
+                                    <ArrowRightIcon aria-hidden="true" />
+                                </Link>
+                            </Button>
+                            <form action={deleteAction}>
+                                <input
+                                    name="documentId"
+                                    type="hidden"
+                                    value={document.id}
+                                />
+                                <Button
+                                    aria-label={`Delete ${document.filename}`}
+                                    className="w-full"
+                                    size="sm"
+                                    type="submit"
+                                    variant="destructive"
+                                >
+                                    <Trash2Icon aria-hidden="true" />
+                                    Delete
+                                </Button>
+                            </form>
+                        </div>
                     </article>
                 ))}
             </div>

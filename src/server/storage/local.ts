@@ -6,6 +6,7 @@ import {
     assertUploadRootIsPrivate,
     originalFilePath,
     resolveUploadRoot,
+    resolveStoragePath,
 } from "#/server/storage/paths";
 
 export interface LocalStorageSettings {
@@ -84,4 +85,51 @@ export function readOriginalFile(filePath: string): Promise<Buffer> {
 
 export async function deleteOriginalFile(filePath: string): Promise<void> {
     await rm(filePath, { force: true });
+}
+
+export async function deleteDocumentStorageArtifacts(input: {
+    documentId: string;
+    originalPath?: null | string;
+    pageImagePaths?: (null | string)[];
+    uploadRoot: string;
+}): Promise<void> {
+    const paths = new Set<string>();
+
+    if (input.originalPath) {
+        paths.add(input.originalPath);
+    }
+
+    for (const pageImagePathValue of input.pageImagePaths ?? []) {
+        if (pageImagePathValue) {
+            paths.add(pageImagePathValue);
+        }
+    }
+
+    paths.add(
+        resolveStoragePath(
+            { uploadRoot: input.uploadRoot },
+            "pages",
+            input.documentId
+        )
+    );
+    paths.add(
+        resolveStoragePath(
+            { uploadRoot: input.uploadRoot },
+            "extracted",
+            input.documentId
+        )
+    );
+    paths.add(
+        resolveStoragePath(
+            { uploadRoot: input.uploadRoot },
+            "debug",
+            input.documentId
+        )
+    );
+
+    await Promise.all(
+        [...paths].map((filePath) =>
+            rm(filePath, { force: true, recursive: true })
+        )
+    );
 }

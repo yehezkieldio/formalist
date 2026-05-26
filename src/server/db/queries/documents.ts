@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { getDatabase } from "#/server/db";
 import {
     documentChunks,
+    documentPages,
     documents,
     extractionIssues,
     extractedFacts,
@@ -95,6 +96,34 @@ export async function getDocument(documentId: string) {
         .from(documents)
         .where(eq(documents.id, documentId))
         .limit(1);
+
+    return document;
+}
+
+export async function getDocumentStoragePaths(documentId: string) {
+    const [document, pages] = await Promise.all([
+        getDocument(documentId),
+        getDatabase()
+            .select({ pageImagePath: documentPages.pageImagePath })
+            .from(documentPages)
+            .where(eq(documentPages.documentId, documentId)),
+    ]);
+
+    if (!document) {
+        return;
+    }
+
+    return {
+        originalPath: document.originalPath,
+        pageImagePaths: pages.map((page) => page.pageImagePath),
+    };
+}
+
+export async function deleteDocument(documentId: string) {
+    const [document] = await getDatabase()
+        .delete(documents)
+        .where(eq(documents.id, documentId))
+        .returning();
 
     return document;
 }

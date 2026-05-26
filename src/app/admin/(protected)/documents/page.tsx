@@ -11,7 +11,10 @@ import { ForceCompleteAllDocumentsButton } from "#/components/admin/force-comple
 import { Badge } from "#/components/ui/badge";
 import { listDocumentsWithReviewSummary } from "#/server/db/queries/documents";
 
-import { forceCompleteAllDocumentsAction } from "./actions";
+import {
+    deleteDocumentAction,
+    forceCompleteAllDocumentsAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +75,10 @@ export default async function DocumentsPage() {
                 <DocumentUploadForm />
                 <DocumentUploadStatus />
             </section>
-            <DocumentTable documents={documents} />
+            <DocumentTable
+                deleteAction={deleteDocumentAction}
+                documents={documents}
+            />
         </div>
     );
 }
