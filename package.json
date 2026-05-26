@@ -7,7 +7,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "worker": "tsx src/worker.ts",
+        "worker": "bun run src/worker.ts",
         "managed:app": "bash scripts/start-managed-app.sh",
         "managed:worker": "bash scripts/start-managed-worker.sh",
         "self-hosted:app": "bash scripts/start-self-hosted-app.sh",
@@ -100,7 +100,6 @@
         "oxfmt": "^0.51.0",
         "oxlint": "^1.66.0",
         "tailwindcss": "^4",
-        "tsx": "^4.22.3",
         "typescript": "^6.0.3",
         "ultracite": "7.7.0",
         "vitest": "^4.1.7"
