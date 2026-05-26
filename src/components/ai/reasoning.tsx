@@ -2,7 +2,7 @@
 
 import { BrainCircuitIcon, ChevronDownIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { cn } from "#/lib/utils";
 
@@ -14,12 +14,33 @@ export function Reasoning({
     isStreaming?: boolean;
 }) {
     const [open, setOpen] = useState(isStreaming);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const stickToBottomRef = useRef(true);
 
     useEffect(() => {
         if (isStreaming) {
             setOpen(true);
         }
     }, [isStreaming]);
+
+    useEffect(() => {
+        const element = contentRef.current;
+
+        if (!(element && open && isStreaming && stickToBottomRef.current)) {
+            return;
+        }
+
+        const animationFrame = requestAnimationFrame(() => {
+            element.scrollTo({
+                behavior: "auto",
+                top: element.scrollHeight,
+            });
+        });
+
+        return () => {
+            cancelAnimationFrame(animationFrame);
+        };
+    }, [children, isStreaming, open]);
 
     if (!children.trim()) {
         return null;
@@ -62,7 +83,19 @@ export function Reasoning({
                         }}
                         className="overflow-hidden"
                     >
-                        <div className="max-h-56 overflow-y-auto border-t border-border/40 px-3 py-2 text-muted-foreground/80 leading-relaxed sm:max-h-72 whitespace-pre-wrap">
+                        <div
+                            className="max-h-56 overflow-y-auto border-t border-border/40 px-3 py-2 text-muted-foreground/80 leading-relaxed sm:max-h-72 whitespace-pre-wrap"
+                            onScroll={(event) => {
+                                const element = event.currentTarget;
+                                const distanceFromBottom =
+                                    element.scrollHeight -
+                                    element.scrollTop -
+                                    element.clientHeight;
+                                stickToBottomRef.current =
+                                    distanceFromBottom < 24;
+                            }}
+                            ref={contentRef}
+                        >
                             {children}
                         </div>
                     </motion.div>

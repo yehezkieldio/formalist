@@ -45,6 +45,30 @@ export const builtInAliases = [
         type: "city",
     },
     {
+        alias: "balikpapan",
+        canonicalValue: "BALIKPAPAN",
+        metadata: { airportCodes: ["BPN"] },
+        type: "city",
+    },
+    {
+        alias: "bpn",
+        canonicalValue: "BPN",
+        metadata: { city: "BALIKPAPAN" },
+        type: "airport",
+    },
+    {
+        alias: "ambon",
+        canonicalValue: "AMBON",
+        metadata: { airportCodes: ["AMQ"] },
+        type: "city",
+    },
+    {
+        alias: "amq",
+        canonicalValue: "AMQ",
+        metadata: { city: "AMBON" },
+        type: "airport",
+    },
+    {
         alias: "denpasar",
         canonicalValue: "DENPASAR",
         metadata: { airportCodes: ["DPS"] },

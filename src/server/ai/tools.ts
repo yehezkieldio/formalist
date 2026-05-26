@@ -13,10 +13,6 @@ import {
     tariffSearchInputSchema,
     verifyAnswerInputSchema,
 } from "#/server/ai/tool-schemas";
-import {
-    calculateQuoteInputSchema,
-    calculateQuoteTool,
-} from "#/server/ai/tools/calculate-quote";
 import { classifyIntent } from "#/server/ai/tools/classify-intent";
 import { verifyAnswer } from "#/server/ai/tools/verify-answer";
 import { chatToolCallService } from "#/server/chat/tool-calls";
@@ -135,16 +131,6 @@ function createTrackedExecute<Input, Output>(
 
 export function createAssistantTools(options: AssistantToolOptions = {}) {
     return {
-        calculateQuote: {
-            description:
-                "Calculate deterministic air cargo quote totals from a reviewed tariff row and reviewed fee rule.",
-            execute: createTrackedExecute(
-                "calculateQuote",
-                calculateQuoteTool,
-                options
-            ),
-            inputSchema: calculateQuoteInputSchema,
-        },
         classifyIntent: {
             description:
                 "Classify a user query into Formalist chat modes before choosing retrieval or quote tools.",
@@ -157,7 +143,7 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
         },
         compareTariffs: {
             description:
-                "Compare active reviewed tariffs and detect promo/regular ambiguity.",
+                "Compare extracted tariffs and detect promo/regular ambiguity.",
             execute: createTrackedExecute(
                 "compareTariffs",
                 (input: z.infer<typeof compareTariffsInputSchema>) =>
@@ -190,7 +176,7 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
         },
         getFeeRules: {
             description:
-                "Find the applicable active reviewed fee rule for an airline or document.",
+                "Find the applicable extracted fee rule for an airline or document.",
             execute: createTrackedExecute(
                 "getFeeRules",
                 findApplicableFeeRule,
@@ -220,7 +206,7 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
             inputSchema: retrievalInputSchema,
         },
         listDestinations: {
-            description: "List destinations from active reviewed tariff rows.",
+            description: "List destinations from extracted tariff rows.",
             execute: createTrackedExecute(
                 "listDestinations",
                 listDestinations,
@@ -270,13 +256,13 @@ export function createAssistantTools(options: AssistantToolOptions = {}) {
         },
         searchFacts: {
             description:
-                "Search extracted facts. Use active status for trusted numeric answers.",
+                "Search extracted facts from tariff and pricelist documents.",
             execute: createTrackedExecute("searchFacts", searchFacts, options),
             inputSchema: factSearchInputSchema,
         },
         searchTariffs: {
             description:
-                "Search tariff rows. Defaults to active reviewed rows and is required for trusted price answers.",
+                "Search tariff rows from extracted tariff and pricelist documents.",
             execute: createTrackedExecute(
                 "searchTariffs",
                 searchTariffs,

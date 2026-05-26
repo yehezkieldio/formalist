@@ -57,7 +57,6 @@ async function searchDocumentChunksByVector(
         includeArchivedDocuments: input.includeArchivedDocuments,
         limit: (input.limit ?? 10) * 4,
         ownerTypes: ["document_chunk"],
-        status: "active",
         validOn: input.validOn,
     });
     const ownerIds = vectorRows.map((row) => row.ownerId);
@@ -111,7 +110,7 @@ async function searchDocumentChunksByText(
         from document_chunks dc
         join documents d on d.id = dc.document_id
         cross join query
-        where dc.status = 'active'
+        where true
         ${documentFilter}
         ${archiveFilter}
         ${validOnFilter}

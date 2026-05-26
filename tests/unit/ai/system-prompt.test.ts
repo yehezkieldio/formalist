@@ -17,11 +17,12 @@ describe("formalist system prompt", () => {
         );
     });
 
-    it("requires reviewed data and deterministic quote calculation for numeric answers", () => {
-        expect(formalistSystemPrompt).toContain("active reviewed tariff rows");
-        expect(formalistSystemPrompt).toContain("Always call calculateQuote");
+    it("requires tool-grounded numeric answers", () => {
         expect(formalistSystemPrompt).toContain(
-            "Never provide a trusted numeric answer from raw chunks alone"
+            "Call tools before answering any price"
+        );
+        expect(formalistSystemPrompt).toContain(
+            "Answer from available tariff rows"
         );
     });
 

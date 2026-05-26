@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Streamdown } from "streamdown";
 
 import { ChainOfThought } from "#/components/ai/chain-of-thought";
-import { ConfidenceBadge } from "#/components/ai/confidence-badge";
+// import { ConfidenceBadge } from "#/components/ai/confidence-badge";
 import { EmptyStateExamples } from "#/components/ai/empty-state-examples";
 import { MessageActions } from "#/components/ai/message-actions";
 import { Reasoning } from "#/components/ai/reasoning";
@@ -127,7 +127,7 @@ export function MessageList({
                             getMessageContentClassName(message.role)
                         )}
                     >
-                        {message.role === "assistant" &&
+                        {/*{message.role === "assistant" &&
                         message.verification ? (
                             <div className="flex flex-wrap items-center gap-2 mb-3.5 font-mono text-[9px] select-none border-b border-border/40 pb-2">
                                 {message.verification.mode ===
@@ -149,7 +149,7 @@ export function MessageList({
                                     state={message.verification.confidenceState}
                                 />
                             </div>
-                        ) : null}
+                        ) : null}*/}
                         {message.role === "assistant" &&
                         message.metadata?.steps?.length ? (
                             <ChainOfThought steps={message.metadata.steps} />

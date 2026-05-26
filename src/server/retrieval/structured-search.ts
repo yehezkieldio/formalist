@@ -1,4 +1,5 @@
 import { and, eq, ilike } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 
 import { getDatabase } from "#/server/db";
 import { tariffRows } from "#/server/db/schema";
@@ -16,7 +17,11 @@ export interface TariffSearchFilters {
 }
 
 export function tariffSearchConditions(input: TariffSearchFilters) {
-    const conditions = [eq(tariffRows.status, input.status ?? "active")];
+    const conditions: SQL[] = [];
+
+    if (input.status) {
+        conditions.push(eq(tariffRows.status, input.status));
+    }
 
     if (input.airline) {
         conditions.push(ilike(tariffRows.airline, input.airline));
@@ -48,8 +53,10 @@ export function tariffSearchConditions(input: TariffSearchFilters) {
 }
 
 export function searchTariffs(input: TariffSearchFilters) {
+    const conditions = tariffSearchConditions(input);
+
     return getDatabase()
         .select()
         .from(tariffRows)
-        .where(and(...tariffSearchConditions(input)));
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 }

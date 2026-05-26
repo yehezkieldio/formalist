@@ -9,7 +9,7 @@ const unexpectedSubmit = () => {
 };
 
 describe("chat UI components", () => {
-    it("renders assistant tool calls and source evidence with confidence badges", () => {
+    it("renders assistant tool calls and source evidence", () => {
         const markup = renderToStaticMarkup(
             <MessageList
                 messages={[
@@ -45,7 +45,6 @@ describe("chat UI components", () => {
             />
         );
 
-        expect(markup).toContain("Confident");
         expect(markup).toContain("searchTariffs");
         expect(markup).toContain("Pelita pricelist page 2");
     });
@@ -56,7 +55,7 @@ describe("chat UI components", () => {
                 messages={[
                     {
                         content:
-                            "Tarif aktif Garuda / Citilink ke JAKARTA tersedia dari Rp 17.300/kg.",
+                            "Tarif Garuda / Citilink ke JAKARTA tersedia dari Rp 17.300/kg.",
                         id: "assistant-1",
                         metadata: {
                             tariffAnswer: {
@@ -85,7 +84,7 @@ describe("chat UI components", () => {
             />
         );
 
-        expect(markup).toContain("Tarif aktif");
+        expect(markup).toContain("Tarif");
         expect(markup).toContain("Garuda / Citilink");
         expect(markup).toContain("Rp 17.300/kg");
         expect(markup).toContain("origin tidak tercatat");

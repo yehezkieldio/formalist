@@ -1,46 +1,77 @@
 import { describe, expect, it } from "vitest";
 
-import { buildToolResultFallback } from "#/server/ai/chat/final-answer-guard";
+import {
+    buildRepairEvidence,
+    buildToolResultFallbackMetadata,
+    needsFinalAnswerRepair,
+} from "#/server/ai/chat/final-answer-guard";
 import type { AssistantToolEvent } from "#/server/ai/tools";
 
-describe("final answer repair fallback", () => {
-    it("formats tariff rows as a readable answer instead of dumping raw tool output", () => {
-        const fallback = buildToolResultFallback([
-            {
-                input: { query: "harga jakarta maskapai garuda" },
-                output: "verified_numeric",
-                state: "success",
-                toolName: "classifyIntent",
-            },
-            {
-                input: { query: "Garuda" },
-                output: {
-                    candidates: [],
-                    confidence: 0,
-                    isAmbiguous: false,
-                    resolved: null,
+describe("final answer guard", () => {
+    it("detects planning narration after tool use as repairable", () => {
+        expect(
+            needsFinalAnswerRepair({
+                text: "Let me search the documents first.",
+                toolEvents: [
+                    {
+                        input: { query: "harga balikpapan ambon garuda" },
+                        output: [],
+                        state: "success",
+                        toolName: "searchTariffs",
+                    },
+                ],
+            })
+        ).toBe(true);
+    });
+
+    it("builds compact repair evidence without raw payload dumping", () => {
+        const evidence = buildRepairEvidence({
+            originalAnswer: "Let me check more sources.",
+            query: "harga balikpapan ke ambon dengan garuda",
+            toolEvents: [
+                {
+                    input: { query: "AMBON Garuda Balikpapan" },
+                    output: [
+                        {
+                            airline: "Garuda/Citilink",
+                            destinationCity: "AMBON",
+                            destinationCode: "AMQ",
+                            ignoredNestedBlob: "x".repeat(2000),
+                            originCity: "BALIKPAPAN",
+                            rawRowText:
+                                "Garuda/Citilink | AMBON | AMQ | TRANSIT | CGK | Rp 62.800",
+                            routeType: "TRANSIT",
+                            smuPricePerKg: 62_800,
+                            transitRoute: "CGK",
+                        },
+                    ],
+                    state: "success",
+                    toolName: "hybridSearch",
                 },
-                state: "success",
-                toolName: "resolveAliases",
-            },
+            ] satisfies AssistantToolEvent[],
+        });
+
+        expect(JSON.stringify(evidence)).toContain("Rp 62.800");
+        expect(JSON.stringify(evidence)).toContain("BALIKPAPAN");
+        expect(JSON.stringify(evidence)).not.toContain("ignoredNestedBlob");
+        expect(JSON.stringify(evidence).length).toBeLessThan(2000);
+    });
+
+    it("still builds tariff answer metadata for structured tariff rows", () => {
+        const metadata = buildToolResultFallbackMetadata([
             {
-                input: { airline: "Garuda", destinationCity: "Jakarta" },
+                input: { airline: "Garuda", destinationCity: "Ambon" },
                 output: [
                     {
                         airline: "Garuda",
-                        destinationCity: "JAKARTA",
+                        destinationCity: "AMBON",
+                        destinationCode: "AMQ",
+                        documentId: "doc-1",
                         isPromo: false,
-                        originCity: "SURABAYA",
-                        routeType: "DIRECT",
-                        smuPricePerKg: 18_250,
-                    },
-                    {
-                        airline: "Garuda",
-                        destinationCity: "JAKARTA",
-                        isPromo: true,
-                        originCity: "SURABAYA",
-                        routeType: "DIRECT",
-                        smuPricePerKg: 17_300,
+                        originCity: "BALIKPAPAN",
+                        routeType: "TRANSIT",
+                        smuPricePerKg: 62_800,
+                        transitRoute: "CGK",
                     },
                 ],
                 state: "success",
@@ -48,39 +79,11 @@ describe("final answer repair fallback", () => {
             },
         ] satisfies AssistantToolEvent[]);
 
-        expect(fallback).toContain("Tarif aktif Garuda ke JAKARTA tersedia");
-        expect(fallback).toContain("Rp 17.300/kg");
-        expect(fallback).toContain("Rp 18.250/kg");
-        expect(fallback).toContain("detailnya saya tampilkan di bawah");
-        expect(fallback).not.toContain("Tool results:");
-        expect(fallback).not.toContain("resolveAliases");
-        expect(fallback).not.toContain("result");
-        expect(fallback).not.toContain("SURABAYA -> JAKARTA");
-    });
-
-    it("does not promote generic tool output into answer text", () => {
-        const fallback = buildToolResultFallback([
-            {
-                input: { query: "documents" },
-                output: {
-                    items: [
-                        { filename: "tariff.pdf" },
-                        { filename: "fees.pdf" },
-                    ],
-                },
-                state: "success",
-                toolName: "listDocuments",
-            },
-        ] satisfies AssistantToolEvent[]);
-
-        expect(fallback).toContain(
-            "tidak akan menampilkan payload tool mentah"
-        );
-        expect(fallback).not.toContain("listDocuments:");
-        expect(fallback).not.toContain("Returned 2 results.");
-        expect(fallback).not.toContain("Tool results:");
-        expect(fallback).not.toContain("{");
-        expect(fallback).not.toContain("}");
-        expect(fallback).not.toContain('"items"');
+        expect(metadata?.tariffAnswer?.rows[0]).toMatchObject({
+            destinationCode: "AMQ",
+            originCity: "BALIKPAPAN",
+            routeType: "TRANSIT via CGK",
+            smuPricePerKg: 62_800,
+        });
     });
 });

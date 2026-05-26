@@ -26,7 +26,7 @@ const structuredMock = {
 vi.mock("#/server/retrieval/structured-search", () => structuredMock);
 
 describe("destination listing", () => {
-    it("groups active reviewed destinations", async () => {
+    it("groups extracted destinations", async () => {
         const { listDestinations } =
             await import("#/server/retrieval/destination-list");
 

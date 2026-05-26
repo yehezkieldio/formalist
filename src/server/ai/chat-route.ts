@@ -2,15 +2,16 @@ import {
     convertToModelMessages,
     createUIMessageStream,
     createUIMessageStreamResponse,
+    generateText,
+    Output,
     stepCountIs,
     streamText,
 } from "ai";
-import type { UIMessage } from "ai";
+import type { UIMessage, UIMessageChunk } from "ai";
 import * as z from "zod";
 
-import { getDirectChatAnswer } from "#/server/ai/chat/direct-answers";
 import {
-    buildToolResultFallback,
+    buildRepairEvidence,
     buildToolResultFallbackMetadata,
     needsFinalAnswerRepair,
 } from "#/server/ai/chat/final-answer-guard";
@@ -38,6 +39,11 @@ const chatRequestSchema = z.object({
     sessionId: z.uuid().optional(),
 });
 
+const repairedAnswerSchema = z.object({
+    answer: z.string().min(1),
+    evidenceSnippets: z.array(z.string()).default([]),
+});
+
 function modeFromIntent(intent: ClassifiedIntent) {
     return intent === "quote" || intent === "verified_numeric"
         ? "verified_numeric"
@@ -55,69 +61,6 @@ function writeStatus(
         transient: true,
         type: "data-status",
     });
-}
-
-function createPersistedTextStreamResponse(input: {
-    content: string;
-    evidenceSnippets?: string[];
-    intent: ClassifiedIntent;
-    logger?: ReturnType<typeof createChatLogger>;
-    messages: UIMessage[];
-    metadata?: unknown;
-    mode: "general_rag" | "verified_numeric";
-    sessionId?: string;
-    status?: string;
-}) {
-    const messageId = crypto.randomUUID();
-    const textId = crypto.randomUUID();
-    const metadata =
-        input.metadata && typeof input.metadata === "object"
-            ? { ...input.metadata, intent: input.intent }
-            : { intent: input.intent };
-    const stream = createUIMessageStream({
-        execute: async ({ writer }) => {
-            writer.write({
-                messageId,
-                messageMetadata: metadata,
-                type: "start",
-            });
-
-            if (input.status) {
-                writeStatus(writer, { label: input.status });
-            }
-
-            const titlePrompt = await persistLatestUserMessage(
-                input.sessionId,
-                input.messages,
-                input.logger
-            );
-            await persistAssistantContent({
-                content: input.content,
-                evidenceSnippets: input.evidenceSnippets ?? [input.content],
-                id: messageId,
-                logger: input.logger,
-                metadata,
-                mode: input.mode,
-                parts: [{ text: input.content, type: "text" }],
-                sessionId: input.sessionId,
-            });
-            writer.write({ id: textId, type: "text-start" });
-            writer.write({
-                delta: input.content,
-                id: textId,
-                type: "text-delta",
-            });
-            writer.write({ id: textId, type: "text-end" });
-            await ensureSessionTitle({
-                logger: input.logger,
-                sessionId: input.sessionId,
-                titlePrompt,
-            });
-            input.logger?.info("request:finish");
-        },
-    });
-
-    return createUIMessageStreamResponse({ status: 200, stream });
 }
 
 function writeToolStatus(
@@ -163,6 +106,24 @@ function writeTextToStream(
     writer.write({ id: textId, type: "text-end" });
 }
 
+function isBufferedModelTextChunk(chunk: UIMessageChunk) {
+    return (
+        chunk.type === "text-start" ||
+        chunk.type === "text-delta" ||
+        chunk.type === "text-end"
+    );
+}
+
+function isForwardedLiveModelChunk(chunk: UIMessageChunk) {
+    return (
+        chunk.type === "reasoning-start" ||
+        chunk.type === "reasoning-delta" ||
+        chunk.type === "reasoning-end" ||
+        chunk.type === "error" ||
+        chunk.type === "message-metadata"
+    );
+}
+
 function getReasoningText(message: UIMessage) {
     return message.parts
         .filter((part) => part.type === "reasoning")
@@ -189,6 +150,39 @@ function buildRepairedMessageParts(message: UIMessage, fallback: string) {
     ];
 }
 
+async function repairFinalAnswer(input: {
+    originalAnswer: string;
+    provider: Extract<AiProviderState, { status: "ready" }>;
+    query: string;
+    toolEvents: AssistantToolEvent[];
+}) {
+    const { chatModel } = getModelConfiguration();
+    const evidence = buildRepairEvidence({
+        originalAnswer: input.originalAnswer,
+        query: input.query,
+        toolEvents: input.toolEvents,
+    });
+    const result = await generateText({
+        maxOutputTokens: 900,
+        model: input.provider.openrouter.chat(
+            chatModel,
+            getOpenRouterChatSettings()
+        ),
+        output: Output.object({ schema: repairedAnswerSchema }),
+        prompt: JSON.stringify(evidence),
+        system: [
+            "You repair a failed Formalist air-cargo RAG answer.",
+            "Return only a user-facing answer in Bahasa Indonesia and short evidence snippets.",
+            "Use the provided tool results as evidence. Do not mention internal tool names unless necessary for debugging.",
+            "Do not include chain-of-thought, planning narration, raw JSON, or tool payload dumps.",
+            "If table chunks or source snippets contain the answer, synthesize them directly instead of asking for fields already present.",
+            "If results conflict, present the conflicting values and ask for the discriminator needed to choose one.",
+        ].join("\n"),
+    });
+
+    return result.output;
+}
+
 function streamModelResponse(input: {
     logger: ReturnType<typeof createChatLogger>;
     messages: UIMessage[];
@@ -202,6 +196,10 @@ function streamModelResponse(input: {
     const toolEvents: AssistantToolEvent[] = [];
     const stream = createUIMessageStream({
         execute: async ({ writer }) => {
+            writer.write({
+                messageId: assistantMessageId,
+                type: "start",
+            });
             writeStatus(writer, { label: "Preparing request" });
 
             const titlePrompt = await persistLatestUserMessage(
@@ -258,91 +256,116 @@ function streamModelResponse(input: {
                 }),
             });
 
-            writer.merge(
-                result.toUIMessageStream({
-                    generateMessageId: () => assistantMessageId,
-                    onError: (error) =>
-                        error instanceof Error
-                            ? error.message
-                            : "The model returned an error before writing a response.",
-                    onFinish: async ({ responseMessage }) => {
-                        const responseText = getMessageText(responseMessage);
-                        input.logger.info("stream:finish", {
-                            responseLength: responseText.length,
-                            toolEventCount: toolEvents.length,
-                        });
+            const bufferedTextChunks: UIMessageChunk[] = [];
+            let shouldEmitBufferedText = true;
 
-                        if (
-                            needsFinalAnswerRepair({
-                                text: responseText,
-                                toolEvents,
-                            })
-                        ) {
-                            const fallback =
-                                buildToolResultFallback(toolEvents);
-                            const fallbackMetadata =
-                                buildToolResultFallbackMetadata(toolEvents);
-                            input.logger.info("stream:repair-final-answer", {
-                                fallbackLength: fallback.length,
-                            });
-                            if (fallbackMetadata) {
-                                writer.write({
-                                    messageMetadata: {
-                                        ...fallbackMetadata,
-                                        repaired: true,
-                                    },
-                                    type: "message-metadata",
-                                });
-                            }
-                            writeTextToStream(writer, fallback);
-                            await persistAssistantContent({
-                                content: fallback,
-                                evidenceSnippets: [fallback],
-                                id: assistantMessageId,
-                                logger: input.logger,
-                                metadata: fallbackMetadata
-                                    ? {
-                                          ...buildRepairedMessageMetadata(
-                                              responseMessage
-                                          ),
-                                          ...fallbackMetadata,
-                                      }
-                                    : buildRepairedMessageMetadata(
-                                          responseMessage
-                                      ),
-                                mode: input.mode,
-                                parts: buildRepairedMessageParts(
-                                    responseMessage,
-                                    fallback
-                                ),
-                                sessionId: input.sessionId,
-                            });
-                        } else {
-                            await persistAssistantMessage({
-                                logger: input.logger,
-                                message: responseMessage,
-                                mode: input.mode,
-                                sessionId: input.sessionId,
+            const modelStream = result.toUIMessageStream({
+                generateMessageId: () => assistantMessageId,
+                onError: (error) =>
+                    error instanceof Error
+                        ? error.message
+                        : "The model returned an error before writing a response.",
+                onFinish: async ({ responseMessage }) => {
+                    const responseText = getMessageText(responseMessage);
+                    input.logger.info("stream:finish", {
+                        responseLength: responseText.length,
+                        toolEventCount: toolEvents.length,
+                    });
+
+                    if (
+                        needsFinalAnswerRepair({
+                            text: responseText,
+                            toolEvents,
+                        })
+                    ) {
+                        shouldEmitBufferedText = false;
+                        const repairedAnswer = await repairFinalAnswer({
+                            originalAnswer: responseText,
+                            provider: input.provider,
+                            query: getLastUserText(input.messages),
+                            toolEvents,
+                        });
+                        const fallbackMetadata =
+                            buildToolResultFallbackMetadata(toolEvents);
+                        input.logger.info("stream:repair-final-answer", {
+                            fallbackLength: repairedAnswer.answer.length,
+                        });
+                        if (fallbackMetadata) {
+                            writer.write({
+                                messageMetadata: {
+                                    ...fallbackMetadata,
+                                    repaired: true,
+                                },
+                                type: "message-metadata",
                             });
                         }
-
-                        await ensureSessionTitle({
+                        writeTextToStream(writer, repairedAnswer.answer);
+                        await persistAssistantContent({
+                            content: repairedAnswer.answer,
+                            evidenceSnippets:
+                                repairedAnswer.evidenceSnippets.length > 0
+                                    ? repairedAnswer.evidenceSnippets
+                                    : [repairedAnswer.answer],
+                            id: assistantMessageId,
                             logger: input.logger,
+                            metadata: fallbackMetadata
+                                ? {
+                                      ...buildRepairedMessageMetadata(
+                                          responseMessage
+                                      ),
+                                      ...fallbackMetadata,
+                                  }
+                                : buildRepairedMessageMetadata(responseMessage),
+                            mode: input.mode,
+                            parts: buildRepairedMessageParts(
+                                responseMessage,
+                                repairedAnswer.answer
+                            ),
                             sessionId: input.sessionId,
-                            titlePrompt,
                         });
-                        input.logger.info("request:finish");
-                    },
-                    originalMessages: input.messages,
-                })
-            );
+                    } else {
+                        await persistAssistantMessage({
+                            logger: input.logger,
+                            message: responseMessage,
+                            mode: input.mode,
+                            sessionId: input.sessionId,
+                        });
+                    }
+
+                    await ensureSessionTitle({
+                        logger: input.logger,
+                        sessionId: input.sessionId,
+                        titlePrompt,
+                    });
+                    input.logger.info("request:finish");
+                },
+                originalMessages: input.messages,
+                sendStart: false,
+            });
+
+            for await (const chunk of modelStream) {
+                if (isBufferedModelTextChunk(chunk)) {
+                    bufferedTextChunks.push(chunk);
+                    continue;
+                }
+
+                if (isForwardedLiveModelChunk(chunk)) {
+                    writer.write(chunk);
+                }
+            }
+
+            if (shouldEmitBufferedText) {
+                for (const chunk of bufferedTextChunks) {
+                    writer.write(chunk);
+                }
+            }
         },
     });
 
     return createUIMessageStreamResponse({ stream });
 }
 
-async function streamChatResponse(input: {
+function streamChatResponse(input: {
     messages: UIMessage[];
     provider: Extract<AiProviderState, { status: "ready" }>;
     sessionId?: string;
@@ -362,29 +385,6 @@ async function streamChatResponse(input: {
     const mode = modeFromIntent(intent);
     logger.info("intent:classified", { intent, mode });
     logger.info("cache:disabled");
-
-    const directAnswer = await getDirectChatAnswer({
-        intent,
-        messages: input.messages,
-        mode,
-        query: lastUserText,
-    });
-
-    if (directAnswer) {
-        logger.info(directAnswer.stage);
-
-        return createPersistedTextStreamResponse({
-            content: directAnswer.content,
-            evidenceSnippets: directAnswer.evidenceSnippets,
-            intent: directAnswer.intent,
-            logger,
-            messages: input.messages,
-            metadata: directAnswer.metadata,
-            mode: directAnswer.mode,
-            sessionId: input.sessionId,
-            status: directAnswer.status,
-        });
-    }
 
     return streamModelResponse({
         intent,

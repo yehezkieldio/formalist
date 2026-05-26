@@ -34,82 +34,6 @@ function formatScalar(value: unknown) {
     }
 }
 
-function summarizeRecord(record: Record<string, unknown>) {
-    const label =
-        formatScalar(record.title) ??
-        formatScalar(record.filename) ??
-        formatScalar(record.destinationCity) ??
-        formatScalar(record.destinationCode) ??
-        formatScalar(record.name) ??
-        "result";
-    const details = [
-        ["airline", record.airline],
-        ["origin", record.originCity ?? record.originCode],
-        ["destination", record.destinationCity ?? record.destinationCode],
-        ["route", record.routeType],
-        ["value", record.valueNumber ?? record.price ?? record.smuPricePerKg],
-        ["confidence", record.confidence ?? record.confidenceState],
-    ]
-        .map(([labelKey, value]) => {
-            const formatted = formatScalar(value);
-            return formatted ? `${labelKey}: ${formatted}` : undefined;
-        })
-        .filter(Boolean);
-
-    return details.length > 0 ? `${label} (${details.join(", ")})` : label;
-}
-
-function getRecordArrayCount(record: Record<string, unknown>) {
-    if (Array.isArray(record.results)) {
-        return record.results.length;
-    }
-
-    if (Array.isArray(record.rows)) {
-        return record.rows.length;
-    }
-
-    if (Array.isArray(record.items)) {
-        return record.items.length;
-    }
-}
-
-function summarizeToolOutput(value: unknown): string[] {
-    if (!value) {
-        return [];
-    }
-
-    if (typeof value === "string") {
-        return value.trim() ? [value.trim()] : [];
-    }
-
-    if (Array.isArray(value)) {
-        return value.slice(0, 8).map((item, index) => {
-            if (typeof item === "string") {
-                return `${index + 1}. ${item}`;
-            }
-
-            if (typeof item === "object" && item) {
-                return `${index + 1}. ${summarizeRecord(item as Record<string, unknown>)}`;
-            }
-
-            return `${index + 1}. ${String(item)}`;
-        });
-    }
-
-    if (typeof value === "object") {
-        const record = value as Record<string, unknown>;
-        const count = getRecordArrayCount(record);
-
-        if (count !== undefined) {
-            return [`Returned ${count} result${count === 1 ? "" : "s"}.`];
-        }
-
-        return [summarizeRecord(record)];
-    }
-
-    return [String(value)];
-}
-
 function getRecordValue(record: Record<string, unknown>, key: string) {
     const value = record[key];
     return value === null || value === undefined ? undefined : value;
@@ -140,15 +64,6 @@ function getTariffRowsFromOutput(output: unknown): Record<string, unknown>[] {
     }
 
     return [];
-}
-
-function formatPrice(value: unknown) {
-    if (typeof value === "number") {
-        return value.toLocaleString("id-ID");
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed.toLocaleString("id-ID") : null;
 }
 
 function buildTariffAnswerData(
@@ -215,26 +130,6 @@ function buildTariffAnswerData(
     };
 }
 
-function formatTariffAnswer(data: TariffAnswerData) {
-    const prices = data.rows
-        .map((row) => row.smuPricePerKg)
-        .filter((price) => Number.isFinite(price))
-        .toSorted((left, right) => left - right);
-    const [lowest] = prices;
-    const highest = prices.at(-1);
-
-    if (lowest === undefined || highest === undefined) {
-        return `Saya menemukan baris tarif aktif untuk ${data.airline ? `${data.airline} ke ` : ""}${data.destination}, tetapi harga belum terbaca dengan aman.`;
-    }
-
-    const range =
-        lowest === highest
-            ? `Rp ${formatPrice(lowest)}/kg`
-            : `Rp ${formatPrice(lowest)}/kg sampai Rp ${formatPrice(highest)}/kg`;
-
-    return `Tarif aktif${data.airline ? ` ${data.airline}` : ""} ke ${data.destination} tersedia ${range}. Saya menemukan ${data.rows.length} baris aktif yang sudah direview; detailnya saya tampilkan di bawah.`;
-}
-
 export function needsFinalAnswerRepair(input: {
     text: string;
     toolEvents: AssistantToolEvent[];
@@ -251,43 +146,6 @@ export function needsFinalAnswerRepair(input: {
     );
 }
 
-export function buildToolResultFallback(toolEvents: AssistantToolEvent[]) {
-    const successfulEvents = toolEvents.filter(isSuccessfulToolEvent);
-
-    if (successfulEvents.length === 0) {
-        return "Saya menjalankan pencarian, tetapi belum ada hasil yang cukup untuk membuat jawaban tepercaya. Coba persempit pertanyaan atau pastikan data sudah direview.";
-    }
-
-    const tariffAnswerData = buildTariffAnswerData(successfulEvents);
-
-    if (tariffAnswerData) {
-        return formatTariffAnswer(tariffAnswerData);
-    }
-
-    const lines = successfulEvents.flatMap((event) => {
-        if (
-            event.toolName === "classifyIntent" ||
-            event.toolName === "resolveAliases"
-        ) {
-            return [];
-        }
-
-        const summary = summarizeToolOutput(event.output);
-
-        if (summary.length === 0) {
-            return [];
-        }
-
-        return [`${event.toolName}:`, ...summary];
-    });
-
-    if (lines.length === 0) {
-        return "Pencarian selesai, tetapi tidak ada hasil terstruktur yang cukup untuk dijadikan jawaban tepercaya.";
-    }
-
-    return "Saya menemukan hasil retrieval, tetapi belum ada jawaban akhir yang aman dari data aktif yang sudah direview. Saya tidak akan menampilkan payload tool mentah sebagai jawaban.";
-}
-
 export function buildToolResultFallbackMetadata(
     toolEvents: AssistantToolEvent[]
 ) {
@@ -296,4 +154,114 @@ export function buildToolResultFallbackMetadata(
     );
 
     return tariffAnswer ? { tariffAnswer } : undefined;
+}
+
+const preservedOutputKeys = new Set([
+    "airline",
+    "city",
+    "code",
+    "confidence",
+    "confidenceState",
+    "destination",
+    "destinationCity",
+    "destinationCode",
+    "documentId",
+    "filename",
+    "isAmbiguous",
+    "isPromo",
+    "metadata",
+    "origin",
+    "originAirport",
+    "originCity",
+    "pageNumber",
+    "price",
+    "rawRowText",
+    "resolved",
+    "routeType",
+    "rowText",
+    "score",
+    "smuPricePerKg",
+    "snippet",
+    "sourceId",
+    "sourceName",
+    "sourceText",
+    "sourceType",
+    "status",
+    "title",
+    "transitRoute",
+    "validFrom",
+    "validUntil",
+    "valueNumber",
+]);
+
+function sanitizeToolValue(value: unknown, depth = 0): unknown {
+    if (value === null || value === undefined) {
+        return value;
+    }
+
+    if (
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        typeof value === "bigint"
+    ) {
+        return value;
+    }
+
+    if (typeof value === "string") {
+        return value.length > 600 ? `${value.slice(0, 600)}...` : value;
+    }
+
+    if (depth > 3) {
+        return "[truncated]";
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .slice(0, 12)
+            .map((item) => sanitizeToolValue(item, depth + 1));
+    }
+
+    if (typeof value === "object") {
+        const entries = Object.entries(value as Record<string, unknown>)
+            .filter(
+                ([key]) =>
+                    preservedOutputKeys.has(key) ||
+                    key === "rows" ||
+                    key === "results" ||
+                    key === "items" ||
+                    key === "candidates"
+            )
+            .slice(0, 24)
+            .map(([key, nestedValue]) => [
+                key,
+                sanitizeToolValue(nestedValue, depth + 1),
+            ]);
+
+        return Object.fromEntries(entries);
+    }
+
+    return String(value);
+}
+
+export function buildRepairEvidence(input: {
+    originalAnswer: string;
+    query: string;
+    toolEvents: AssistantToolEvent[];
+}) {
+    return {
+        originalAnswer: input.originalAnswer.slice(0, 1200),
+        query: input.query,
+        toolEvents: input.toolEvents
+            .filter((event) => event.state !== "running")
+            .map((event) => ({
+                error: "error" in event ? event.error : undefined,
+                input: sanitizeToolValue(event.input),
+                output:
+                    "output" in event
+                        ? sanitizeToolValue(event.output)
+                        : undefined,
+                state: event.state,
+                toolName: event.toolName,
+            })),
+    };
 }

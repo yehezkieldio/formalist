@@ -71,9 +71,6 @@ export function EmptyStateExamples({
                     variants={itemVariants}
                     className="mb-10 flex flex-col items-center gap-3 text-center"
                 >
-                    <span className="font-mono text-[9px] tracking-widest text-muted-foreground/60 uppercase border border-border/40 px-2 py-0.5 bg-muted/20 select-none">
-                        AI ASSISTANT ENGINE
-                    </span>
                     <h1 className="font-mono text-xl font-bold tracking-tight text-foreground uppercase">
                         FORMALIST
                     </h1>

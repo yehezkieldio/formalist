@@ -53,19 +53,17 @@ const capabilities = [
     {
         className: "md:col-span-1",
         description:
-            "Calculations, discounts, and fee totals are processed deterministically via TypeScript code, never guessed by LLMs.",
-        tag: "COMPUTATION",
-        title: "Deterministic Quotes",
+            "The assistant retrieves tariff rows, table evidence, facts, and source chunks through tool calls before composing an answer.",
+        tag: "AGENTIC RAG",
+        title: "Tool-Grounded Answers",
         visual: (
             <div className="flex flex-col gap-1.5 mt-4 border border-border p-4 bg-muted/5 w-full font-mono text-[9px] text-muted-foreground/85">
-                <div>const calculateQuote = (weight, rate) =&gt; &#123;</div>
+                <div>resolveAliases(query)</div>
+                <div className="pl-3 text-foreground">searchTariffs(...)</div>
+                <div className="pl-3 text-foreground">hybridSearch(...)</div>
                 <div className="pl-3 text-foreground">
-                    const base = weight * rate;
+                    getSourceEvidence(...)
                 </div>
-                <div className="pl-3 text-foreground">
-                    return base + Math.max(150000, base * 0.1);
-                </div>
-                <div>&#125;</div>
             </div>
         ),
     },

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { tariffSearchConditions } from "#/server/retrieval/structured-search";
 
 describe("structured tariff search", () => {
-    it("defaults to active reviewed rows only", () => {
-        expect(tariffSearchConditions({})).toHaveLength(1);
+    it("does not add a review-status gate by default", () => {
+        expect(tariffSearchConditions({})).toHaveLength(0);
         expect(
             tariffSearchConditions({
                 airline: "Pelita Air",
@@ -12,6 +12,6 @@ describe("structured tariff search", () => {
                 isPromo: false,
                 routeType: "DIRECT",
             })
-        ).toHaveLength(5);
+        ).toHaveLength(4);
     });
 });

@@ -7,7 +7,6 @@ describe("assistant tool registry", () => {
         const tools = createAssistantTools();
 
         expect(Object.keys(tools).toSorted()).toEqual([
-            "calculateQuote",
             "classifyIntent",
             "compareTariffs",
             "flagAmbiguity",

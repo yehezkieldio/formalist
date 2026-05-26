@@ -7,7 +7,7 @@ export async function findApplicableFeeRule(input: {
     airline?: string | null;
     documentId?: string | null;
 }) {
-    const conditions = [eq(feeRules.status, "active")];
+    const conditions = [];
 
     if (input.documentId) {
         conditions.push(eq(feeRules.documentId, input.documentId));
@@ -26,11 +26,11 @@ export async function findApplicableFeeRule(input: {
     const rules = await getDatabase()
         .select()
         .from(feeRules)
-        .where(and(...conditions));
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
     const [rule] = rules;
 
     return {
         rule: rule ?? null,
-        warnings: rule ? [] : ["No active fee rule found."],
+        warnings: rule ? [] : ["No fee rule found."],
     };
 }
